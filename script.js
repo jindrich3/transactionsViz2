@@ -426,15 +426,15 @@ function calculateOverviewStatistics() {
     overviewStats.newestDate = dates[dates.length - 1];
     
     // Update fixed overview display
-    document.getElementById('transaction-count').textContent = overviewStats.totalTransactions;
     document.getElementById('total-investment').textContent = locale.formatNumber(overviewStats.totalInvestment);
-    document.getElementById('total-withdrawals').textContent = locale.formatNumber(Math.abs(overviewStats.totalWithdrawals));
-    document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
-    document.getElementById('active-projects').textContent = overviewStats.activeProjects;
-    document.getElementById('average-transaction').textContent = locale.formatNumber(overviewStats.averageTransaction);
+    document.getElementById('total-withdrawals').textContent = locale.formatNumber(overviewStats.totalWithdrawals);
     document.getElementById('largest-investment').textContent = locale.formatNumber(overviewStats.largestInvestment);
+    document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
+    document.getElementById('average-investment').textContent = locale.formatNumber(overviewStats.averageInvestment);
+    document.getElementById('portfolio-stages').textContent = overviewStats.portfolioStages;
     document.getElementById('date-range-start').textContent = locale.formatDate(overviewStats.oldestDate);
     document.getElementById('date-range-end').textContent = locale.formatDate(overviewStats.newestDate);
+    document.getElementById('total-fees').textContent = locale.formatNumber(overviewStats.totalFees);
 }
 
 // Statistics Calculation (for filtered data)
@@ -450,36 +450,65 @@ function calculateStatistics(data) {
             totalTransactions: 0,
             totalInvestment: 0,
             totalWithdrawals: 0,
-            netPosition: 0,
-            activeProjects: 0,
-            averageTransaction: 0,
+            averageInvestment: 0,
+            portfolioStages: 0,
             largestInvestment: 0,
-            portfolioDiversity: 0
+            totalFees: 0
         };
     }
     
-    const positive = data.filter(row => row.castka > 0);
-    const negative = data.filter(row => row.castka < 0);
+    // Filter by transaction types according to new requirements
+    // Handle both detailed transaction types (from demo data) and simple types (from sample data)
+    const investments = data.filter(row => 
+        row.typ === 'Investice do příležitosti' || 
+        row.typ === 'Autoinvestice' ||
+        (row.typ === 'Investice' && row.detail && row.detail.includes('Investice do příležitosti')) ||
+        (row.typ === 'Investice' && !row.detail) // Simple sample data case
+    );
+    const withdrawals = data.filter(row => 
+        row.typ === 'Výběr peněz' ||
+        (row.typ === 'Výběr' && !row.detail) // Simple sample data case
+    );
+    const exits = data.filter(row => row.typ === 'Odstoupení');
+    const fees = data.filter(row => 
+        row.typ === 'Poplatek za předčasný prodej' || 
+        row.typ === 'Poplatek za výběr' ||
+        (row.typ === 'Poplatek' && !row.detail) // Simple sample data case
+    );
     
-    const totalInvestment = positive.reduce((sum, row) => sum + row.castka, 0);
-    const totalWithdrawals = negative.reduce((sum, row) => sum + row.castka, 0);
-    const netPosition = totalInvestment + totalWithdrawals;
+    // Celková investice = sum of investments minus sum of exits
+    const totalInvestmentAmount = investments.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const totalExitAmount = exits.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const totalInvestment = totalInvestmentAmount - totalExitAmount;
     
-    const uniqueProjects = new Set(data.map(row => row.projekt).filter(p => p));
-    const uniqueProjectTypes = new Set(data.map(row => row.typ_projektu).filter(t => t));
+    // Celkové výběry = sum of withdrawals
+    const totalWithdrawals = withdrawals.reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
-    const averageTransaction = data.reduce((sum, row) => sum + Math.abs(row.castka), 0) / data.length;
-    const largestInvestment = Math.max(...positive.map(row => row.castka), 0);
+    // Největší investice = highest amount from investments
+    const largestInvestment = investments.length > 0 ? 
+        Math.max(...investments.map(row => Math.abs(row.castka))) : 0;
+    
+    // Průměrná výše investice = mean of all investments
+    const averageInvestment = investments.length > 0 ? 
+        investments.reduce((sum, row) => sum + Math.abs(row.castka), 0) / investments.length : 0;
+    
+    // Počet etap v portfoliu = count of distinct project names in investments
+    const uniqueInvestmentProjects = new Set(
+        investments.map(row => row.projekt).filter(p => p && p.trim() !== '')
+    );
+    const portfolioStages = uniqueInvestmentProjects.size;
+    
+    // Poplatky = sum of all fees
+    const totalFees = fees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
     return {
         totalTransactions: data.length,
         totalInvestment,
         totalWithdrawals,
-        netPosition,
-        activeProjects: uniqueProjects.size,
-        averageTransaction,
+        averageInvestment,
+        portfolioStages,
         largestInvestment,
-        portfolioDiversity: uniqueProjectTypes.size
+        totalFees
     };
 }
 
