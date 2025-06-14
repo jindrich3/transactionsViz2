@@ -3,15 +3,15 @@ let csvData = [];
 let filteredData = [];
 let charts = {};
 let selectedFile = null;
+let overviewStats = {};
 
 // State management
 const state = {
     filters: {
         dateFrom: null,
         dateTo: null,
-        selectedProjects: [],
         selectedTransactionTypes: [],
-        globalSearch: ''
+        projectSearch: ''
     },
     pagination: {
         currentPage: 1,
@@ -64,8 +64,6 @@ function setupEventListeners() {
     
     // Filter functionality  
     document.getElementById('clear-filters').addEventListener('click', clearAllFilters);
-    document.getElementById('global-search').addEventListener('input', debounce(handleGlobalSearch, 300));
-    document.getElementById('project-search').addEventListener('input', filterProjectOptions);
     
     // Date presets
     document.querySelectorAll('.preset-btn').forEach(btn => {
@@ -80,10 +78,7 @@ function setupEventListeners() {
     document.getElementById('export-btn').addEventListener('click', exportToCSV);
 }
 
-function handleGlobalSearch() {
-    state.filters.globalSearch = document.getElementById('global-search').value;
-    applyFilters();
-}
+
 
 // Setup drag and drop upload area
 function setupUploadArea() {
@@ -282,6 +277,11 @@ function processCSVData(data) {
             throw new Error(`Nebyly nalezeny žádné validní data. Zkontrolujte formát CSV souboru a názvy sloupců.`);
         }
         
+        // Reset filters and show all data initially
+        state.filters.dateFrom = null;
+        state.filters.dateTo = null;
+        state.filters.selectedTransactionTypes = [];
+        state.filters.projectSearch = '';
         filteredData = [...csvData];
         
         showSuccess(csvData.length);
@@ -396,26 +396,46 @@ function resetToLanding() {
 
 // Dashboard Initialization
 function initializeDashboard() {
+    // Set filteredData to show all data initially (no filters)
+    filteredData = [...csvData];
+    
+    calculateOverviewStatistics();
     updateStatistics();
     createFilterOptions();
     createCharts();
     updateTable();
     updateAdvancedStatistics();
+    
+    // Initialize button state (should be disabled initially)
+    updateClearFiltersButton();
 }
 
-// Statistics Calculation
-function updateStatistics() {
-    const stats = calculateStatistics(filteredData);
+// Overview Statistics (Fixed - not affected by filters)
+function calculateOverviewStatistics() {
+    overviewStats = calculateStatistics(csvData);
     
-    document.getElementById('transaction-count').textContent = stats.totalTransactions;
-    document.getElementById('total-investment').textContent = locale.formatNumber(stats.totalInvestment);
-    document.getElementById('total-withdrawals').textContent = locale.formatNumber(Math.abs(stats.totalWithdrawals));
-    document.getElementById('net-position').textContent = locale.formatNumber(stats.netPosition);
-    document.getElementById('transaction-count-stat').textContent = stats.totalTransactions;
-    document.getElementById('active-projects').textContent = stats.activeProjects;
-    document.getElementById('average-transaction').textContent = locale.formatNumber(stats.averageTransaction);
-    document.getElementById('largest-investment').textContent = locale.formatNumber(stats.largestInvestment);
-    document.getElementById('portfolio-diversity').textContent = stats.portfolioDiversity;
+    // Calculate date range
+    const dates = csvData.map(row => row.datum).sort((a, b) => a - b);
+    overviewStats.oldestDate = dates[0];
+    overviewStats.newestDate = dates[dates.length - 1];
+    
+    // Update fixed overview display
+    document.getElementById('transaction-count').textContent = overviewStats.totalTransactions;
+    document.getElementById('total-investment').textContent = locale.formatNumber(overviewStats.totalInvestment);
+    document.getElementById('total-withdrawals').textContent = locale.formatNumber(Math.abs(overviewStats.totalWithdrawals));
+    document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
+    document.getElementById('active-projects').textContent = overviewStats.activeProjects;
+    document.getElementById('average-transaction').textContent = locale.formatNumber(overviewStats.averageTransaction);
+    document.getElementById('largest-investment').textContent = locale.formatNumber(overviewStats.largestInvestment);
+    document.getElementById('date-range-start').textContent = locale.formatDate(overviewStats.oldestDate);
+    document.getElementById('date-range-end').textContent = locale.formatDate(overviewStats.newestDate);
+}
+
+// Statistics Calculation (for filtered data)
+function updateStatistics() {
+    // Overview statistics remain fixed, only update filtered stats if needed
+    const filteredStats = calculateStatistics(filteredData);
+    // Currently not updating any filtered stats in the main cards since they're now overview-only
 }
 
 function calculateStatistics(data) {
@@ -459,81 +479,40 @@ function calculateStatistics(data) {
 
 // Filter Options Creation
 function createFilterOptions() {
-    createProjectFilter();
-    createTransactionTypeFilter();
+    createTransactionTypeDropdown();
+    setupProjectSearch();
 }
 
-function createProjectFilter() {
-    const projects = [...new Set(csvData.map(row => row.projekt).filter(p => p))];
-    const container = document.getElementById('project-options');
-    
-    container.innerHTML = projects.map(project => `
-        <div class="project-option">
-            <input type="checkbox" id="project-${project}" value="${project}">
-            <label for="project-${project}">${project}</label>
-        </div>
-    `).join('');
-    
-    // Add event listeners
-    container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', updateProjectFilter);
-    });
-}
-
-function createTransactionTypeFilter() {
+function createTransactionTypeDropdown() {
     const types = [...new Set(csvData.map(row => row.typ).filter(t => t))];
-    const container = document.getElementById('transaction-types');
+    const select = document.getElementById('transaction-type-select');
     
-    container.innerHTML = types.map(type => {
+    select.innerHTML = types.map(type => {
         const count = csvData.filter(row => row.typ === type).length;
-        return `
-            <button class="transaction-type-btn" data-type="${type}">
-                ${type}
-                <span class="transaction-type-count">${count}</span>
-            </button>
-        `;
+        return `<option value="${type}">${type} (${count})</option>`;
     }).join('');
     
-    // Add event listeners
-    container.querySelectorAll('.transaction-type-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => toggleTransactionType(e.target.dataset.type));
-    });
+    // Add event listener
+    select.addEventListener('change', updateTransactionTypeFilter);
+}
+
+function setupProjectSearch() {
+    const searchInput = document.getElementById('project-search');
+    searchInput.addEventListener('input', debounce(handleProjectSearch, 300));
 }
 
 // Filter Functions
-function filterProjectOptions() {
-    const search = document.getElementById('project-search').value.toLowerCase();
-    const options = document.querySelectorAll('.project-option');
+function updateTransactionTypeFilter() {
+    const select = document.getElementById('transaction-type-select');
+    const selectedOptions = Array.from(select.selectedOptions).map(option => option.value);
     
-    options.forEach(option => {
-        const text = option.textContent.toLowerCase();
-        option.style.display = text.includes(search) ? 'flex' : 'none';
-    });
-    
-    document.getElementById('project-options').classList.add('show');
-}
-
-function updateProjectFilter() {
-    const selected = Array.from(document.querySelectorAll('#project-options input:checked'))
-        .map(input => input.value);
-    
-    state.filters.selectedProjects = selected;
+    state.filters.selectedTransactionTypes = selectedOptions;
     applyFilters();
 }
 
-function toggleTransactionType(type) {
-    const btn = document.querySelector(`[data-type="${type}"]`);
-    const isActive = btn.classList.contains('active');
-    
-    if (isActive) {
-        btn.classList.remove('active');
-        state.filters.selectedTransactionTypes = 
-            state.filters.selectedTransactionTypes.filter(t => t !== type);
-    } else {
-        btn.classList.add('active');
-        state.filters.selectedTransactionTypes.push(type);
-    }
-    
+function handleProjectSearch() {
+    const searchTerm = document.getElementById('project-search').value.toLowerCase();
+    state.filters.projectSearch = searchTerm;
     applyFilters();
 }
 
@@ -571,26 +550,43 @@ function clearAllFilters() {
     document.getElementById('date-from')._flatpickr.clear();
     document.getElementById('date-to')._flatpickr.clear();
     
-    // Clear project filters
-    state.filters.selectedProjects = [];
-    document.querySelectorAll('#project-options input').forEach(input => {
-        input.checked = false;
-    });
-    
     // Clear transaction type filters
     state.filters.selectedTransactionTypes = [];
-    document.querySelectorAll('.transaction-type-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    const select = document.getElementById('transaction-type-select');
+    Array.from(select.options).forEach(option => option.selected = false);
     
-    // Clear global search
-    state.filters.globalSearch = '';
-    document.getElementById('global-search').value = '';
+    // Clear project search
+    state.filters.projectSearch = '';
+    document.getElementById('project-search').value = '';
     
     // Clear preset button active states
     document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
     
     applyFilters();
+}
+
+// Check if any filters are active
+function hasActiveFilters() {
+    return !!(
+        state.filters.dateFrom ||
+        state.filters.dateTo ||
+        state.filters.selectedTransactionTypes.length > 0 ||
+        state.filters.projectSearch.trim()
+    );
+}
+
+// Update clear filters button state
+function updateClearFiltersButton() {
+    const clearBtn = document.getElementById('clear-filters');
+    const hasFilters = hasActiveFilters();
+    
+    clearBtn.disabled = !hasFilters;
+    
+    if (hasFilters) {
+        clearBtn.classList.remove('disabled');
+    } else {
+        clearBtn.classList.add('disabled');
+    }
 }
 
 // Apply Filters
@@ -600,29 +596,23 @@ function applyFilters() {
         if (state.filters.dateFrom && row.datum < state.filters.dateFrom) return false;
         if (state.filters.dateTo && row.datum > state.filters.dateTo) return false;
         
-        // Project filter
-        if (state.filters.selectedProjects.length > 0 && 
-            !state.filters.selectedProjects.includes(row.projekt)) return false;
-        
         // Transaction type filter
         if (state.filters.selectedTransactionTypes.length > 0 && 
             !state.filters.selectedTransactionTypes.includes(row.typ)) return false;
         
-        // Global search
-        if (state.filters.globalSearch) {
-            const searchTerm = state.filters.globalSearch.toLowerCase();
-            const searchableText = [
-                row.detail,
-                row.projekt,
-                row.typ,
-                row.typ_projektu
-            ].join(' ').toLowerCase();
+        // Project search (only search in project field)
+        if (state.filters.projectSearch) {
+            const searchTerm = state.filters.projectSearch.toLowerCase();
+            const projectName = (row.projekt || '').toLowerCase();
             
-            if (!searchableText.includes(searchTerm)) return false;
+            if (!projectName.includes(searchTerm)) return false;
         }
         
         return true;
     });
+    
+    // Update clear filters button state
+    updateClearFiltersButton();
     
     // Update UI
     updateStatistics();

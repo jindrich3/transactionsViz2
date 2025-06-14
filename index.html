@@ -87,7 +87,7 @@
             <div class="container">
                 <div class="header-content">
                     <div class="header-left">
-                        <h1 class="dashboard-title">Dashboard investic</h1>
+                        <h1 class="dashboard-title">Analýza investic uživatele</h1>
                         <p class="dashboard-subtitle" id="data-summary">Načteno <span id="transaction-count">0</span> transakcí</p>
                     </div>
                     <div class="header-right">
@@ -124,11 +124,11 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-chart-line"></i>
+                            <i class="fas fa-crown"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 class="stat-value" id="net-position">0 Kč</h3>
-                            <p class="stat-label">Čistá pozice</p>
+                            <h3 class="stat-value" id="largest-investment">0 Kč</h3>
+                            <p class="stat-label">Největší investice</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -151,15 +151,6 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-calculator"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="average-transaction">0 Kč</h3>
-                            <p class="stat-label">Průměrná transakce</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
                             <i class="fas fa-crown"></i>
                         </div>
                         <div class="stat-content">
@@ -169,71 +160,113 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-layer-group"></i>
+                            <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 class="stat-value" id="portfolio-diversity">0</h3>
-                            <p class="stat-label">Diverzifikace portfolia</p>
+                            <h3 class="stat-value" id="date-range-start">--</h3>
+                            <p class="stat-label">Nejstarší transakce</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="date-range-end">--</h3>
+                            <p class="stat-label">Nejnovější transakce</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="average-transaction">0 Kč</h3>
+                            <p class="stat-label">Průměrná transakce</p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Filters -->
-        <section class="filters-section">
+        <!-- Data Table -->
+        <section class="table-section">
             <div class="container">
-                <div class="filters-card">
-                    <div class="filters-header">
-                        <h3>Filtry</h3>
-                        <button class="btn btn-outline" id="clear-filters">Vymazat filtry</button>
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Transakce</h3>
+                        <div class="table-actions">
+                            <button class="btn btn-outline" id="clear-filters">Vymazat filtry</button>
+                            <button class="btn btn-outline" id="export-btn">
+                                <i class="fas fa-download"></i>
+                                Exportovat CSV
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="filters-grid">
-                        <!-- Date Range Filter -->
-                        <div class="filter-group">
-                            <label class="filter-label">Časové období</label>
-                            <div class="date-range-container">
-                                <input type="text" id="date-from" placeholder="Od" class="date-input">
-                                <input type="text" id="date-to" placeholder="Do" class="date-input">
-                            </div>
-                            <div class="date-presets">
-                                <button class="preset-btn" data-days="7">7 dní</button>
-                                <button class="preset-btn" data-days="30">30 dní</button>
-                                <button class="preset-btn" data-days="90">3 měsíce</button>
-                                <button class="preset-btn" data-days="180">6 měsíců</button>
-                                <button class="preset-btn" data-days="365">1 rok</button>
-                                <button class="preset-btn" data-days="all">Vše</button>
-                            </div>
-                        </div>
-
-                        <!-- Project Filter -->
-                        <div class="filter-group">
-                            <label class="filter-label">Projekty</label>
-                            <div class="project-filter">
-                                <input type="text" id="project-search" placeholder="Hledat projekty..." class="search-input">
-                                <div class="project-options" id="project-options">
-                                    <!-- Populated by JavaScript -->
+                    <!-- Integrated Filters -->
+                    <div class="table-filters">
+                        <div class="filter-row">
+                            <!-- Date Range Filter -->
+                            <div class="filter-group">
+                                <label class="filter-label">Časové období</label>
+                                <div class="date-range-container">
+                                    <input type="text" id="date-from" placeholder="Od" class="date-input">
+                                    <input type="text" id="date-to" placeholder="Do" class="date-input">
+                                </div>
+                                <div class="date-presets">
+                                    <button class="preset-btn" data-days="7">7 dní</button>
+                                    <button class="preset-btn" data-days="30">30 dní</button>
+                                    <button class="preset-btn" data-days="90">3 měsíce</button>
+                                    <button class="preset-btn" data-days="180">6 měsíců</button>
+                                    <button class="preset-btn" data-days="365">1 rok</button>
+                                    <button class="preset-btn" data-days="all">Vše</button>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Transaction Type Filter -->
-                        <div class="filter-group">
-                            <label class="filter-label">Typ transakce</label>
-                            <div class="transaction-types" id="transaction-types">
+                            <!-- Transaction Type Dropdown -->
+                            <div class="filter-group">
+                                <label class="filter-label">Typ transakce</label>
+                                <div class="dropdown-container">
+                                    <select id="transaction-type-select" class="filter-select" multiple>
+                                        <!-- Populated by JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Project Search -->
+                            <div class="filter-group">
+                                <label class="filter-label">Hledat v projektech</label>
+                                <div class="search-container">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" id="project-search" placeholder="Hledat projekty..." class="search-input">
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table" id="data-table">
+                            <thead>
+                                <tr>
+                                    <th data-sort="datum">Datum <i class="fas fa-sort"></i></th>
+                                    <th data-sort="typ">Typ <i class="fas fa-sort"></i></th>
+                                    <th data-sort="detail">Detail <i class="fas fa-sort"></i></th>
+                                    <th data-sort="castka">Částka <i class="fas fa-sort"></i></th>
+                                    <th data-sort="projekt">Projekt <i class="fas fa-sort"></i></th>
+                                    <th data-sort="typ-projektu">Typ projektu <i class="fas fa-sort"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
                                 <!-- Populated by JavaScript -->
-                            </div>
-                        </div>
-
-                        <!-- Global Search -->
-                        <div class="filter-group">
-                            <label class="filter-label">Globální vyhledávání</label>
-                            <div class="search-container">
-                                <i class="fas fa-search search-icon"></i>
-                                <input type="text" id="global-search" placeholder="Hledat v detailech, projektech..." class="search-input">
-                            </div>
-                        </div>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="table-pagination" id="table-pagination">
+                        <!-- Populated by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -325,44 +358,6 @@
             </div>
         </section>
 
-        <!-- Data Table -->
-        <section class="table-section">
-            <div class="container">
-                <div class="table-card">
-                    <div class="table-header">
-                        <h3>Transakce</h3>
-                        <div class="table-actions">
-                            <button class="btn btn-outline" id="export-btn">
-                                <i class="fas fa-download"></i>
-                                Exportovat CSV
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="table-container">
-                        <table class="data-table" id="data-table">
-                            <thead>
-                                <tr>
-                                    <th data-sort="datum">Datum <i class="fas fa-sort"></i></th>
-                                    <th data-sort="typ">Typ <i class="fas fa-sort"></i></th>
-                                    <th data-sort="detail">Detail <i class="fas fa-sort"></i></th>
-                                    <th data-sort="castka">Částka <i class="fas fa-sort"></i></th>
-                                    <th data-sort="projekt">Projekt <i class="fas fa-sort"></i></th>
-                                    <th data-sort="typ-projektu">Typ projektu <i class="fas fa-sort"></i></th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body">
-                                <!-- Populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="table-pagination" id="table-pagination">
-                        <!-- Populated by JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </section>
     </div>
 
     <!-- Scripts -->
