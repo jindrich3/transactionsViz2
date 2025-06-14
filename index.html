@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Transaction Dashboard</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <!-- Papa Parse for CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- Date picker -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/cs.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+</head>
+<body>
+    <!-- Landing Page -->
+    <div id="landing-page" class="landing-page">
+        <div class="container">
+            <div class="hero-section">
+                <h1 class="hero-title">Analýza investičních transakcí</h1>
+                <p class="hero-subtitle">Nahrajte své CSV soubory a získejte detailní přehled o vašich investicích</p>
+                
+                <div class="upload-section">
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h3>Přetáhněte CSV soubor sem</h3>
+                            <p>nebo</p>
+                            <button class="upload-btn" id="upload-btn">Vyberte soubor</button>
+                            <input type="file" id="file-input" accept=".csv" hidden>
+                            <p class="upload-info">Podporované formáty: CSV</p>
+                        </div>
+                        <div class="upload-loading" id="upload-loading" style="display: none;">
+                            <div class="loading-spinner"></div>
+                            <p>Zpracovávám data...</p>
+                        </div>
+                        <div class="upload-success" id="upload-success" style="display: none;">
+                            <i class="fas fa-check-circle success-icon"></i>
+                            <p>Soubor byl úspěšně nahrán!</p>
+                        </div>
+                        <div class="upload-error" id="upload-error" style="display: none;">
+                            <i class="fas fa-exclamation-circle error-icon"></i>
+                            <p id="error-message">Chyba při nahrávání souboru</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard" style="display: none;">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1 class="dashboard-title">Dashboard investic</h1>
+                        <p class="dashboard-subtitle" id="data-summary">Načteno <span id="transaction-count">0</span> transakcí</p>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn btn-secondary" id="new-upload-btn">
+                            <i class="fas fa-upload"></i>
+                            Nahrát nový soubor
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Cards -->
+        <section class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="total-investment">0 Kč</h3>
+                            <p class="stat-label">Celková investice</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="total-withdrawals">0 Kč</h3>
+                            <p class="stat-label">Celkové výběry</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="net-position">0 Kč</h3>
+                            <p class="stat-label">Čistá pozice</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="transaction-count-stat">0</h3>
+                            <p class="stat-label">Počet transakcí</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="active-projects">0</h3>
+                            <p class="stat-label">Aktivní projekty</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="average-transaction">0 Kč</h3>
+                            <p class="stat-label">Průměrná transakce</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="largest-investment">0 Kč</h3>
+                            <p class="stat-label">Největší investice</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="portfolio-diversity">0</h3>
+                            <p class="stat-label">Diverzifikace portfolia</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters -->
+        <section class="filters-section">
+            <div class="container">
+                <div class="filters-card">
+                    <div class="filters-header">
+                        <h3>Filtry</h3>
+                        <button class="btn btn-outline" id="clear-filters">Vymazat filtry</button>
+                    </div>
+                    
+                    <div class="filters-grid">
+                        <!-- Date Range Filter -->
+                        <div class="filter-group">
+                            <label class="filter-label">Časové období</label>
+                            <div class="date-range-container">
+                                <input type="text" id="date-from" placeholder="Od" class="date-input">
+                                <input type="text" id="date-to" placeholder="Do" class="date-input">
+                            </div>
+                            <div class="date-presets">
+                                <button class="preset-btn" data-days="7">7 dní</button>
+                                <button class="preset-btn" data-days="30">30 dní</button>
+                                <button class="preset-btn" data-days="90">3 měsíce</button>
+                                <button class="preset-btn" data-days="180">6 měsíců</button>
+                                <button class="preset-btn" data-days="365">1 rok</button>
+                                <button class="preset-btn" data-days="all">Vše</button>
+                            </div>
+                        </div>
+
+                        <!-- Project Filter -->
+                        <div class="filter-group">
+                            <label class="filter-label">Projekty</label>
+                            <div class="project-filter">
+                                <input type="text" id="project-search" placeholder="Hledat projekty..." class="search-input">
+                                <div class="project-options" id="project-options">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Type Filter -->
+                        <div class="filter-group">
+                            <label class="filter-label">Typ transakce</label>
+                            <div class="transaction-types" id="transaction-types">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Global Search -->
+                        <div class="filter-group">
+                            <label class="filter-label">Globální vyhledávání</label>
+                            <div class="search-container">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="global-search" placeholder="Hledat v detailech, projektech..." class="search-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="container">
+                <div class="charts-grid">
+                    <!-- Main Column Chart -->
+                    <div class="chart-card chart-main">
+                        <div class="chart-header">
+                            <h3>Transakce podle typu</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="main-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Time Series Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Vývoj v čase</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="time-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Project Distribution -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Rozdělení podle typu projektu</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="project-type-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Top Projects -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Top 10 projektů</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="top-projects-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Statistics -->
+        <section class="advanced-stats-section">
+            <div class="container">
+                <div class="advanced-stats-grid">
+                    <div class="advanced-stat-card">
+                        <h3>Finanční metriky</h3>
+                        <div class="metric-list">
+                            <div class="metric-item">
+                                <span class="metric-label">Měsíční investiční sazba:</span>
+                                <span class="metric-value" id="monthly-rate">0 Kč</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Nejdelší investiční série:</span>
+                                <span class="metric-value" id="investment-streak">0 dnů</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Sezónní vzorec:</span>
+                                <span class="metric-value" id="seasonal-pattern">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="advanced-stat-card">
+                        <h3>Analýza projektů</h3>
+                        <div class="metric-list">
+                            <div class="metric-item">
+                                <span class="metric-label">Koncentrace investic (Top 5):</span>
+                                <span class="metric-value" id="investment-concentration">0%</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Průměrné dny mezi transakcemi:</span>
+                                <span class="metric-value" id="avg-days-between">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Table -->
+        <section class="table-section">
+            <div class="container">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Transakce</h3>
+                        <div class="table-actions">
+                            <button class="btn btn-outline" id="export-btn">
+                                <i class="fas fa-download"></i>
+                                Exportovat CSV
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table" id="data-table">
+                            <thead>
+                                <tr>
+                                    <th data-sort="datum">Datum <i class="fas fa-sort"></i></th>
+                                    <th data-sort="typ">Typ <i class="fas fa-sort"></i></th>
+                                    <th data-sort="detail">Detail <i class="fas fa-sort"></i></th>
+                                    <th data-sort="castka">Částka <i class="fas fa-sort"></i></th>
+                                    <th data-sort="projekt">Projekt <i class="fas fa-sort"></i></th>
+                                    <th data-sort="typ-projektu">Typ projektu <i class="fas fa-sort"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="table-pagination" id="table-pagination">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+</html> 

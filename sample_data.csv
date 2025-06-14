@@ -1,0 +1,52 @@
+Datum,Časová zóna,Typ,Detail,Částka [CZK],Název projektu,Odkaz na projekt,Typ projektu
+15.01.2024,CET,Investice,Investice do energetického projektu,50000,Solární park Brno,https://example.com/solar-brno,Obnovitelná energie
+22.01.2024,CET,Investice,Investice do nemovitostního fondu,75000,Rezidence Praha,https://example.com/rezidence-praha,Nemovitosti
+05.02.2024,CET,Dividenda,Výplata dividend z projektu,2500,Solární park Brno,https://example.com/solar-brno,Obnovitelná energie
+12.02.2024,CET,Investice,Další investice do startupu,25000,TechStart Pro,https://example.com/techstart,Technologie
+18.02.2024,CET,Výběr,Částečný výběr investice,-15000,Rezidence Praha,https://example.com/rezidence-praha,Nemovitosti
+25.02.2024,CET,Investice,Investice do P2P půjček,30000,LendingClub CZ,https://example.com/lending,P2P půjčky
+03.03.2024,CET,Dividenda,Měsíční dividenda,1800,TechStart Pro,https://example.com/techstart,Technologie
+10.03.2024,CET,Investice,Investice do kryptofondu,40000,CryptoFund Elite,https://example.com/crypto,Kryptoměny
+15.03.2024,CET,Investice,Další investice do solárních projektů,60000,Solární park Ostrava,https://example.com/solar-ostrava,Obnovitelná energie
+22.03.2024,CET,Poplatek,Správcovský poplatek,-500,LendingClub CZ,https://example.com/lending,P2P půjčky
+28.03.2024,CET,Dividenda,Výplata z nemovitostního fondu,3200,Rezidence Praha,https://example.com/rezidence-praha,Nemovitosti
+05.04.2024,CET,Investice,Investice do biotechnologií,45000,BioTech Innovations,https://example.com/biotech,Biotechnologie
+12.04.2024,CET,Výběr,Celkový výběr z P2P,-32000,LendingClub CZ,https://example.com/lending,P2P půjčky
+20.04.2024,CET,Investice,Nová investice do ESG fondu,55000,Green Future Fund,https://example.com/green-fund,ESG
+25.04.2024,CET,Dividenda,Čtvrtletní dividenda,4500,Solární park Brno,https://example.com/solar-brno,Obnovitelná energie
+02.05.2024,CET,Investice,Investice do luxusních nemovitostí,80000,Premium Estates,https://example.com/premium,Nemovitosti
+08.05.2024,CET,Dividenda,Výplata z kryptofondu,2100,CryptoFund Elite,https://example.com/crypto,Kryptoměny
+15.05.2024,CET,Investice,Další investice do technologií,35000,AI Solutions,https://example.com/ai-solutions,Umělá inteligence
+22.05.2024,CET,Poplatek,Transakční poplatek,-300,Premium Estates,https://example.com/premium,Nemovitosti
+30.05.2024,CET,Investice,Investice do zdravotnictví,42000,HealthTech Fund,https://example.com/healthtech,Zdravotnictví
+06.06.2024,CET,Dividenda,Měsíční výplata,1900,AI Solutions,https://example.com/ai-solutions,Umělá inteligence
+12.06.2024,CET,Investice,Investice do dopravních projektů,38000,Mobility Solutions,https://example.com/mobility,Doprava
+18.06.2024,CET,Výběr,Částečný výběr,-20000,BioTech Innovations,https://example.com/biotech,Biotechnologie
+25.06.2024,CET,Investice,Investice do vzdělávacích technologií,28000,EduTech Platform,https://example.com/edutech,Vzdělávání
+01.07.2024,CET,Dividenda,Pololetní dividenda,5200,Green Future Fund,https://example.com/green-fund,ESG
+08.07.2024,CET,Investice,Investice do fintech,33000,PayTech Solutions,https://example.com/paytech,Fintech
+15.07.2024,CET,Dividenda,Výplata z nemovitostí,3800,Premium Estates,https://example.com/premium,Nemovitosti
+22.07.2024,CET,Investice,Další investice do energie,47000,Větrná farma Moravě,https://example.com/wind-morava,Obnovitelná energie
+30.07.2024,CET,Poplatek,Správcovský poplatek,-600,HealthTech Fund,https://example.com/healthtech,Zdravotnictví
+05.08.2024,CET,Investice,Investice do e-commerce,41000,ShopTech Pro,https://example.com/shoptech,E-commerce
+12.08.2024,CET,Dividenda,Měsíční výplata,2400,Mobility Solutions,https://example.com/mobility,Doprava
+20.08.2024,CET,Výběr,Částečný výběr z fondu,-25000,Green Future Fund,https://example.com/green-fund,ESG
+25.08.2024,CET,Investice,Investice do automobilového průmyslu,52000,AutoTech Fund,https://example.com/autotech,Automotive
+01.09.2024,CET,Dividenda,Čtvrtletní dividenda,3600,EduTech Platform,https://example.com/edutech,Vzdělávání
+08.09.2024,CET,Investice,Investice do potravinářství,29000,FoodTech Innovations,https://example.com/foodtech,Potravinářství
+15.09.2024,CET,Dividenda,Výplata z fintechů,2700,PayTech Solutions,https://example.com/paytech,Fintech
+22.09.2024,CET,Investice,Investice do smart city projektů,46000,SmartCity Solutions,https://example.com/smartcity,Smart City
+30.09.2024,CET,Poplatek,Transakční poplatek,-400,AutoTech Fund,https://example.com/autotech,Automotive
+05.10.2024,CET,Investice,Investice do herního průmyslu,31000,GameDev Studios,https://example.com/gamedev,Gaming
+12.10.2024,CET,Dividenda,Měsíční dividenda,2000,ShopTech Pro,https://example.com/shoptech,E-commerce
+18.10.2024,CET,Výběr,Celkový výběr,-35000,HealthTech Fund,https://example.com/healthtech,Zdravotnictví
+25.10.2024,CET,Investice,Investice do sustainable energy,49000,Hydroelectric Power,https://example.com/hydro,Obnovitelná energie
+01.11.2024,CET,Dividenda,Čtvrtletní výplata,4100,FoodTech Innovations,https://example.com/foodtech,Potravinářství
+08.11.2024,CET,Investice,Investice do logistiky,37000,LogiTech Solutions,https://example.com/logitech,Logistika
+15.11.2024,CET,Dividenda,Výplata dividend,2800,SmartCity Solutions,https://example.com/smartcity,Smart City
+22.11.2024,CET,Investice,Investice do space technologií,44000,SpaceTech Ventures,https://example.com/spacetech,Vesmírné technologie
+30.11.2024,CET,Poplatek,Správcovský poplatek,-350,GameDev Studios,https://example.com/gamedev,Gaming
+05.12.2024,CET,Investice,Investice do circular economy,39000,CircularTech Fund,https://example.com/circular,Cirkulární ekonomika
+12.12.2024,CET,Dividenda,Roční dividenda,6200,Hydroelectric Power,https://example.com/hydro,Obnovitelná energie
+18.12.2024,CET,Výběr,Částečný výběr,-18000,LogiTech Solutions,https://example.com/logitech,Logistika
+25.12.2024,CET,Investice,Vánoční investice do charity,15000,GreenCharity Fund,https://example.com/charity,Charita 
