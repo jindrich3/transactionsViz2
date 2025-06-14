@@ -2,6 +2,7 @@
 let csvData = [];
 let filteredData = [];
 let charts = {};
+let selectedFile = null;
 
 // State management
 const state = {
@@ -55,10 +56,13 @@ function setupEventListeners() {
         document.getElementById('file-input').click();
     });
     
-    document.getElementById('file-input').addEventListener('change', handleFileUpload);
+    document.getElementById('file-input').addEventListener('change', handleFileSelect);
+    document.getElementById('process-btn').addEventListener('click', processSelectedFile);
+    document.getElementById('change-file-btn').addEventListener('click', resetFileSelection);
+    document.getElementById('retry-btn').addEventListener('click', resetFileSelection);
     document.getElementById('new-upload-btn').addEventListener('click', resetToLanding);
     
-    // Filter functionality
+    // Filter functionality  
     document.getElementById('clear-filters').addEventListener('click', clearAllFilters);
     document.getElementById('global-search').addEventListener('input', debounce(handleGlobalSearch, 300));
     document.getElementById('project-search').addEventListener('input', filterProjectOptions);
@@ -101,7 +105,7 @@ function setupUploadArea() {
         
         const files = e.dataTransfer.files;
         if (files.length > 0) {
-            handleFile(files[0]);
+            selectFile(files[0]);
         }
     });
 }
@@ -127,43 +131,113 @@ function initializeDatePickers() {
     });
 }
 
-// File Upload Handling
-function handleFileUpload(event) {
+// File Selection Handling
+function handleFileSelect(event) {
     const file = event.target.files[0];
     if (file) {
-        handleFile(file);
+        selectFile(file);
     }
 }
 
-function handleFile(file) {
+function selectFile(file) {
+    console.log('File selected:', file.name, file.type, file.size);
+    
     if (!file.name.toLowerCase().endsWith('.csv')) {
-        showError('Prosím, nahrajte CSV soubor');
+        showError('Prosím, nahrajte CSV soubor. Vybraný soubor: ' + file.name);
         return;
     }
     
+    selectedFile = file;
+    showFileSelected(file);
+}
+
+function showFileSelected(file) {
+    // Hide other states
+    document.getElementById('upload-content').style.display = 'none';
+    document.getElementById('upload-loading').style.display = 'none';
+    document.getElementById('upload-success').style.display = 'none';
+    document.getElementById('upload-error').style.display = 'none';
+    
+    // Show file selected state
+    document.getElementById('file-selected').style.display = 'block';
+    document.getElementById('file-name').textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+}
+
+function resetFileSelection() {
+    selectedFile = null;
+    document.getElementById('file-input').value = '';
+    
+    // Show upload content, hide others
+    document.getElementById('upload-content').style.display = 'block';
+    document.getElementById('file-selected').style.display = 'none';
+    document.getElementById('upload-loading').style.display = 'none';
+    document.getElementById('upload-success').style.display = 'none';
+    document.getElementById('upload-error').style.display = 'none';
+}
+
+function processSelectedFile() {
+    if (!selectedFile) {
+        showError('Žádný soubor nebyl vybrán');
+        return;
+    }
+    
+    // Check if Papa Parse is loaded
+    if (typeof Papa === 'undefined') {
+        showError('Knihovna pro zpracování CSV nebyla načtena. Zkontrolujte internetové připojení a obnovte stránku.');
+        return;
+    }
+    
+    console.log('Processing file:', selectedFile.name);
+    
+    // Hide file selected state and show loading
+    document.getElementById('file-selected').style.display = 'none';
     showLoading();
     
-    Papa.parse(file, {
+    Papa.parse(selectedFile, {
         header: true,
         skipEmptyLines: true,
         encoding: 'UTF-8',
         complete: function(results) {
+            console.log('Papa Parse completed:', results);
+            
             if (results.errors.length > 0) {
-                showError('Chyba při čtení CSV souboru: ' + results.errors[0].message);
+                console.error('Papa Parse errors:', results.errors);
+                showError('Chyba při čtení CSV souboru: ' + results.errors[0].message + 
+                         ' (Řádek: ' + (results.errors[0].row || 'neznámý') + ')');
+                return;
+            }
+            
+            if (!results.data || results.data.length === 0) {
+                showError('CSV soubor je prázdný nebo neobsahuje validní data');
                 return;
             }
             
             processCSVData(results.data);
         },
         error: function(error) {
+            console.error('Papa Parse error:', error);
             showError('Chyba při zpracování souboru: ' + error.message);
         }
     });
 }
 
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
 // Process CSV Data
 function processCSVData(data) {
     try {
+        console.log('Processing CSV data:', data.length, 'rows');
+        console.log('Sample row:', data[0]);
+        
+        let validRows = 0;
+        let invalidRows = 0;
+        
         // Clean and validate data
         csvData = data.map((row, index) => {
             const cleanRow = {
@@ -171,33 +245,53 @@ function processCSVData(data) {
                 casova_zona: row['Časová zóna'] || row['casova_zona'] || '',
                 typ: row['Typ'] || row['typ'] || '',
                 detail: row['Detail'] || row['detail'] || '',
-                castka: parseAmount(row['Částka [CZK]'] || row['castka']),
+                castka: parseAmount(row['Částka [CZK]'] || row['castka'] || row['Částka']),
                 projekt: row['Název projektu'] || row['projekt'] || '',
                 odkaz: row['Odkaz na projekt'] || row['odkaz'] || '',
                 typ_projektu: row['Typ projektu'] || row['typ_projektu'] || ''
             };
             
-            // Validate required fields
-            if (!cleanRow.datum || cleanRow.castka === null) {
-                throw new Error(`Nevalidní data na řádku ${index + 1}`);
+            // Debug logging for first few rows
+            if (index < 3) {
+                console.log(`Row ${index + 1}:`, {
+                    original: row,
+                    cleaned: cleanRow,
+                    dateValid: !!cleanRow.datum,
+                    amountValid: cleanRow.castka !== null
+                });
             }
             
+            // Validate required fields
+            if (!cleanRow.datum || cleanRow.castka === null) {
+                invalidRows++;
+                console.warn(`Invalid row ${index + 1}:`, {
+                    datum: cleanRow.datum,
+                    castka: cleanRow.castka,
+                    originalRow: row
+                });
+                return null;
+            }
+            
+            validRows++;
             return cleanRow;
-        }).filter(row => row.datum && row.castka !== null);
+        }).filter(row => row !== null);
+        
+        console.log(`Processed: ${validRows} valid, ${invalidRows} invalid rows`);
         
         if (csvData.length === 0) {
-            throw new Error('Nebyly nalezeny žádné validní data');
+            throw new Error(`Nebyly nalezeny žádné validní data. Zkontrolujte formát CSV souboru a názvy sloupců.`);
         }
         
         filteredData = [...csvData];
         
-        showSuccess();
+        showSuccess(csvData.length);
         setTimeout(() => {
             showDashboard();
             initializeDashboard();
-        }, 1500);
+        }, 2000);
         
     } catch (error) {
+        console.error('Error processing CSV data:', error);
         showError(error.message);
     }
 }
@@ -233,15 +327,24 @@ function parseDate(dateStr) {
 
 // Amount parsing helper
 function parseAmount(amountStr) {
-    if (!amountStr) return null;
+    if (!amountStr && amountStr !== 0) return null;
     
-    // Remove currency symbols and spaces, replace comma with dot
+    // Convert to string and remove currency symbols and spaces
     const cleaned = amountStr.toString()
         .replace(/[^\d,.-]/g, '')
         .replace(',', '.');
     
+    if (cleaned === '') return null;
+    
     const amount = parseFloat(cleaned);
-    return isNaN(amount) ? null : amount;
+    
+    // Debug logging for problematic amounts
+    if (isNaN(amount)) {
+        console.warn('Failed to parse amount:', { original: amountStr, cleaned: cleaned });
+        return null;
+    }
+    
+    return amount;
 }
 
 // UI State Management
@@ -252,21 +355,19 @@ function showLoading() {
     document.getElementById('upload-error').style.display = 'none';
 }
 
-function showSuccess() {
+function showSuccess(transactionCount = 0) {
     document.getElementById('upload-loading').style.display = 'none';
     document.getElementById('upload-success').style.display = 'block';
+    document.getElementById('success-details').textContent = `Načteno transakcí: ${transactionCount}`;
 }
 
 function showError(message) {
     document.getElementById('upload-loading').style.display = 'none';
+    document.getElementById('file-selected').style.display = 'none';
     document.getElementById('upload-error').style.display = 'block';
     document.getElementById('error-message').textContent = message;
     
-    // Reset after 5 seconds
-    setTimeout(() => {
-        document.getElementById('upload-content').style.display = 'block';
-        document.getElementById('upload-error').style.display = 'none';
-    }, 5000);
+    console.error('Upload error:', message);
 }
 
 function showDashboard() {
@@ -277,12 +378,14 @@ function showDashboard() {
 function resetToLanding() {
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('landing-page').style.display = 'block';
-    document.getElementById('upload-content').style.display = 'block';
-    document.getElementById('upload-success').style.display = 'none';
+    
+    // Reset file selection state
+    resetFileSelection();
     
     // Reset data
     csvData = [];
     filteredData = [];
+    selectedFile = null;
     
     // Destroy charts
     Object.values(charts).forEach(chart => {

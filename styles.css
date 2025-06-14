@@ -244,9 +244,40 @@ body {
 }
 
 /* Upload States */
-.upload-loading, .upload-success, .upload-error {
+.upload-loading, .upload-success, .upload-error, .file-selected {
     text-align: center;
     padding: var(--spacing-8);
+}
+
+.file-selected {
+    animation: slideInUp 0.5s ease-out;
+}
+
+.file-icon {
+    font-size: 3rem;
+    color: var(--accent-color);
+    margin-bottom: var(--spacing-4);
+}
+
+.file-name {
+    color: var(--gray-600);
+    font-weight: 500;
+    margin-bottom: var(--spacing-6);
+    word-break: break-all;
+}
+
+.file-actions {
+    display: flex;
+    gap: var(--spacing-3);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.success-details {
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-2);
+    font-weight: 500;
 }
 
 .loading-spinner {

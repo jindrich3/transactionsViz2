@@ -34,7 +34,7 @@
                 
                 <div class="upload-section">
                     <div class="upload-area" id="upload-area">
-                        <div class="upload-content">
+                        <div class="upload-content" id="upload-content">
                             <i class="fas fa-cloud-upload-alt upload-icon"></i>
                             <h3>Přetáhněte CSV soubor sem</h3>
                             <p>nebo</p>
@@ -42,17 +42,37 @@
                             <input type="file" id="file-input" accept=".csv" hidden>
                             <p class="upload-info">Podporované formáty: CSV</p>
                         </div>
+                        <div class="file-selected" id="file-selected" style="display: none;">
+                            <i class="fas fa-file-csv file-icon"></i>
+                            <h3>Soubor připraven</h3>
+                            <p class="file-name" id="file-name">soubor.csv</p>
+                            <div class="file-actions">
+                                <button class="btn btn-primary" id="process-btn">
+                                    <i class="fas fa-play"></i>
+                                    Zpracovat data
+                                </button>
+                                <button class="btn btn-outline" id="change-file-btn">
+                                    <i class="fas fa-exchange-alt"></i>
+                                    Změnit soubor
+                                </button>
+                            </div>
+                        </div>
                         <div class="upload-loading" id="upload-loading" style="display: none;">
                             <div class="loading-spinner"></div>
                             <p>Zpracovávám data...</p>
                         </div>
                         <div class="upload-success" id="upload-success" style="display: none;">
                             <i class="fas fa-check-circle success-icon"></i>
-                            <p>Soubor byl úspěšně nahrán!</p>
+                            <p>Soubor byl úspěšně zpracován!</p>
+                            <p class="success-details" id="success-details">Načteno transakcí: 0</p>
                         </div>
                         <div class="upload-error" id="upload-error" style="display: none;">
                             <i class="fas fa-exclamation-circle error-icon"></i>
                             <p id="error-message">Chyba při nahrávání souboru</p>
+                            <button class="btn btn-outline" id="retry-btn">
+                                <i class="fas fa-redo"></i>
+                                Zkusit znovu
+                            </button>
                         </div>
                     </div>
                 </div>
