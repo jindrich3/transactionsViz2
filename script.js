@@ -284,6 +284,9 @@ function processCSVData(data) {
         state.filters.projectSearch = '';
         filteredData = [...csvData];
         
+        // Clear UI filter elements
+        resetFilterUI();
+        
         showSuccess(csvData.length);
         setTimeout(() => {
             showDashboard();
@@ -408,6 +411,9 @@ function initializeDashboard() {
     
     // Initialize button state (should be disabled initially)
     updateClearFiltersButton();
+    
+    // Set "Vše" preset as active by default
+    setDefaultPresetButton();
 }
 
 // Overview Statistics (Fixed - not affected by filters)
@@ -559,8 +565,8 @@ function clearAllFilters() {
     state.filters.projectSearch = '';
     document.getElementById('project-search').value = '';
     
-    // Clear preset button active states
-    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+    // Set "Vše" preset as active (default state)
+    setDefaultPresetButton();
     
     applyFilters();
 }
@@ -586,6 +592,43 @@ function updateClearFiltersButton() {
         clearBtn.classList.remove('disabled');
     } else {
         clearBtn.classList.add('disabled');
+    }
+}
+
+// Set default preset button (Vše) as active
+function setDefaultPresetButton() {
+    // Remove active class from all preset buttons first
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Find and activate the "Vše" button
+    const allButton = document.querySelector('.preset-btn[data-days="all"]');
+    if (allButton) {
+        allButton.classList.add('active');
+    }
+}
+
+// Reset filter UI elements to default state
+function resetFilterUI() {
+    // Clear date inputs if they exist (might not exist during initial load)
+    const dateFromInput = document.getElementById('date-from');
+    const dateToInput = document.getElementById('date-to');
+    if (dateFromInput && dateFromInput._flatpickr) {
+        dateFromInput._flatpickr.clear();
+    }
+    if (dateToInput && dateToInput._flatpickr) {
+        dateToInput._flatpickr.clear();
+    }
+    
+    // Clear project search
+    const projectSearch = document.getElementById('project-search');
+    if (projectSearch) {
+        projectSearch.value = '';
+    }
+    
+    // Reset transaction type dropdown
+    const typeSelect = document.getElementById('transaction-type-select');
+    if (typeSelect) {
+        Array.from(typeSelect.options).forEach(option => option.selected = false);
     }
 }
 
