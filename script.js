@@ -43,6 +43,15 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
 
+// Also try to initialize when window is fully loaded (including all scripts)
+window.addEventListener('load', function() {
+    console.log('Window fully loaded, Chart available:', typeof Chart !== 'undefined');
+    if (typeof Chart !== 'undefined' && !window.appInitialized) {
+        console.log('Chart.js is now available after window load');
+        window.appInitialized = true;
+    }
+});
+
 function initializeApp() {
     setupEventListeners();
     initializeDatePickers();
@@ -750,9 +759,29 @@ function applyFilters() {
 // Charts Creation
 function createCharts() {
     createProjectTable();
-    createTimeSeriesChart();
-    createProjectTypeChart();
-    createTopProjectsChart();
+    
+    // Wait for Chart.js to be available before creating charts
+    function tryCreateCharts(attempt = 1) {
+        if (typeof Chart !== 'undefined') {
+            console.log('Chart.js is available, creating charts...');
+            createTimeSeriesChart();
+            createProjectTypeChart();
+            createTopProjectsChart();
+        } else {
+            console.log(`Chart.js not ready, attempt ${attempt}/10, waiting...`);
+            if (attempt < 10) {
+                // Try again after increasing delay
+                setTimeout(() => tryCreateCharts(attempt + 1), attempt * 200);
+            } else {
+                console.error('Chart.js failed to load after 10 attempts');
+                // Show a message to the user
+                const timeChartContainer = document.querySelector('#time-chart').parentElement;
+                timeChartContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Graf se nepodařilo načíst. Zkuste obnovit stránku.</p>';
+            }
+        }
+    }
+    
+    tryCreateCharts();
 }
 
 function createProjectTable() {
@@ -992,35 +1021,113 @@ function changeProjectPage(page) {
 }
 
 function createTimeSeriesChart() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded!');
+        return;
+    }
+    
     const ctx = document.getElementById('time-chart').getContext('2d');
     
-    // Group data by month
+    // Check if we have data
+    if (!filteredData || filteredData.length === 0) {
+        console.log('No data available for time series chart');
+        // Create empty chart
+        charts.timeSeries = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'month',
+                            displayFormats: {
+                                month: 'MM/yy'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Měsíc'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Kumulativní čistá investice (Kč)'
+                        }
+                    }
+                }
+            }
+        });
+        return;
+    }
+    
+    console.log('Creating time series chart with', filteredData.length, 'transactions');
+    
+    // Group data by month and calculate net investment
     const monthlyData = {};
+    
     filteredData.forEach(row => {
         const monthKey = `${row.datum.getFullYear()}-${String(row.datum.getMonth() + 1).padStart(2, '0')}`;
+        
         if (!monthlyData[monthKey]) {
             monthlyData[monthKey] = 0;
         }
-        monthlyData[monthKey] += row.castka;
+        
+        // Calculate net value: Autoinvestice + Investice - Prodej - Vrácení peněz - Odstoupení
+        const amount = Math.abs(row.castka);
+        switch (row.typ) {
+            case 'Autoinvestice':
+            case 'Investice':
+                monthlyData[monthKey] += amount; // Add positive
+                break;
+            case 'Prodej':
+            case 'Vrácení peněz':
+            case 'Odstoupení':
+                monthlyData[monthKey] -= amount; // Subtract
+                break;
+        }
     });
     
+    // Convert to chart data format with cumulative values
     const sortedMonths = Object.keys(monthlyData).sort();
-    const chartData = sortedMonths.map(month => ({
-        x: month + '-01',
-        y: monthlyData[month]
-    }));
+    let cumulativeValue = 0;
+    const chartData = sortedMonths.map(month => {
+        cumulativeValue += monthlyData[month]; // Add current month to cumulative total
+        return {
+            x: month + '-01', // First day of month for proper time parsing
+            y: cumulativeValue
+        };
+    });
+    
+    console.log('Chart data points:', chartData.length);
     
     charts.timeSeries = new Chart(ctx, {
         type: 'line',
         data: {
             datasets: [{
-                label: 'Čistý tok',
+                label: 'Kumulativní čistá investice',
                 data: chartData,
                 borderColor: '#2563eb',
                 backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                borderWidth: 2,
+                borderWidth: 3,
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                pointBackgroundColor: '#2563eb',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
             }]
         },
         options: {
@@ -1033,7 +1140,7 @@ function createTimeSeriesChart() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return locale.formatNumber(context.parsed.y);
+                            return 'Kumulativní čistá investice: ' + locale.formatNumber(context.parsed.y);
                         }
                     }
                 }
@@ -1044,17 +1151,28 @@ function createTimeSeriesChart() {
                     time: {
                         unit: 'month',
                         displayFormats: {
-                            month: 'MMM yyyy'
+                            month: 'MM/yy'
                         }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Měsíc'
                     }
                 },
                 y: {
+                    title: {
+                        display: true,
+                        text: 'Čistá investice (Kč)'
+                    },
                     ticks: {
                         callback: function(value) {
                             return locale.formatNumber(value);
                         }
                     }
                 }
+            },
+            interaction: {
+                intersect: false
             },
             animation: {
                 duration: 1000,
@@ -1065,6 +1183,12 @@ function createTimeSeriesChart() {
 }
 
 function createProjectTypeChart() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded!');
+        return;
+    }
+    
     const ctx = document.getElementById('project-type-chart').getContext('2d');
     
     const projectTypes = [...new Set(filteredData.map(row => row.typ_projektu).filter(t => t))];
@@ -1121,6 +1245,12 @@ function createProjectTypeChart() {
 }
 
 function createTopProjectsChart() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded!');
+        return;
+    }
+    
     const ctx = document.getElementById('top-projects-chart').getContext('2d');
     
     // Group by project and sum amounts
@@ -1188,23 +1318,29 @@ function updateCharts() {
     // Update project table (replaces main chart)
     createProjectTable();
     
+    // Check if Chart.js is available
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded in updateCharts!');
+        return;
+    }
+    
     // Update time series chart
     if (charts.timeSeries) {
         charts.timeSeries.destroy();
-        createTimeSeriesChart();
     }
+    createTimeSeriesChart();
     
     // Update project type chart
     if (charts.projectType) {
         charts.projectType.destroy();
-        createProjectTypeChart();
     }
+    createProjectTypeChart();
     
     // Update top projects chart
     if (charts.topProjects) {
         charts.topProjects.destroy();
-        createTopProjectsChart();
     }
+    createTopProjectsChart();
 }
 
 // Table Management

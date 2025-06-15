@@ -12,10 +12,6 @@
     <!-- CSS -->
     <link rel="stylesheet" href="styles.css">
     
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    
     <!-- Papa Parse for CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
@@ -413,7 +409,7 @@
                     <!-- Time Series Chart -->
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h3>Vývoj v čase</h3>
+                            <h3>Vývoj velikosti portfolia</h3>
                         </div>
                         <div class="chart-container">
                             <canvas id="time-chart"></canvas>
@@ -485,6 +481,9 @@
     </div>
 
     <!-- Scripts -->
+    <!-- Chart.js - Load before our script -->
+    <script src="https://unpkg.com/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://unpkg.com/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html> 
