@@ -80,6 +80,9 @@ function setupEventListeners() {
     // Rows per page dropdowns
     document.getElementById('table-rows-select').addEventListener('change', handleMainTableRowsChange);
     document.getElementById('project-table-rows-select').addEventListener('change', handleProjectTableRowsChange);
+    
+    // Demo transactions button
+    document.getElementById('demo-transactions-btn').addEventListener('click', loadDemoTransactions);
 }
 
 
@@ -1340,6 +1343,68 @@ function handleProjectTableRowsChange(event) {
     projectTablePagination.itemsPerPage = newItemsPerPage;
     projectTablePagination.currentPage = 1; // Reset to first page
     updateProjectTable();
+}
+
+function loadDemoTransactions() {
+    console.log('Loading demo transactions from GitHub repository...');
+    
+    // Show loading state
+    showLoading();
+    
+    // GitHub raw URL for the sample_data.csv file
+    // This always gets the latest version from the main branch
+    const githubRawURL = 'https://raw.githubusercontent.com/jindrich3/transactionsViz2/main/sample_data.csv';
+    
+    // Fetch the sample_data.csv file from GitHub
+    fetch(githubRawURL)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`GitHub fetch error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(csvContent => {
+            console.log('Demo CSV file loaded successfully from GitHub');
+            
+            // Parse the CSV content using Papa Parse
+            Papa.parse(csvContent, {
+                header: true,
+                skipEmptyLines: true,
+                encoding: 'UTF-8',
+                complete: function(results) {
+                    console.log('Demo data parsed:', results);
+                    
+                    if (results.errors.length > 0) {
+                        console.error('Papa Parse errors:', results.errors);
+                        showError('Chyba při čtení demo dat: ' + results.errors[0].message);
+                        return;
+                    }
+                    
+                    if (!results.data || results.data.length === 0) {
+                        showError('Demo data jsou prázdná');
+                        return;
+                    }
+                    
+                    // Create a mock File object to simulate file selection
+                    const demoFile = new File([csvContent], 'sample_data.csv', {
+                        type: 'text/csv',
+                        lastModified: Date.now()
+                    });
+                    
+                    // Set as selected file and show file selected state
+                    selectedFile = demoFile;
+                    showFileSelected(demoFile);
+                },
+                error: function(error) {
+                    console.error('Papa Parse error:', error);
+                    showError('Chyba při zpracování demo dat: ' + error.message);
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error loading demo data from GitHub:', error);
+            showError('Nepodařilo se načíst demo data z GitHub repozitáře. Zkontrolujte internetové připojení.');
+        });
 }
 
 // Advanced Statistics
