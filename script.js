@@ -15,7 +15,7 @@ const state = {
     },
     pagination: {
         currentPage: 1,
-        itemsPerPage: 50
+        itemsPerPage: 20
     },
     sorting: {
         column: 'datum',
@@ -76,6 +76,10 @@ function setupEventListeners() {
     });
     
     document.getElementById('export-btn').addEventListener('click', exportToCSV);
+    
+    // Rows per page dropdowns
+    document.getElementById('table-rows-select').addEventListener('change', handleMainTableRowsChange);
+    document.getElementById('project-table-rows-select').addEventListener('change', handleProjectTableRowsChange);
 }
 
 
@@ -402,6 +406,9 @@ function initializeDashboard() {
     // Set filteredData to show all data initially (no filters)
     filteredData = [...csvData];
     
+    // Update transaction count in header
+    document.getElementById('transaction-count').textContent = csvData.length;
+    
     calculateOverviewStatistics();
     updateStatistics();
     createFilterOptions();
@@ -435,6 +442,50 @@ function calculateOverviewStatistics() {
     document.getElementById('date-range-start').textContent = locale.formatDate(overviewStats.oldestDate);
     document.getElementById('date-range-end').textContent = locale.formatDate(overviewStats.newestDate);
     document.getElementById('total-fees').textContent = locale.formatNumber(overviewStats.totalFees);
+    
+    // Calculate and display autoinvest statistics
+    calculateAutoinvestStatistics();
+}
+
+function calculateAutoinvestStatistics() {
+    // Filter autoinvest transactions
+    const autoinvestTransactions = csvData.filter(row => 
+        row.typ === 'Autoinvestice'
+    );
+    
+    const autoinvestEmpty = document.getElementById('autoinvest-empty');
+    const autoinvestStats = document.getElementById('autoinvest-stats');
+    
+    if (autoinvestTransactions.length === 0) {
+        // Show empty state
+        autoinvestEmpty.style.display = 'block';
+        autoinvestStats.style.display = 'none';
+    } else {
+        // Show statistics
+        autoinvestEmpty.style.display = 'none';
+        autoinvestStats.style.display = 'block';
+        
+        // Calculate statistics
+        const count = autoinvestTransactions.length;
+        const totalAmount = autoinvestTransactions.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+        const averageAmount = totalAmount / count;
+        
+        // Sort by date to find first and last
+        const sortedTransactions = autoinvestTransactions.sort((a, b) => a.datum - b.datum);
+        const firstTransaction = sortedTransactions[0];
+        const lastTransaction = sortedTransactions[sortedTransactions.length - 1];
+        
+        // Update display
+        document.getElementById('autoinvest-count').textContent = count;
+        document.getElementById('autoinvest-total').textContent = locale.formatNumber(totalAmount);
+        document.getElementById('autoinvest-average').textContent = locale.formatNumber(averageAmount);
+        
+        document.getElementById('autoinvest-first-date').textContent = locale.formatDate(firstTransaction.datum);
+        document.getElementById('autoinvest-first-amount').textContent = locale.formatNumber(Math.abs(firstTransaction.castka));
+        
+        document.getElementById('autoinvest-last-date').textContent = locale.formatDate(lastTransaction.datum);
+        document.getElementById('autoinvest-last-amount').textContent = locale.formatNumber(Math.abs(lastTransaction.castka));
+    }
 }
 
 // Statistics Calculation (for filtered data)
@@ -695,78 +746,246 @@ function applyFilters() {
 
 // Charts Creation
 function createCharts() {
-    createMainChart();
+    createProjectTable();
     createTimeSeriesChart();
     createProjectTypeChart();
     createTopProjectsChart();
 }
 
-function createMainChart() {
-    const ctx = document.getElementById('main-chart').getContext('2d');
+function createProjectTable() {
+    const projectData = {};
     
-    const transactionTypes = [...new Set(filteredData.map(row => row.typ))];
-    const chartData = transactionTypes.map(type => {
-        const typeData = filteredData.filter(row => row.typ === type);
-        const positive = typeData.filter(row => row.castka > 0).reduce((sum, row) => sum + row.castka, 0);
-        const negative = typeData.filter(row => row.castka < 0).reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    // Process each transaction and group by project
+    filteredData.forEach(row => {
+        const project = row.projekt || 'Neuvedený projekt';
         
-        return {
-            type,
-            positive,
-            negative
-        };
-    });
-    
-    charts.main = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: chartData.map(d => d.type),
-            datasets: [{
-                label: 'Příjmy',
-                data: chartData.map(d => d.positive),
-                backgroundColor: '#10b981',
-                borderColor: '#059669',
-                borderWidth: 1
-            }, {
-                label: 'Výdaje',
-                data: chartData.map(d => -d.negative),
-                backgroundColor: '#ef4444',
-                borderColor: '#dc2626',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ': ' + 
-                                locale.formatNumber(Math.abs(context.parsed.y));
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return locale.formatNumber(value);
-                        }
-                    }
-                }
-            },
-            animation: {
-                duration: 1000,
-                easing: 'easeInOutQuart'
-            }
+        if (!projectData[project]) {
+            projectData[project] = {
+                projekt: project,
+                investice: 0,
+                vynosy: 0,
+                splaceno: 0,
+                prodeje: 0,
+                zbyva_splatit: 0
+            };
+        }
+        
+        const amount = Math.abs(row.castka);
+        
+        // Investice = Autoinvestice + Investice + Investice do příležitosti - Odstoupení
+        if (row.typ === 'Autoinvestice' || 
+            row.typ === 'Investice' || 
+            row.typ === 'Investice do příležitosti') {
+            projectData[project].investice += amount;
+        } else if (row.typ === 'Odstoupení') {
+            projectData[project].investice -= amount;
+        }
+        
+        // Výnosy = Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta
+        else if (row.typ === 'Výnos' || 
+                 row.typ === 'Bonusový výnos' || 
+                 row.typ === 'Zákonné úroky z prodlení' || 
+                 row.typ === 'Smluvní pokuta') {
+            projectData[project].vynosy += amount;
+        }
+        
+        // Splaceno = Částečné splacení jistiny + Splacení jistiny
+        else if (row.typ === 'Částečné splacení jistiny' || 
+                 row.typ === 'Splacení jistiny') {
+            projectData[project].splaceno += amount;
+        }
+        
+        // Prodeje = Prodej
+        else if (row.typ === 'Prodej') {
+            projectData[project].prodeje += amount;
         }
     });
+    
+    // Calculate "Zbývá splatit" for each project
+    Object.values(projectData).forEach(project => {
+        project.zbyva_splatit = project.investice - project.splaceno - project.prodeje;
+    });
+    
+    // Convert to array and sort
+    const projectArray = Object.values(projectData)
+        .filter(project => project.investice > 0 || project.vynosy > 0 || project.splaceno > 0 || project.prodeje > 0)
+        .sort((a, b) => {
+            const field = projectTableSortField;
+            let comparison = 0;
+            
+            if (field === 'projekt') {
+                comparison = a[field].localeCompare(b[field]);
+            } else {
+                comparison = a[field] - b[field];
+            }
+            
+            return projectTableSortDirection === 'asc' ? comparison : -comparison;
+        });
+    
+    // Store the complete data and update table with pagination
+    allProjectData = projectArray;
+    updateProjectTable();
+}
+
+function updateProjectTable() {
+    const tableBody = document.getElementById('project-table-body');
+    
+    if (allProjectData.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">Žádné projekty nenalezeny</td></tr>';
+        updateProjectTablePagination();
+        return;
+    }
+    
+    // Paginate the data
+    const paginatedData = paginateProjectData(allProjectData);
+    
+    tableBody.innerHTML = paginatedData.map(project => `
+        <tr>
+            <td>${project.projekt}</td>
+            <td>${locale.formatNumber(project.investice)}</td>
+            <td>${locale.formatNumber(project.vynosy)}</td>
+            <td>${locale.formatNumber(project.splaceno)}</td>
+            <td>${locale.formatNumber(project.prodeje)}</td>
+            <td class="${Math.abs(project.zbyva_splatit) < 0.01 ? 'amount-neutral' : (project.zbyva_splatit > 0 ? 'amount-positive' : 'amount-negative')}">${locale.formatNumber(project.zbyva_splatit)}</td>
+        </tr>
+    `).join('');
+    
+    // Add sorting functionality to the project table
+    setupProjectTableSorting();
+    
+    // Set initial sort indicator
+    setInitialSortIndicator();
+    
+    // Update pagination
+    updateProjectTablePagination();
+}
+
+function setInitialSortIndicator() {
+    // Clear all sort indicators
+    const headers = document.querySelectorAll('#project-table th[data-sort] i');
+    headers.forEach(icon => {
+        icon.className = 'fas fa-sort';
+    });
+    
+    // Set indicator for current sort field
+    const currentHeader = document.querySelector(`#project-table th[data-sort="${projectTableSortField}"] i`);
+    if (currentHeader) {
+        currentHeader.className = projectTableSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+    }
+}
+
+function setupProjectTableSorting() {
+    const headers = document.querySelectorAll('#project-table th[data-sort]');
+    headers.forEach(header => {
+        header.addEventListener('click', () => {
+            const sortField = header.dataset.sort;
+            sortProjectTable(sortField);
+        });
+    });
+}
+
+let projectTableSortField = 'projekt';
+let projectTableSortDirection = 'asc';
+
+// Project table pagination state
+let projectTablePagination = {
+    currentPage: 1,
+    itemsPerPage: 20
+};
+let allProjectData = [];
+
+function sortProjectTable(field) {
+    // Toggle direction if same field
+    if (projectTableSortField === field) {
+        projectTableSortDirection = projectTableSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        projectTableSortField = field;
+        // Default direction depends on field type
+        projectTableSortDirection = field === 'projekt' ? 'asc' : 'desc';
+    }
+    
+    // Update header indicators
+    const headers = document.querySelectorAll('#project-table th[data-sort] i');
+    headers.forEach(icon => {
+        icon.className = 'fas fa-sort';
+    });
+    
+    const currentHeader = document.querySelector(`#project-table th[data-sort="${field}"] i`);
+    if (currentHeader) {
+        currentHeader.className = projectTableSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+    }
+    
+    // Reset to first page when sorting changes
+    projectTablePagination.currentPage = 1;
+    
+    // Re-create the table with new sorting
+    createProjectTable();
+}
+
+function paginateProjectData(data) {
+    const startIndex = (projectTablePagination.currentPage - 1) * projectTablePagination.itemsPerPage;
+    const endIndex = startIndex + projectTablePagination.itemsPerPage;
+    return data.slice(startIndex, endIndex);
+}
+
+function updateProjectTablePagination() {
+    const totalItems = allProjectData.length;
+    const totalPages = Math.ceil(totalItems / projectTablePagination.itemsPerPage);
+    const currentPage = projectTablePagination.currentPage;
+    
+    const paginationInfo = document.querySelector('#project-table-pagination .pagination-info');
+    const paginationControls = document.querySelector('#project-table-pagination .pagination-controls');
+    
+    if (totalItems === 0) {
+        paginationInfo.innerHTML = '';
+        paginationControls.innerHTML = '';
+        return;
+    }
+    
+    const startItem = (currentPage - 1) * projectTablePagination.itemsPerPage + 1;
+    const endItem = Math.min(currentPage * projectTablePagination.itemsPerPage, totalItems);
+    
+    paginationInfo.innerHTML = `Zobrazeno ${startItem}-${endItem} z ${totalItems} projektů`;
+    
+    paginationControls.innerHTML = `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changeProjectPage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        ${generateProjectPageNumbers(currentPage, totalPages)}
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changeProjectPage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+}
+
+function generateProjectPageNumbers(currentPage, totalPages) {
+    let pages = '';
+    const maxVisible = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        pages += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changeProjectPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    return pages;
+}
+
+function changeProjectPage(page) {
+    const totalPages = Math.ceil(allProjectData.length / projectTablePagination.itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        projectTablePagination.currentPage = page;
+        updateProjectTable();
+    }
 }
 
 function createTimeSeriesChart() {
@@ -963,11 +1182,8 @@ function createTopProjectsChart() {
 }
 
 function updateCharts() {
-    // Update main chart
-    if (charts.main) {
-        charts.main.destroy();
-        createMainChart();
-    }
+    // Update project table (replaces main chart)
+    createProjectTable();
     
     // Update time series chart
     if (charts.timeSeries) {
@@ -1063,24 +1279,22 @@ function updatePagination() {
     const totalPages = Math.ceil(totalItems / state.pagination.itemsPerPage);
     const currentPage = state.pagination.currentPage;
     
-    const paginationContainer = document.getElementById('table-pagination');
+    const paginationInfo = document.querySelector('#table-pagination .pagination-info');
+    const paginationControls = document.querySelector('#table-pagination .pagination-controls');
     
     const startItem = (currentPage - 1) * state.pagination.itemsPerPage + 1;
     const endItem = Math.min(currentPage * state.pagination.itemsPerPage, totalItems);
     
-    paginationContainer.innerHTML = `
-        <div class="pagination-info">
-            Zobrazeno ${startItem}-${endItem} z ${totalItems} záznamů
-        </div>
-        <div class="pagination-controls">
-            <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            ${generatePageNumbers(currentPage, totalPages)}
-            <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
+    paginationInfo.innerHTML = `Zobrazeno ${startItem}-${endItem} z ${totalItems} záznamů`;
+    
+    paginationControls.innerHTML = `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        ${generatePageNumbers(currentPage, totalPages)}
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
     `;
 }
 
@@ -1112,6 +1326,20 @@ function changePage(page) {
         state.pagination.currentPage = page;
         updateTable();
     }
+}
+
+function handleMainTableRowsChange(event) {
+    const newItemsPerPage = parseInt(event.target.value);
+    state.pagination.itemsPerPage = newItemsPerPage;
+    state.pagination.currentPage = 1; // Reset to first page
+    updateTable();
+}
+
+function handleProjectTableRowsChange(event) {
+    const newItemsPerPage = parseInt(event.target.value);
+    projectTablePagination.itemsPerPage = newItemsPerPage;
+    projectTablePagination.currentPage = 1; // Reset to first page
+    updateProjectTable();
 }
 
 // Advanced Statistics

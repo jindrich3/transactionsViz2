@@ -190,6 +190,82 @@
             </div>
         </section>
 
+        <!-- Divider -->
+        <div class="section-divider">
+            <div class="container">
+                <hr class="divider-line">
+            </div>
+        </div>
+
+        <!-- Autoinvest Section -->
+        <section class="autoinvest-section">
+            <div class="container">
+                <h2 class="section-title">Autoinvest</h2>
+                
+                <!-- Empty State (hidden by default) -->
+                <div class="empty-state" id="autoinvest-empty" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="empty-title">Žádné autoinvestice</h3>
+                    <p class="empty-message">Uživatel nemá žádnou investici přes Autoinvest</p>
+                </div>
+
+                <!-- Autoinvest Statistics (hidden by default) -->
+                <div class="autoinvest-stats" id="autoinvest-stats" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-hashtag"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="autoinvest-count">0</h3>
+                                <p class="stat-label">Počet autoinvestic</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="autoinvest-total">0 Kč</h3>
+                                <p class="stat-label">Výše všech autoinvestic</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="autoinvest-average">0 Kč</h3>
+                                <p class="stat-label">Průměrná autoinvestice</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="autoinvest-first-date">--</h3>
+                                <h4 class="stat-subvalue" id="autoinvest-first-amount">0 Kč</h4>
+                                <p class="stat-label">První autoinvestice</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="autoinvest-last-date">--</h3>
+                                <h4 class="stat-subvalue" id="autoinvest-last-amount">0 Kč</h4>
+                                <p class="stat-label">Poslední autoinvestice</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Data Table -->
         <section class="table-section">
             <div class="container">
@@ -267,7 +343,22 @@
                     </div>
                     
                     <div class="table-pagination" id="table-pagination">
-                        <!-- Populated by JavaScript -->
+                        <div class="pagination-info">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        <div class="pagination-controls-wrapper">
+                            <div class="rows-per-page">
+                                <label for="table-rows-select">Řádků na stránku:</label>
+                                <select id="table-rows-select" class="rows-select">
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                    <option value="200">200</option>
+                                </select>
+                            </div>
+                            <div class="pagination-controls">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -277,13 +368,45 @@
         <section class="charts-section">
             <div class="container">
                 <div class="charts-grid">
-                    <!-- Main Column Chart -->
+                    <!-- Project Summary Table -->
                     <div class="chart-card chart-main">
                         <div class="chart-header">
-                            <h3>Transakce podle typu</h3>
+                            <h3>Transakce dle projektu</h3>
                         </div>
-                        <div class="chart-container">
-                            <canvas id="main-chart"></canvas>
+                        <div class="table-container">
+                            <table class="data-table" id="project-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="projekt">Projekt <i class="fas fa-sort"></i></th>
+                                        <th data-sort="investice">Investice <i class="fas fa-sort"></i></th>
+                                        <th data-sort="vynosy">Výnosy <i class="fas fa-sort"></i></th>
+                                        <th data-sort="splaceno">Splaceno <i class="fas fa-sort"></i></th>
+                                        <th data-sort="prodeje">Prodeje <i class="fas fa-sort"></i></th>
+                                        <th data-sort="zbyva_splatit">Zbývá splatit <i class="fas fa-sort"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="project-table-body">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-pagination" id="project-table-pagination">
+                            <div class="pagination-info">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                            <div class="pagination-controls-wrapper">
+                                <div class="rows-per-page">
+                                    <label for="project-table-rows-select">Řádků na stránku:</label>
+                                    <select id="project-table-rows-select" class="rows-select">
+                                        <option value="20" selected>20</option>
+                                        <option value="50">50</option>
+                                        <option value="200">200</option>
+                                    </select>
+                                </div>
+                                <div class="pagination-controls">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </div>
                         </div>
                     </div>
 
