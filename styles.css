@@ -825,6 +825,18 @@ body {
     height: 400px;
 }
 
+.chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: #6b7280;
+    font-style: italic;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    border: 2px dashed #d1d5db;
+}
+
 /* Advanced Statistics */
 .advanced-stats-section {
     padding: var(--spacing-8) 0;

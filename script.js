@@ -5,6 +5,17 @@ let charts = {};
 let selectedFile = null;
 let overviewStats = {};
 
+// Debug function to check canvas availability
+window.debugCanvasElements = function() {
+    console.log('=== Canvas Debug Info ===');
+    console.log('Dashboard element:', document.getElementById('dashboard'));
+    console.log('Dashboard display:', document.getElementById('dashboard')?.style.display);
+    console.log('Portfolio exposure canvas:', document.getElementById('portfolio-exposure-chart'));
+    console.log('All canvas elements:', Array.from(document.querySelectorAll('canvas')).map(c => ({id: c.id, visible: c.offsetParent !== null})));
+    console.log('Charts section:', document.querySelector('.charts-section'));
+    console.log('Charts grid:', document.querySelector('.charts-grid'));
+};
+
 // State management
 const state = {
     filters: {
@@ -306,7 +317,10 @@ function processCSVData(data) {
         showSuccess(csvData.length);
         setTimeout(() => {
             showDashboard();
-            initializeDashboard();
+            // Add a small delay to ensure dashboard is fully rendered
+            setTimeout(() => {
+                initializeDashboard();
+            }, 100);
         }, 2000);
         
     } catch (error) {
@@ -766,6 +780,7 @@ function createCharts() {
             console.log('Chart.js is available, creating charts...');
             createTimeSeriesChart();
             createProjectTypeChart();
+            createPortfolioExposureChart();
             createTopProjectsChart();
         } else {
             console.log(`Chart.js not ready, attempt ${attempt}/10, waiting...`);
@@ -1027,6 +1042,12 @@ function createTimeSeriesChart() {
         return;
     }
     
+    // Destroy existing chart if it exists
+    if (charts.timeSeries) {
+        charts.timeSeries.destroy();
+        charts.timeSeries = null;
+    }
+    
     const ctx = document.getElementById('time-chart').getContext('2d');
     
     // Check if we have data
@@ -1189,6 +1210,12 @@ function createProjectTypeChart() {
         return;
     }
     
+    // Destroy existing chart if it exists
+    if (charts.projectType) {
+        charts.projectType.destroy();
+        charts.projectType = null;
+    }
+    
     const ctx = document.getElementById('project-type-chart').getContext('2d');
     
     const projectTypes = [...new Set(filteredData.map(row => row.typ_projektu).filter(t => t))];
@@ -1249,6 +1276,12 @@ function createTopProjectsChart() {
     if (typeof Chart === 'undefined') {
         console.error('Chart.js is not loaded!');
         return;
+    }
+    
+    // Destroy existing chart if it exists
+    if (charts.topProjects) {
+        charts.topProjects.destroy();
+        charts.topProjects = null;
     }
     
     const ctx = document.getElementById('top-projects-chart').getContext('2d');
@@ -1314,6 +1347,156 @@ function createTopProjectsChart() {
     });
 }
 
+function createPortfolioExposureChart(retryCount = 0) {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded!');
+        return;
+    }
+    
+    let canvas = document.getElementById('portfolio-exposure-chart');
+    if (!canvas) {
+        console.log('Canvas not found, trying to create it...');
+        // Try to find the chart container and create the canvas
+        const containers = document.querySelectorAll('.chart-container');
+        let portfolioContainer = null;
+        
+        containers.forEach(container => {
+            const header = container.parentElement?.querySelector('.chart-header h3');
+            if (header && header.textContent.includes('Aktuální expozice portfolia')) {
+                portfolioContainer = container;
+            }
+        });
+        
+        if (portfolioContainer) {
+            // Create the canvas element
+            portfolioContainer.innerHTML = '<canvas id="portfolio-exposure-chart"></canvas>';
+            canvas = document.getElementById('portfolio-exposure-chart');
+            console.log('Created canvas element for portfolio exposure chart');
+        } else {
+            console.error('Could not find portfolio exposure container');
+            return;
+        }
+    }
+    
+    // Destroy existing chart if it exists
+    if (charts.portfolioExposure) {
+        charts.portfolioExposure.destroy();
+        charts.portfolioExposure = null;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Calculate portfolio exposure by project
+    // Formula: (Investice + Autoinvestice + Investice do příležitosti - Odstoupení) - (Částečné splacení jistiny + Splacení jistiny) - Prodej
+    // This matches the "Zbývá splatit" calculation from the project table
+    const projectData = {};
+    
+    // Debug: Log all unique transaction types
+    const allTypes = [...new Set(filteredData.map(row => row.typ))];
+    console.log('All transaction types in data:', allTypes);
+    
+    filteredData.forEach(row => {
+        if (!row.projekt) return;
+        
+        if (!projectData[row.projekt]) {
+            projectData[row.projekt] = {
+                investice: 0,
+                splaceno: 0,
+                prodeje: 0
+            };
+        }
+        
+        const amount = Math.abs(row.castka);
+        
+        // Investice = Autoinvestice + Investice + Investice do příležitosti - Odstoupení
+        if (row.typ === 'Autoinvestice' || 
+            row.typ === 'Investice' || 
+            row.typ === 'Investice do příležitosti') {
+            projectData[row.projekt].investice += amount;
+        } else if (row.typ === 'Odstoupení') {
+            projectData[row.projekt].investice -= amount;
+        }
+        
+        // Splaceno = Částečné splacení jistiny + Splacení jistiny
+        else if (row.typ === 'Částečné splacení jistiny' || 
+                 row.typ === 'Splacení jistiny') {
+            projectData[row.projekt].splaceno += amount;
+        }
+        
+        // Prodeje = Prodej
+        else if (row.typ === 'Prodej') {
+            projectData[row.projekt].prodeje += amount;
+        }
+    });
+    
+    // Calculate exposure for each project: Investice - Splaceno - Prodeje
+    const projectExposure = {};
+    Object.entries(projectData).forEach(([project, data]) => {
+        projectExposure[project] = data.investice - data.splaceno - data.prodeje;
+    });
+    
+    console.log('Project exposure calculations:', projectExposure);
+    
+    // Filter out projects with zero or negative exposure and sort by exposure
+    const validProjects = Object.entries(projectExposure)
+        .filter(([, exposure]) => exposure > 0)
+        .sort(([,a], [,b]) => b - a);
+    
+    if (validProjects.length === 0) {
+        // Show empty state
+        canvas.parentElement.innerHTML = '<div class="chart-empty">Žádná aktivní expozice portfolia</div>';
+        return;
+    }
+    
+    // Generate colors for the pie chart
+    const colors = [
+        '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
+        '#db2777', '#0891b2', '#65a30d', '#dc2626', '#9333ea',
+        '#0d9488', '#ea580c', '#be123c', '#0369a1', '#7c2d12'
+    ];
+    
+    const backgroundColors = validProjects.map((_, index) => colors[index % colors.length]);
+    const borderColors = backgroundColors.map(color => color);
+    
+    charts.portfolioExposure = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: validProjects.map(([name]) => name.length > 25 ? name.substring(0, 25) + '...' : name),
+            datasets: [{
+                data: validProjects.map(([, exposure]) => exposure),
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = validProjects[context.dataIndex][0];
+                            const value = context.parsed;
+                            const total = validProjects.reduce((sum, [, exposure]) => sum + exposure, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${locale.formatNumber(value)} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+}
+
 function updateCharts() {
     // Update project table (replaces main chart)
     createProjectTable();
@@ -1324,22 +1507,10 @@ function updateCharts() {
         return;
     }
     
-    // Update time series chart
-    if (charts.timeSeries) {
-        charts.timeSeries.destroy();
-    }
+    // Update charts (each function handles its own cleanup)
     createTimeSeriesChart();
-    
-    // Update project type chart
-    if (charts.projectType) {
-        charts.projectType.destroy();
-    }
     createProjectTypeChart();
-    
-    // Update top projects chart
-    if (charts.topProjects) {
-        charts.topProjects.destroy();
-    }
+    createPortfolioExposureChart();
     createTopProjectsChart();
 }
 
