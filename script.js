@@ -22,7 +22,7 @@ const state = {
         dateFrom: null,
         dateTo: null,
         selectedTransactionTypes: [],
-        projectSearch: ''
+        selectedProject: ''
     },
     pagination: {
         currentPage: 1,
@@ -308,7 +308,7 @@ function processCSVData(data) {
         state.filters.dateFrom = null;
         state.filters.dateTo = null;
         state.filters.selectedTransactionTypes = [];
-        state.filters.projectSearch = '';
+        state.filters.selectedProject = '';
         filteredData = [...csvData];
         
         // Clear UI filter elements
@@ -458,9 +458,14 @@ function calculateOverviewStatistics() {
     overviewStats.oldestDate = dates[0];
     overviewStats.newestDate = dates[dates.length - 1];
     
+    // Calculate marketing rewards
+    const marketingRewards = csvData.filter(row => row.typ === 'Odměna')
+        .reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
     // Update fixed overview display
     document.getElementById('total-investment').textContent = locale.formatNumber(overviewStats.totalInvestment);
     document.getElementById('total-withdrawals').textContent = locale.formatNumber(overviewStats.totalWithdrawals);
+    document.getElementById('marketing-rewards').textContent = locale.formatNumber(marketingRewards);
     document.getElementById('largest-investment').textContent = locale.formatNumber(overviewStats.largestInvestment);
     document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
     document.getElementById('average-investment').textContent = locale.formatNumber(overviewStats.averageInvestment);
@@ -591,40 +596,63 @@ function calculateStatistics(data) {
 
 // Filter Options Creation
 function createFilterOptions() {
-    createTransactionTypeDropdown();
-    setupProjectSearch();
+    createTransactionTypeCheckboxes();
+    setupProjectFilter();
 }
 
-function createTransactionTypeDropdown() {
-    const types = [...new Set(csvData.map(row => row.typ).filter(t => t))];
-    const select = document.getElementById('transaction-type-select');
+function createTransactionTypeCheckboxes() {
+    const types = [...new Set(csvData.map(row => row.typ).filter(t => t))].sort();
+    const container = document.getElementById('transaction-type-checkboxes');
     
-    select.innerHTML = types.map(type => {
+    container.innerHTML = types.map(type => {
         const count = csvData.filter(row => row.typ === type).length;
-        return `<option value="${type}">${type} (${count})</option>`;
+        const checkboxId = `checkbox-${type.replace(/\s+/g, '-').toLowerCase()}`;
+        return `
+            <div class="checkbox-item">
+                <input type="checkbox" id="${checkboxId}" value="${type}">
+                <label for="${checkboxId}">
+                    ${type} <span class="checkbox-count">(${count})</span>
+                </label>
+            </div>
+        `;
     }).join('');
     
-    // Add event listener
-    select.addEventListener('change', updateTransactionTypeFilter);
+    // Add event listeners to all checkboxes
+    container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', updateTransactionTypeFilter);
+    });
 }
 
-function setupProjectSearch() {
-    const searchInput = document.getElementById('project-search');
-    searchInput.addEventListener('input', debounce(handleProjectSearch, 300));
+function setupProjectFilter() {
+    createProjectFilterDropdown();
+    const select = document.getElementById('project-filter-select');
+    select.addEventListener('change', handleProjectFilter);
+}
+
+function createProjectFilterDropdown() {
+    // Get unique project names and sort them alphabetically
+    const projects = [...new Set(csvData.map(row => row.projekt))].filter(Boolean).sort();
+    
+    const select = document.getElementById('project-filter-select');
+    
+    // Keep the "All projects" option and add sorted projects
+    select.innerHTML = '<option value="">Všechny projekty</option>' + 
+        projects.map(project => `<option value="${project}">${project}</option>`).join('');
 }
 
 // Filter Functions
 function updateTransactionTypeFilter() {
-    const select = document.getElementById('transaction-type-select');
-    const selectedOptions = Array.from(select.selectedOptions).map(option => option.value);
+    const container = document.getElementById('transaction-type-checkboxes');
+    const checkedBoxes = container.querySelectorAll('input[type="checkbox"]:checked');
+    const selectedTypes = Array.from(checkedBoxes).map(checkbox => checkbox.value);
     
-    state.filters.selectedTransactionTypes = selectedOptions;
+    state.filters.selectedTransactionTypes = selectedTypes;
     applyFilters();
 }
 
-function handleProjectSearch() {
-    const searchTerm = document.getElementById('project-search').value.toLowerCase();
-    state.filters.projectSearch = searchTerm;
+function handleProjectFilter() {
+    const selectedProject = document.getElementById('project-filter-select').value;
+    state.filters.selectedProject = selectedProject;
     applyFilters();
 }
 
@@ -664,12 +692,14 @@ function clearAllFilters() {
     
     // Clear transaction type filters
     state.filters.selectedTransactionTypes = [];
-    const select = document.getElementById('transaction-type-select');
-    Array.from(select.options).forEach(option => option.selected = false);
+    const container = document.getElementById('transaction-type-checkboxes');
+    if (container) {
+        container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+    }
     
-    // Clear project search
-    state.filters.projectSearch = '';
-    document.getElementById('project-search').value = '';
+    // Clear project filter
+    state.filters.selectedProject = '';
+    document.getElementById('project-filter-select').value = '';
     
     // Set "Vše" preset as active (default state)
     setDefaultPresetButton();
@@ -683,7 +713,7 @@ function hasActiveFilters() {
         state.filters.dateFrom ||
         state.filters.dateTo ||
         state.filters.selectedTransactionTypes.length > 0 ||
-        state.filters.projectSearch.trim()
+        state.filters.selectedProject
     );
 }
 
@@ -725,16 +755,16 @@ function resetFilterUI() {
         dateToInput._flatpickr.clear();
     }
     
-    // Clear project search
-    const projectSearch = document.getElementById('project-search');
-    if (projectSearch) {
-        projectSearch.value = '';
+    // Clear project filter
+    const projectFilter = document.getElementById('project-filter-select');
+    if (projectFilter) {
+        projectFilter.value = '';
     }
     
-    // Reset transaction type dropdown
-    const typeSelect = document.getElementById('transaction-type-select');
-    if (typeSelect) {
-        Array.from(typeSelect.options).forEach(option => option.selected = false);
+    // Reset transaction type checkboxes
+    const typeContainer = document.getElementById('transaction-type-checkboxes');
+    if (typeContainer) {
+        typeContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
     }
 }
 
@@ -749,12 +779,9 @@ function applyFilters() {
         if (state.filters.selectedTransactionTypes.length > 0 && 
             !state.filters.selectedTransactionTypes.includes(row.typ)) return false;
         
-        // Project search (only search in project field)
-        if (state.filters.projectSearch) {
-            const searchTerm = state.filters.projectSearch.toLowerCase();
-            const projectName = (row.projekt || '').toLowerCase();
-            
-            if (!projectName.includes(searchTerm)) return false;
+        // Project filter
+        if (state.filters.selectedProject) {
+            if (row.projekt !== state.filters.selectedProject) return false;
         }
         
         return true;
@@ -1218,11 +1245,43 @@ function createProjectTypeChart() {
     
     const ctx = document.getElementById('project-type-chart').getContext('2d');
     
-    const projectTypes = [...new Set(filteredData.map(row => row.typ_projektu).filter(t => t))];
-    const chartData = projectTypes.map(type => {
-        return filteredData.filter(row => row.typ_projektu === type)
-            .reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    // Calculate net investment by project type using the specified formula:
+    // Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Odstoupení - Vrácení peněz
+    const projectTypeData = {};
+    
+    filteredData.forEach(row => {
+        if (!row.typ_projektu) return;
+        
+        if (!projectTypeData[row.typ_projektu]) {
+            projectTypeData[row.typ_projektu] = 0;
+        }
+        
+        const amount = row.castka;
+        const type = row.typ;
+        
+        // Apply the formula based on transaction type
+        if (type === 'Autoinvestice' || type === 'Investice') {
+            projectTypeData[row.typ_projektu] += Math.abs(amount);
+        } else if (type === 'Prodej' || type === 'Částečné splacení jistiny' || 
+                   type === 'Odstoupení' || type === 'Vrácení peněz') {
+            projectTypeData[row.typ_projektu] -= Math.abs(amount);
+        }
+        // Other transaction types are ignored in this calculation
     });
+    
+    // Filter out project types with zero or negative values
+    const validProjectTypes = Object.entries(projectTypeData)
+        .filter(([, value]) => value > 0)
+        .sort(([, a], [, b]) => b - a);
+    
+    if (validProjectTypes.length === 0) {
+        // Show empty state
+        ctx.canvas.parentElement.innerHTML = '<div class="chart-empty">Žádná data pro zobrazení</div>';
+        return;
+    }
+    
+    const projectTypes = validProjectTypes.map(([type]) => type);
+    const chartData = validProjectTypes.map(([, value]) => value);
     
     const colors = [
         '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -1259,6 +1318,9 @@ function createProjectTypeChart() {
                             return context.label + ': ' + 
                                 locale.formatNumber(context.parsed) + 
                                 ' (' + percentage + '%)';
+                        },
+                        afterLabel: function(context) {
+                            return 'Výpočet: Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Odstoupení - Vrácení peněz';
                         }
                     }
                 }
@@ -1286,29 +1348,49 @@ function createTopProjectsChart() {
     
     const ctx = document.getElementById('top-projects-chart').getContext('2d');
     
-    // Group by project and sum amounts
+    // Calculate net investment by project using the specified formula:
+    // Autoinvestice + Investice - Prodeje - Částečné splacení - Vrácení peněz - Odstoupení
     const projectTotals = {};
+    
     filteredData.forEach(row => {
-        if (row.projekt) {
-            if (!projectTotals[row.projekt]) {
-                projectTotals[row.projekt] = 0;
-            }
-            projectTotals[row.projekt] += Math.abs(row.castka);
+        if (!row.projekt) return;
+        
+        if (!projectTotals[row.projekt]) {
+            projectTotals[row.projekt] = 0;
         }
+        
+        const amount = Math.abs(row.castka);
+        const type = row.typ;
+        
+        // Apply the formula based on transaction type
+        if (type === 'Autoinvestice' || type === 'Investice') {
+            projectTotals[row.projekt] += amount;
+        } else if (type === 'Prodej' || type === 'Částečné splacení jistiny' || 
+                   type === 'Vrácení peněz' || type === 'Odstoupení') {
+            projectTotals[row.projekt] -= amount;
+        }
+        // Other transaction types are ignored in this calculation
     });
     
-    // Sort and take top 10
-    const sortedProjects = Object.entries(projectTotals)
-        .sort(([,a], [,b]) => b - a)
+    // Filter out projects with zero or negative values and sort by value
+    const validProjects = Object.entries(projectTotals)
+        .filter(([, value]) => value > 0)
+        .sort(([, a], [, b]) => b - a)
         .slice(0, 10);
+    
+    if (validProjects.length === 0) {
+        // Show empty state
+        ctx.canvas.parentElement.innerHTML = '<div class="chart-empty">Žádná data pro zobrazení</div>';
+        return;
+    }
     
     charts.topProjects = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: sortedProjects.map(([name]) => name.length > 20 ? name.substring(0, 20) + '...' : name),
+            labels: validProjects.map(([name]) => name.length > 20 ? name.substring(0, 20) + '...' : name),
             datasets: [{
-                label: 'Celková částka',
-                data: sortedProjects.map(([,amount]) => amount),
+                label: 'Čistá investice',
+                data: validProjects.map(([, amount]) => amount),
                 backgroundColor: '#2563eb',
                 borderColor: '#1d4ed8',
                 borderWidth: 1
@@ -1326,6 +1408,9 @@ function createTopProjectsChart() {
                     callbacks: {
                         label: function(context) {
                             return locale.formatNumber(context.parsed.x);
+                        },
+                        afterLabel: function(context) {
+                            return 'Výpočet: Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Vrácení peněz - Odstoupení';
                         }
                     }
                 }
@@ -1527,11 +1612,19 @@ function updateTable() {
             <td title="${row.detail}">${row.detail.length > 50 ? row.detail.substring(0, 50) + '...' : row.detail}</td>
             <td class="${row.castka >= 0 ? 'amount-positive' : 'amount-negative'}">${locale.formatNumber(row.castka)}</td>
             <td title="${row.projekt}">${row.projekt.length > 30 ? row.projekt.substring(0, 30) + '...' : row.projekt}</td>
-            <td>${row.typ_projektu}</td>
+            <td>${formatProjectType(row.typ_projektu)}</td>
         </tr>
     `).join('');
     
     updatePagination();
+}
+
+function formatProjectType(type) {
+    if (!type) return '';
+    const lowerType = type.toLowerCase();
+    if (lowerType === 'crowdfunding') return 'CF';
+    if (lowerType === 'legacy') return 'LC';
+    return type; // Return original if not recognized
 }
 
 function sortData(data) {
