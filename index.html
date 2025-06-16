@@ -118,6 +118,36 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="gross-current-yield">0%</h3>
+                            <p class="stat-label">
+                                Hrubý aktuální výnos
+                                <span class="info-tooltip">
+                                    <i class="fas fa-info-circle info-icon"></i>
+                                    <span class="tooltip-content">Nejedná se o roční úrokovou sazbu, ale o celkový procentuální výnos za dobu investování na Investownu bez poplatků a marketingových odměn. Počítá se jako (Výnosy celkem / Investice celkem) × 100%. Nezohledňuje potenciální úroky z neukončených projektů.</span>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="total-profits">0 Kč</h3>
+                            <p class="stat-label">
+                                Zisky
+                                <span class="info-tooltip">
+                                    <i class="fas fa-info-circle info-icon"></i>
+                                    <span class="tooltip-content">Výnosy za celou dobu investování na Investownu bez marketingových odměn. Součet všech výnosů: Bonusový výnos + Smluvní pokuta + Výnos + Zákonné úroky z prodlení.</span>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
                             <i class="fas fa-arrow-down"></i>
                         </div>
                         <div class="stat-content">
@@ -448,7 +478,13 @@
                                 Transakce dle projektu
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Souhrnná tabulka investic, výnosů, splacených částek a prodejů podle projektů. Zbývá splatit = Investice - Splaceno - Prodeje. Typ projektu: CF = Crowdfunding, LC = Legacy.</span>
+                                    <span class="tooltip-content">Souhrnná tabulka všech transakcí seskupených podle projektů s výpočty:<br/><br/>
+<strong>Investice:</strong> Autoinvestice + Investice + Investice do příležitosti - Odstoupení<br/><br/>
+<strong>Výnosy:</strong> Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta<br/><br/>
+<strong>Splaceno:</strong> Částečné splacení jistiny + Splacení jistiny<br/><br/>
+<strong>Prodeje:</strong> Prodej<br/><br/>
+<strong>Zbývá splatit:</strong> Investice - Splaceno - Prodeje<br/><br/>
+<strong>Aktuální výnos:</strong> (Výnosy / Investice) × 100% (pokud Investice > 0, jinak prázdné)</span>
                                 </span>
                             </h3>
                         </div>
@@ -462,6 +498,7 @@
                                         <th data-sort="splaceno">Splaceno <i class="fas fa-sort"></i></th>
                                         <th data-sort="prodeje">Prodeje <i class="fas fa-sort"></i></th>
                                         <th data-sort="zbyva_splatit">Zbývá splatit <i class="fas fa-sort"></i></th>
+                                        <th data-sort="aktualni_vynos">Aktuální výnos <i class="fas fa-sort"></i></th>
                                     </tr>
                                 </thead>
                                 <tbody id="project-table-body">

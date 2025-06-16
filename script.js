@@ -107,6 +107,9 @@ function setupEventListeners() {
     
     // Demo transactions button
     document.getElementById('demo-transactions-btn').addEventListener('click', loadDemoTransactions);
+    
+    // Header hide on scroll
+    setupHeaderScrollBehavior();
 }
 
 
@@ -508,6 +511,7 @@ function calculateOverviewStatistics() {
     
     // Update fixed overview display with zero value styling
     setStatValueWithZeroClass('total-investment', overviewStats.totalInvestment);
+    setStatValueWithZeroClass('total-profits', overviewStats.totalProfits);
     setStatValueWithZeroClass('total-withdrawals', overviewStats.totalWithdrawals);
     setStatValueWithZeroClass('marketing-rewards', marketingRewards);
     setStatValueWithZeroClass('largest-investment', overviewStats.largestInvestment);
@@ -515,6 +519,16 @@ function calculateOverviewStatistics() {
     setStatValueWithZeroClass('oldest-transaction-amount', overviewStats.oldestAmount);
     setStatValueWithZeroClass('newest-transaction-amount', overviewStats.newestAmount);
     setStatValueWithZeroClass('total-fees', overviewStats.totalFees);
+    
+    // Handle percentage display for gross current yield
+    const grossYieldElement = document.getElementById('gross-current-yield');
+    if (overviewStats.grossCurrentYield === 0) {
+        grossYieldElement.textContent = '0%';
+        grossYieldElement.classList.add('amount-zero');
+    } else {
+        grossYieldElement.textContent = `${overviewStats.grossCurrentYield.toFixed(2)}%`;
+        grossYieldElement.classList.remove('amount-zero');
+    }
     
     // These don't need zero styling (counts/dates)
     document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
@@ -583,7 +597,9 @@ function calculateStatistics(data) {
             averageInvestment: 0,
             portfolioStages: 0,
             largestInvestment: 0,
-            totalFees: 0
+            totalFees: 0,
+            totalProfits: 0,
+            grossCurrentYield: 0
         };
     }
     
@@ -642,6 +658,26 @@ function calculateStatistics(data) {
     // Poplatky = sum of all fees
     const totalFees = fees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
+    // Calculate new statistics
+    // Zisky (Total Profits) = SUM(Bonusový výnos, Smluvní pokuta, Výnos, Zákonné úroky z prodlení)
+    const profitTransactions = data.filter(row => 
+        row.typ === 'Bonusový výnos' || 
+        row.typ === 'Smluvní pokuta' || 
+        row.typ === 'Výnos' || 
+        row.typ === 'Zákonné úroky z prodlení'
+    );
+    const totalProfits = profitTransactions.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
+    // Total base investments for yield calculation = SUM(Investice, Autoinvestice)
+    const baseInvestments = data.filter(row => 
+        row.typ === 'Investice' || 
+        row.typ === 'Autoinvestice'
+    );
+    const totalBaseInvestments = baseInvestments.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
+    // Hrubý aktuální výnos = (Total Profits / Total Base Investments) * 100
+    const grossCurrentYield = totalBaseInvestments > 0 ? (totalProfits / totalBaseInvestments) * 100 : 0;
+    
     return {
         totalTransactions: data.length,
         totalInvestment,
@@ -649,7 +685,9 @@ function calculateStatistics(data) {
         averageInvestment,
         portfolioStages,
         largestInvestment,
-        totalFees
+        totalFees,
+        totalProfits,
+        grossCurrentYield
     };
 }
 
@@ -944,7 +982,7 @@ function createCharts() {
     tryCreateCharts();
 }
 
-function createProjectTable() {
+function calculateProjectData() {
     const projectData = {};
     
     // Process each transaction and group by project
@@ -958,7 +996,8 @@ function createProjectTable() {
                 vynosy: 0,
                 splaceno: 0,
                 prodeje: 0,
-                zbyva_splatit: 0
+                zbyva_splatit: 0,
+                aktualni_vynos: 0
             };
         }
         
@@ -993,37 +1032,60 @@ function createProjectTable() {
         }
     });
     
-    // Calculate "Zbývá splatit" for each project
+    // Calculate "Zbývá splatit" and "Aktuální výnos" for each project
     Object.values(projectData).forEach(project => {
         project.zbyva_splatit = project.investice - project.splaceno - project.prodeje;
+        
+        // Calculate yield percentage: (Výnosy / Investice) * 100
+        if (project.investice > 0) {
+            project.aktualni_vynos = (project.vynosy / project.investice) * 100;
+        } else {
+            project.aktualni_vynos = 0;
+        }
     });
     
-    // Convert to array and sort
-    const projectArray = Object.values(projectData)
-        .filter(project => project.investice > 0 || project.vynosy > 0 || project.splaceno > 0 || project.prodeje > 0)
-        .sort((a, b) => {
-            const field = projectTableSortField;
-            let comparison = 0;
-            
-            if (field === 'projekt') {
-                comparison = a[field].localeCompare(b[field]);
-            } else {
-                comparison = a[field] - b[field];
-            }
-            
-            return projectTableSortDirection === 'asc' ? comparison : -comparison;
-        });
+    // Convert to array and filter
+    return Object.values(projectData)
+        .filter(project => project.investice > 0 || project.vynosy > 0 || project.splaceno > 0 || project.prodeje > 0);
+}
+
+function createProjectTable() {
+    // Reset sorting initialization when creating new table with new data
+    projectTableSortingInitialized = false;
     
-    // Store the complete data and update table with pagination
-    allProjectData = projectArray;
+    // Calculate project data once
+    const unsortedProjectData = calculateProjectData();
+    
+    // Sort the data
+    allProjectData = sortProjectData(unsortedProjectData);
+    
+    // Setup sorting event listeners only once
+    setupProjectTableSorting();
+    
+    // Update table display
     updateProjectTable();
+}
+
+function sortProjectData(data) {
+    return [...data].sort((a, b) => {
+        const field = projectTableSortField;
+        let comparison = 0;
+        
+        if (field === 'projekt') {
+            comparison = a[field].localeCompare(b[field]);
+        } else {
+            comparison = a[field] - b[field];
+        }
+        
+        return projectTableSortDirection === 'asc' ? comparison : -comparison;
+    });
 }
 
 function updateProjectTable() {
     const tableBody = document.getElementById('project-table-body');
     
     if (allProjectData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">Žádné projekty nenalezeny</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #666;">Žádné projekty nenalezeny</td></tr>';
         updateProjectTablePagination();
         return;
     }
@@ -1038,6 +1100,11 @@ function updateProjectTable() {
         const prodejeFormatted = formatAmountWithZeroClass(project.prodeje);
         const zbyvaFormatted = formatAmountWithZeroClass(project.zbyva_splatit);
         
+        // Format yield percentage - show empty if zero
+        const yieldPercentage = project.aktualni_vynos;
+        const yieldDisplay = yieldPercentage === 0 ? '' : `${yieldPercentage.toFixed(2)}%`;
+        const yieldClass = yieldPercentage > 0 ? 'amount-positive' : (yieldPercentage === 0 ? '' : 'amount-negative');
+        
         return `
             <tr>
                 <td>${project.projekt}</td>
@@ -1046,35 +1113,29 @@ function updateProjectTable() {
                 <td class="${splacenoFormatted.className}">${splacenoFormatted.formattedAmount}</td>
                 <td class="${prodejeFormatted.className}">${prodejeFormatted.formattedAmount}</td>
                 <td class="${zbyvaFormatted.className}">${zbyvaFormatted.formattedAmount}</td>
+                <td class="${yieldClass}">${yieldDisplay}</td>
             </tr>
         `;
     }).join('');
     
-    // Add sorting functionality to the project table
-    setupProjectTableSorting();
-    
-    // Set initial sort indicator
-    setInitialSortIndicator();
+    // Update sort indicators
+    updateSortIndicators(projectTableSortField);
     
     // Update pagination
     updateProjectTablePagination();
 }
 
-function setInitialSortIndicator() {
-    // Clear all sort indicators
-    const headers = document.querySelectorAll('#project-table th[data-sort] i');
-    headers.forEach(icon => {
-        icon.className = 'fas fa-sort';
-    });
-    
-    // Set indicator for current sort field
-    const currentHeader = document.querySelector(`#project-table th[data-sort="${projectTableSortField}"] i`);
-    if (currentHeader) {
-        currentHeader.className = projectTableSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
-    }
-}
+
+
+// Track if event listeners are already attached
+let projectTableSortingInitialized = false;
 
 function setupProjectTableSorting() {
+    // Only attach event listeners once
+    if (projectTableSortingInitialized) {
+        return;
+    }
+    
     const headers = document.querySelectorAll('#project-table th[data-sort]');
     headers.forEach(header => {
         header.addEventListener('click', () => {
@@ -1082,6 +1143,8 @@ function setupProjectTableSorting() {
             sortProjectTable(sortField);
         });
     });
+    
+    projectTableSortingInitialized = true;
 }
 
 let projectTableSortField = 'projekt';
@@ -1094,7 +1157,8 @@ let projectTablePagination = {
 };
 let allProjectData = [];
 
-function sortProjectTable(field) {
+// Debounced sort function to prevent rapid clicking issues
+const debouncedSortProjectTable = debounce(function(field) {
     // Toggle direction if same field
     if (projectTableSortField === field) {
         projectTableSortDirection = projectTableSortDirection === 'asc' ? 'desc' : 'asc';
@@ -1105,6 +1169,24 @@ function sortProjectTable(field) {
     }
     
     // Update header indicators
+    updateSortIndicators(field);
+    
+    // Reset to first page when sorting changes
+    projectTablePagination.currentPage = 1;
+    
+    // Sort existing data instead of recalculating everything
+    if (allProjectData.length > 0) {
+        allProjectData = sortProjectData(allProjectData);
+        updateProjectTable();
+    }
+}, 100);
+
+function sortProjectTable(field) {
+    debouncedSortProjectTable(field);
+}
+
+function updateSortIndicators(field) {
+    // Update header indicators
     const headers = document.querySelectorAll('#project-table th[data-sort] i');
     headers.forEach(icon => {
         icon.className = 'fas fa-sort';
@@ -1114,12 +1196,6 @@ function sortProjectTable(field) {
     if (currentHeader) {
         currentHeader.className = projectTableSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
     }
-    
-    // Reset to first page when sorting changes
-    projectTablePagination.currentPage = 1;
-    
-    // Re-create the table with new sorting
-    createProjectTable();
 }
 
 function paginateProjectData(data) {
@@ -2097,4 +2173,47 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// Header scroll behavior
+function setupHeaderScrollBehavior() {
+    let lastScrollTop = 0;
+    let scrollThreshold = 10; // Minimum scroll distance to trigger hide/show
+    let isHeaderHidden = false;
+    
+    const header = document.querySelector('.dashboard-header');
+    
+    if (!header) return; // Exit if header doesn't exist
+    
+    const handleScroll = debounce(() => {
+        const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Don't hide header when at the top of the page
+        if (currentScrollTop <= scrollThreshold) {
+            if (isHeaderHidden) {
+                header.classList.remove('header-hidden');
+                isHeaderHidden = false;
+            }
+            lastScrollTop = currentScrollTop;
+            return;
+        }
+        
+        // Check scroll direction and distance
+        const scrollDifference = Math.abs(currentScrollTop - lastScrollTop);
+        
+        if (scrollDifference > scrollThreshold) {
+            if (currentScrollTop > lastScrollTop && !isHeaderHidden) {
+                // Scrolling down - hide header
+                header.classList.add('header-hidden');
+                isHeaderHidden = true;
+            } else if (currentScrollTop < lastScrollTop && isHeaderHidden) {
+                // Scrolling up - show header
+                header.classList.remove('header-hidden');
+                isHeaderHidden = false;
+            }
+            lastScrollTop = currentScrollTop;
+        }
+    }, 50); // Debounce scroll events for better performance
+    
+    window.addEventListener('scroll', handleScroll);
 } 
