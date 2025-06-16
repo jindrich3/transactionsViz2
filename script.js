@@ -471,19 +471,21 @@ function calculateOverviewStatistics() {
     const marketingRewards = csvData.filter(row => row.typ === 'Odměna')
         .reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
-    // Update fixed overview display
-    document.getElementById('total-investment').textContent = locale.formatNumber(overviewStats.totalInvestment);
-    document.getElementById('total-withdrawals').textContent = locale.formatNumber(overviewStats.totalWithdrawals);
-    document.getElementById('marketing-rewards').textContent = locale.formatNumber(marketingRewards);
-    document.getElementById('largest-investment').textContent = locale.formatNumber(overviewStats.largestInvestment);
+    // Update fixed overview display with zero value styling
+    setStatValueWithZeroClass('total-investment', overviewStats.totalInvestment);
+    setStatValueWithZeroClass('total-withdrawals', overviewStats.totalWithdrawals);
+    setStatValueWithZeroClass('marketing-rewards', marketingRewards);
+    setStatValueWithZeroClass('largest-investment', overviewStats.largestInvestment);
+    setStatValueWithZeroClass('average-investment', overviewStats.averageInvestment);
+    setStatValueWithZeroClass('oldest-transaction-amount', overviewStats.oldestAmount);
+    setStatValueWithZeroClass('newest-transaction-amount', overviewStats.newestAmount);
+    setStatValueWithZeroClass('total-fees', overviewStats.totalFees);
+    
+    // These don't need zero styling (counts/dates)
     document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
-    document.getElementById('average-investment').textContent = locale.formatNumber(overviewStats.averageInvestment);
     document.getElementById('portfolio-stages').textContent = overviewStats.portfolioStages;
     document.getElementById('date-range-start').textContent = locale.formatDate(overviewStats.oldestDate);
-    document.getElementById('oldest-transaction-amount').textContent = locale.formatNumber(overviewStats.oldestAmount);
     document.getElementById('date-range-end').textContent = locale.formatDate(overviewStats.newestDate);
-    document.getElementById('newest-transaction-amount').textContent = locale.formatNumber(overviewStats.newestAmount);
-    document.getElementById('total-fees').textContent = locale.formatNumber(overviewStats.totalFees);
     
     // Calculate and display autoinvest statistics
     calculateAutoinvestStatistics();
@@ -517,16 +519,16 @@ function calculateAutoinvestStatistics() {
         const firstTransaction = sortedTransactions[0];
         const lastTransaction = sortedTransactions[sortedTransactions.length - 1];
         
-        // Update display
+        // Update display with zero value styling
         document.getElementById('autoinvest-count').textContent = count;
-        document.getElementById('autoinvest-total').textContent = locale.formatNumber(totalAmount);
-        document.getElementById('autoinvest-average').textContent = locale.formatNumber(averageAmount);
+        setStatValueWithZeroClass('autoinvest-total', totalAmount);
+        setStatValueWithZeroClass('autoinvest-average', averageAmount);
+        setStatValueWithZeroClass('autoinvest-first-amount', Math.abs(firstTransaction.castka));
+        setStatValueWithZeroClass('autoinvest-last-amount', Math.abs(lastTransaction.castka));
         
+        // These don't need zero styling (dates)
         document.getElementById('autoinvest-first-date').textContent = locale.formatDate(firstTransaction.datum);
-        document.getElementById('autoinvest-first-amount').textContent = locale.formatNumber(Math.abs(firstTransaction.castka));
-        
         document.getElementById('autoinvest-last-date').textContent = locale.formatDate(lastTransaction.datum);
-        document.getElementById('autoinvest-last-amount').textContent = locale.formatNumber(Math.abs(lastTransaction.castka));
     }
 }
 
@@ -980,16 +982,24 @@ function updateProjectTable() {
     // Paginate the data
     const paginatedData = paginateProjectData(allProjectData);
     
-    tableBody.innerHTML = paginatedData.map(project => `
-        <tr>
-            <td>${project.projekt}</td>
-            <td>${locale.formatNumber(project.investice)}</td>
-            <td>${locale.formatNumber(project.vynosy)}</td>
-            <td>${locale.formatNumber(project.splaceno)}</td>
-            <td>${locale.formatNumber(project.prodeje)}</td>
-            <td class="${Math.abs(project.zbyva_splatit) < 0.01 ? 'amount-neutral' : (project.zbyva_splatit > 0 ? 'amount-positive' : 'amount-negative')}">${locale.formatNumber(project.zbyva_splatit)}</td>
-        </tr>
-    `).join('');
+    tableBody.innerHTML = paginatedData.map(project => {
+        const investiceFormatted = formatAmountWithZeroClass(project.investice);
+        const vynosyFormatted = formatAmountWithZeroClass(project.vynosy);
+        const splacenoFormatted = formatAmountWithZeroClass(project.splaceno);
+        const prodejeFormatted = formatAmountWithZeroClass(project.prodeje);
+        const zbyvaFormatted = formatAmountWithZeroClass(project.zbyva_splatit);
+        
+        return `
+            <tr>
+                <td>${project.projekt}</td>
+                <td class="${investiceFormatted.className}">${investiceFormatted.formattedAmount}</td>
+                <td class="${vynosyFormatted.className}">${vynosyFormatted.formattedAmount}</td>
+                <td class="${splacenoFormatted.className}">${splacenoFormatted.formattedAmount}</td>
+                <td class="${prodejeFormatted.className}">${prodejeFormatted.formattedAmount}</td>
+                <td class="${zbyvaFormatted.className}">${zbyvaFormatted.formattedAmount}</td>
+            </tr>
+        `;
+    }).join('');
     
     // Add sorting functionality to the project table
     setupProjectTableSorting();
@@ -1878,7 +1888,7 @@ function loadDemoTransactions() {
 function updateAdvancedStatistics() {
     const stats = calculateAdvancedStatistics(csvData);
     
-    document.getElementById('monthly-rate').textContent = locale.formatNumber(stats.monthlyRate);
+    setStatValueWithZeroClass('monthly-rate', stats.monthlyRate);
     document.getElementById('investment-streak').textContent = stats.investmentStreak + ' dnů';
     document.getElementById('seasonal-pattern').textContent = stats.seasonalPattern;
     document.getElementById('investment-concentration').textContent = stats.concentrationPercentage + '%';
@@ -2007,6 +2017,26 @@ function exportToCSV() {
 }
 
 // Utility Functions
+function formatAmountWithZeroClass(amount) {
+    const formattedAmount = locale.formatNumber(amount);
+    const className = Math.abs(amount) < 0.01 ? 'amount-zero' : 
+                     (amount >= 0 ? 'amount-positive' : 'amount-negative');
+    return { formattedAmount, className };
+}
+
+function setStatValueWithZeroClass(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = locale.formatNumber(value);
+        // Add or remove zero class
+        if (Math.abs(value) < 0.01) {
+            element.classList.add('zero');
+        } else {
+            element.classList.remove('zero');
+        }
+    }
+}
+
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
