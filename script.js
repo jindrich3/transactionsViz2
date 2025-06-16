@@ -82,10 +82,14 @@ function setupEventListeners() {
     document.getElementById('retry-btn').addEventListener('click', resetFileSelection);
     document.getElementById('new-upload-btn').addEventListener('click', resetToLanding);
     
-    // Filter functionality  
+    // Filter modal functionality  
+    document.getElementById('filters-btn').addEventListener('click', openFilterModal);
+    document.getElementById('close-filter-modal').addEventListener('click', closeFilterModal);
+    document.getElementById('filter-modal-overlay').addEventListener('click', handleModalOverlayClick);
     document.getElementById('clear-filters').addEventListener('click', clearAllFilters);
+    document.getElementById('apply-filters').addEventListener('click', applyFiltersAndClose);
     
-    // Date presets
+    // Date presets (works in modal)
     document.querySelectorAll('.preset-btn').forEach(btn => {
         btn.addEventListener('click', (e) => setDatePreset(e.target.dataset.days));
     });
@@ -139,7 +143,7 @@ function initializeDatePickers() {
         dateFormat: 'd.m.Y',
         onChange: function(selectedDates) {
             state.filters.dateFrom = selectedDates[0];
-            applyFilters();
+            // Don't apply filters automatically - only when "Použít filtry" is clicked
         }
     });
     
@@ -148,7 +152,7 @@ function initializeDatePickers() {
         dateFormat: 'd.m.Y',
         onChange: function(selectedDates) {
             state.filters.dateTo = selectedDates[0];
-            applyFilters();
+            // Don't apply filters automatically - only when "Použít filtry" is clicked
         }
     });
 }
@@ -654,13 +658,13 @@ function updateTransactionTypeFilter() {
     const selectedTypes = Array.from(checkedBoxes).map(checkbox => checkbox.value);
     
     state.filters.selectedTransactionTypes = selectedTypes;
-    applyFilters();
+    // Don't apply filters automatically - only when "Použít filtry" is clicked
 }
 
 function handleProjectFilter() {
     const selectedProject = document.getElementById('project-filter-select').value;
     state.filters.selectedProject = selectedProject;
-    applyFilters();
+    // Don't apply filters automatically - only when "Použít filtry" is clicked
 }
 
 function setDatePreset(days) {
@@ -687,7 +691,7 @@ function setDatePreset(days) {
         document.getElementById('date-to')._flatpickr.setDate(today);
     }
     
-    applyFilters();
+    // Don't apply filters automatically - only when "Použít filtry" is clicked
 }
 
 function clearAllFilters() {
@@ -821,6 +825,43 @@ function applyFilters() {
     
     // Update only the main transactions table (not charts, statistics, etc.)
     updateTable();
+}
+
+// Modal Functions
+function openFilterModal() {
+    const modalOverlay = document.getElementById('filter-modal-overlay');
+    modalOverlay.classList.add('show');
+    
+    // Update clear filters button state when modal opens
+    updateClearFiltersButton();
+    
+    // Trap focus in modal
+    document.addEventListener('keydown', handleModalKeydown);
+}
+
+function closeFilterModal() {
+    const modalOverlay = document.getElementById('filter-modal-overlay');
+    modalOverlay.classList.remove('show');
+    
+    // Remove focus trap
+    document.removeEventListener('keydown', handleModalKeydown);
+}
+
+function handleModalOverlayClick(event) {
+    if (event.target.id === 'filter-modal-overlay') {
+        closeFilterModal();
+    }
+}
+
+function handleModalKeydown(event) {
+    if (event.key === 'Escape') {
+        closeFilterModal();
+    }
+}
+
+function applyFiltersAndClose() {
+    applyFilters();
+    closeFilterModal();
 }
 
 // Charts Creation

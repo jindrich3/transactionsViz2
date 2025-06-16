@@ -1391,4 +1391,202 @@ select:focus {
         --gray-200: #4b5563;
         --gray-100: #374151;
     }
+}
+
+/* Filter Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-normal);
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.9) translateY(20px);
+    transition: all var(--transition-normal);
+    border: 1px solid var(--gray-200);
+}
+
+.modal-overlay.show .modal {
+    transform: scale(1) translateY(0);
+}
+
+.modal-header {
+    padding: var(--spacing-6);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-secondary);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--gray-800);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.modal-header i {
+    color: var(--primary-color);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: var(--font-size-lg);
+    color: var(--gray-500);
+    cursor: pointer;
+    padding: var(--spacing-2);
+    border-radius: var(--radius);
+    transition: all var(--transition-normal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.modal-close:hover {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.modal-content {
+    padding: var(--spacing-6);
+    max-height: calc(90vh - 200px);
+    overflow-y: auto;
+}
+
+.filter-sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+}
+
+.filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.filter-section .filter-label {
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-footer {
+    padding: var(--spacing-6);
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    gap: var(--spacing-3);
+    justify-content: flex-end;
+    background: var(--bg-secondary);
+}
+
+.modal-footer .btn {
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+    .modal {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .modal-header,
+    .modal-content,
+    .modal-footer {
+        padding: var(--spacing-4);
+    }
+    
+    .filter-sections {
+        gap: var(--spacing-4);
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+
+/* Enhanced filter styles for modal */
+.modal .date-range-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-3);
+}
+
+.modal .date-presets {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: var(--spacing-2);
+}
+
+.modal .checkbox-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: var(--spacing-3);
+    background: var(--bg-secondary);
+}
+
+/* Animation for checkbox items */
+.modal .checkbox-item {
+    animation: slideInLeft 0.3s ease-out;
+    animation-fill-mode: both;
+}
+
+.modal .checkbox-item:nth-child(1) { animation-delay: 0.1s; }
+.modal .checkbox-item:nth-child(2) { animation-delay: 0.15s; }
+.modal .checkbox-item:nth-child(3) { animation-delay: 0.2s; }
+.modal .checkbox-item:nth-child(4) { animation-delay: 0.25s; }
+.modal .checkbox-item:nth-child(5) { animation-delay: 0.3s; }
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 } 

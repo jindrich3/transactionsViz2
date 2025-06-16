@@ -382,49 +382,14 @@
                             </span>
                         </h3>
                         <div class="table-actions">
-                            <button class="btn btn-outline" id="clear-filters">Vymazat filtry</button>
+                            <button class="btn btn-outline" id="filters-btn">
+                                <i class="fas fa-filter"></i>
+                                Filtry
+                            </button>
                             <button class="btn btn-outline" id="export-btn">
                                 <i class="fas fa-download"></i>
                                 Exportovat CSV
                             </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Integrated Filters -->
-                    <div class="table-filters">
-                        <div class="filter-row">
-                            <!-- Left Column: Project and Date -->
-                            <div class="filter-group">
-                                <label class="filter-label">Projekt</label>
-                                <div class="dropdown-container">
-                                    <select id="project-filter-select" class="filter-select">
-                                        <option value="">Všechny projekty</option>
-                                        <!-- Populated by JavaScript -->
-                                    </select>
-                                </div>
-                                
-                                <label class="filter-label">Časové období</label>
-                                <div class="date-range-container">
-                                    <input type="text" id="date-from" placeholder="Od" class="date-input">
-                                    <input type="text" id="date-to" placeholder="Do" class="date-input">
-                                </div>
-                                <div class="date-presets">
-                                    <button class="preset-btn" data-days="7">7 dní</button>
-                                    <button class="preset-btn" data-days="30">30 dní</button>
-                                    <button class="preset-btn" data-days="90">3 měsíce</button>
-                                    <button class="preset-btn" data-days="180">6 měsíců</button>
-                                    <button class="preset-btn" data-days="365">1 rok</button>
-                                    <button class="preset-btn" data-days="all">Vše</button>
-                                </div>
-                            </div>
-
-                            <!-- Right Column: Transaction Type Checkboxes -->
-                            <div class="filter-group">
-                                <label class="filter-label">Typ transakce</label>
-                                <div class="checkbox-container" id="transaction-type-checkboxes">
-                                    <!-- Populated by JavaScript -->
-                                </div>
-                            </div>
                         </div>
                     </div>
                     
@@ -668,6 +633,70 @@
             </div>
         </section>
 
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal-overlay" id="filter-modal-overlay">
+        <div class="modal" id="filter-modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-filter"></i>
+                    Filtry transakcí
+                </h3>
+                <button class="modal-close" id="close-filter-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="filter-sections">
+                    <!-- Project Filter -->
+                    <div class="filter-section">
+                        <label class="filter-label">Projekt</label>
+                        <div class="dropdown-container">
+                            <select id="project-filter-select" class="filter-select">
+                                <option value="">Všechny projekty</option>
+                                <!-- Populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Date Filter -->
+                    <div class="filter-section">
+                        <label class="filter-label">Časové období</label>
+                        <div class="date-range-container">
+                            <input type="text" id="date-from" placeholder="Od" class="date-input">
+                            <input type="text" id="date-to" placeholder="Do" class="date-input">
+                        </div>
+                        <div class="date-presets">
+                            <button class="preset-btn" data-days="7">7 dní</button>
+                            <button class="preset-btn" data-days="30">30 dní</button>
+                            <button class="preset-btn" data-days="90">3 měsíce</button>
+                            <button class="preset-btn" data-days="180">6 měsíců</button>
+                            <button class="preset-btn" data-days="365">1 rok</button>
+                            <button class="preset-btn active" data-days="all">Vše</button>
+                        </div>
+                    </div>
+
+                    <!-- Transaction Type Filter -->
+                    <div class="filter-section">
+                        <label class="filter-label">Typ transakce</label>
+                        <div class="checkbox-container" id="transaction-type-checkboxes">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="clear-filters">
+                    <i class="fas fa-eraser"></i>
+                    Vymazat filtry
+                </button>
+                <button class="btn btn-primary" id="apply-filters">
+                    <i class="fas fa-check"></i>
+                    Použít filtry
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->
