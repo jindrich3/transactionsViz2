@@ -1564,6 +1564,7 @@ function createProjectTypeChart() {
                                         strokeStyle: data.datasets[0].borderColor,
                                         lineWidth: data.datasets[0].borderWidth,
                                         pointStyle: 'circle',
+                                        fontColor: '#FFFFFF', // Explicit font color for each legend item
                                         hidden: false,
                                         index: i
                                     };
@@ -1832,6 +1833,32 @@ function createPortfolioExposureChart(retryCount = 0) {
     // Calculate total for percentage display
     const total = validProjects.reduce((sum, [, exposure]) => sum + exposure, 0);
     
+    // Plugin to display project count in the center
+    const centerTextPlugin = {
+        id: 'centerText',
+        beforeDraw: function(chart) {
+            const ctx = chart.ctx;
+            const centerX = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
+            const centerY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
+            
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Draw the main number
+            ctx.font = 'bold 32px Inter, system-ui, sans-serif';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(validProjects.length.toString(), centerX, centerY - 8);
+            
+            // Draw the label
+            ctx.font = '500 14px Inter, system-ui, sans-serif';
+            ctx.fillStyle = '#94A3B8';
+            ctx.fillText('projektů', centerX, centerY + 18);
+            
+            ctx.restore();
+        }
+    };
+
     charts.portfolioExposure = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -1906,7 +1933,8 @@ function createPortfolioExposureChart(retryCount = 0) {
                     borderAlign: 'center'
                 }
             }
-        }
+        },
+        plugins: [centerTextPlugin]
     });
 }
 
@@ -1933,16 +1961,24 @@ function updateTable() {
     const sortedData = sortData(filteredData);
     const paginatedData = paginateData(sortedData);
     
-    tbody.innerHTML = paginatedData.map(row => `
+    tbody.innerHTML = paginatedData.map(row => {
+        // Determine amount CSS class based on transaction type and amount
+        let amountClass = row.castka >= 0 ? 'amount-positive' : 'amount-negative';
+        if (row.typ === 'Investice' || row.typ === 'Autoinvestice') {
+            amountClass = 'amount-investment';
+        }
+        
+        return `
         <tr>
             <td>${locale.formatDate(row.datum)}</td>
             <td>${row.typ}</td>
             <td title="${row.detail}">${row.detail.length > 50 ? row.detail.substring(0, 50) + '...' : row.detail}</td>
-            <td class="${row.castka >= 0 ? 'amount-positive' : 'amount-negative'}">${locale.formatNumber(row.castka)}</td>
+            <td class="${amountClass}">${locale.formatNumber(row.castka)}</td>
             <td title="${row.projekt}">${row.projekt.length > 30 ? row.projekt.substring(0, 30) + '...' : row.projekt}</td>
             <td>${formatProjectType(row.typ_projektu)}</td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
     
     updatePagination();
 }

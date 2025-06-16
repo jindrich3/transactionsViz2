@@ -1237,13 +1237,18 @@ canvas {
 }
 
 .amount-neutral {
-    color: var(--gray-500);
-    font-weight: 600;
+    color: var(--gray-400);
+    font-weight: 500;
 }
 
 .amount-zero {
-    color: var(--gray-400);
-    font-weight: 400;
+    color: var(--gray-500);
+    font-style: italic;
+}
+
+.amount-investment {
+    color: #fb923c;
+    font-weight: 600;
 }
 
 /* Pagination */
