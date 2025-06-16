@@ -319,7 +319,7 @@ function processCSVData(data) {
             showDashboard();
             // Add a small delay to ensure dashboard is fully rendered
             setTimeout(() => {
-                initializeDashboard();
+            initializeDashboard();
             }, 100);
         }, 2000);
         
@@ -453,10 +453,15 @@ function initializeDashboard() {
 function calculateOverviewStatistics() {
     overviewStats = calculateStatistics(csvData);
     
-    // Calculate date range
-    const dates = csvData.map(row => row.datum).sort((a, b) => a - b);
-    overviewStats.oldestDate = dates[0];
-    overviewStats.newestDate = dates[dates.length - 1];
+    // Calculate date range and find oldest/newest transactions
+    const sortedTransactions = csvData.slice().sort((a, b) => a.datum - b.datum);
+    const oldestTransaction = sortedTransactions[0];
+    const newestTransaction = sortedTransactions[sortedTransactions.length - 1];
+    
+    overviewStats.oldestDate = oldestTransaction.datum;
+    overviewStats.newestDate = newestTransaction.datum;
+    overviewStats.oldestAmount = Math.abs(oldestTransaction.castka);
+    overviewStats.newestAmount = Math.abs(newestTransaction.castka);
     
     // Calculate marketing rewards
     const marketingRewards = csvData.filter(row => row.typ === 'Odměna')
@@ -471,7 +476,9 @@ function calculateOverviewStatistics() {
     document.getElementById('average-investment').textContent = locale.formatNumber(overviewStats.averageInvestment);
     document.getElementById('portfolio-stages').textContent = overviewStats.portfolioStages;
     document.getElementById('date-range-start').textContent = locale.formatDate(overviewStats.oldestDate);
+    document.getElementById('oldest-transaction-amount').textContent = locale.formatNumber(overviewStats.oldestAmount);
     document.getElementById('date-range-end').textContent = locale.formatDate(overviewStats.newestDate);
+    document.getElementById('newest-transaction-amount').textContent = locale.formatNumber(overviewStats.newestAmount);
     document.getElementById('total-fees').textContent = locale.formatNumber(overviewStats.totalFees);
     
     // Calculate and display autoinvest statistics
@@ -684,26 +691,44 @@ function setDatePreset(days) {
 }
 
 function clearAllFilters() {
-    // Clear date filters
+    // Clear all filter state
     state.filters.dateFrom = null;
     state.filters.dateTo = null;
-    document.getElementById('date-from')._flatpickr.clear();
-    document.getElementById('date-to')._flatpickr.clear();
-    
-    // Clear transaction type filters
     state.filters.selectedTransactionTypes = [];
-    const container = document.getElementById('transaction-type-checkboxes');
-    if (container) {
-        container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+    state.filters.selectedProject = '';
+    
+    // Clear date picker inputs safely
+    const dateFromInput = document.getElementById('date-from');
+    const dateToInput = document.getElementById('date-to');
+    if (dateFromInput && dateFromInput._flatpickr) {
+        dateFromInput._flatpickr.clear();
+    }
+    if (dateToInput && dateToInput._flatpickr) {
+        dateToInput._flatpickr.clear();
     }
     
-    // Clear project filter
-    state.filters.selectedProject = '';
-    document.getElementById('project-filter-select').value = '';
+    // Clear transaction type checkboxes
+    const container = document.getElementById('transaction-type-checkboxes');
+    if (container) {
+        container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+    }
     
-    // Set "Vše" preset as active (default state)
-    setDefaultPresetButton();
+    // Reset project filter to default "Všechny projekty"
+    const projectSelect = document.getElementById('project-filter-select');
+    if (projectSelect) {
+        projectSelect.value = ''; // This sets it to "Všechny projekty"
+    }
     
+    // Set "Vše" preset as active and remove active from others
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+    const allButton = document.querySelector('.preset-btn[data-days="all"]');
+    if (allButton) {
+        allButton.classList.add('active');
+    }
+    
+    // Apply filters to update only the main transactions table
     applyFilters();
 }
 
@@ -740,6 +765,10 @@ function setDefaultPresetButton() {
     const allButton = document.querySelector('.preset-btn[data-days="all"]');
     if (allButton) {
         allButton.classList.add('active');
+        
+        // Also ensure the state is properly set for "all" preset
+        state.filters.dateFrom = null;
+        state.filters.dateTo = null;
     }
 }
 
@@ -768,7 +797,7 @@ function resetFilterUI() {
     }
 }
 
-// Apply Filters
+// Apply Filters - Only affects the main transactions table
 function applyFilters() {
     filteredData = csvData.filter(row => {
         // Date filter
@@ -790,11 +819,8 @@ function applyFilters() {
     // Update clear filters button state
     updateClearFiltersButton();
     
-    // Update UI
-    updateStatistics();
-    updateCharts();
+    // Update only the main transactions table (not charts, statistics, etc.)
     updateTable();
-    updateAdvancedStatistics();
 }
 
 // Charts Creation
@@ -805,10 +831,10 @@ function createCharts() {
     function tryCreateCharts(attempt = 1) {
         if (typeof Chart !== 'undefined') {
             console.log('Chart.js is available, creating charts...');
-            createTimeSeriesChart();
-            createProjectTypeChart();
+    createTimeSeriesChart();
+    createProjectTypeChart();
             createPortfolioExposureChart();
-            createTopProjectsChart();
+    createTopProjectsChart();
         } else {
             console.log(`Chart.js not ready, attempt ${attempt}/10, waiting...`);
             if (attempt < 10) {
@@ -830,7 +856,7 @@ function createProjectTable() {
     const projectData = {};
     
     // Process each transaction and group by project
-    filteredData.forEach(row => {
+    csvData.forEach(row => {
         const project = row.projekt || 'Neuvedený projekt';
         
         if (!projectData[project]) {
@@ -1078,19 +1104,19 @@ function createTimeSeriesChart() {
     const ctx = document.getElementById('time-chart').getContext('2d');
     
     // Check if we have data
-    if (!filteredData || filteredData.length === 0) {
+    if (!csvData || csvData.length === 0) {
         console.log('No data available for time series chart');
         // Create empty chart
         charts.timeSeries = new Chart(ctx, {
             type: 'line',
-            data: {
+        data: {
                 datasets: []
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
                         display: false
                     }
                 },
@@ -1114,18 +1140,18 @@ function createTimeSeriesChart() {
                             text: 'Kumulativní čistá investice (Kč)'
                         }
                     }
-                }
             }
-        });
+        }
+    });
         return;
-    }
-    
-    console.log('Creating time series chart with', filteredData.length, 'transactions');
+}
+
+    console.log('Creating time series chart with', csvData.length, 'transactions');
     
     // Group data by month and calculate net investment
     const monthlyData = {};
     
-    filteredData.forEach(row => {
+    csvData.forEach(row => {
         const monthKey = `${row.datum.getFullYear()}-${String(row.datum.getMonth() + 1).padStart(2, '0')}`;
         
         if (!monthlyData[monthKey]) {
@@ -1249,7 +1275,7 @@ function createProjectTypeChart() {
     // Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Odstoupení - Vrácení peněz
     const projectTypeData = {};
     
-    filteredData.forEach(row => {
+    csvData.forEach(row => {
         if (!row.typ_projektu) return;
         
         if (!projectTypeData[row.typ_projektu]) {
@@ -1352,12 +1378,12 @@ function createTopProjectsChart() {
     // Autoinvestice + Investice - Prodeje - Částečné splacení - Vrácení peněz - Odstoupení
     const projectTotals = {};
     
-    filteredData.forEach(row => {
+    csvData.forEach(row => {
         if (!row.projekt) return;
         
-        if (!projectTotals[row.projekt]) {
-            projectTotals[row.projekt] = 0;
-        }
+            if (!projectTotals[row.projekt]) {
+                projectTotals[row.projekt] = 0;
+            }
         
         const amount = Math.abs(row.castka);
         const type = row.typ;
@@ -1478,10 +1504,10 @@ function createPortfolioExposureChart(retryCount = 0) {
     const projectData = {};
     
     // Debug: Log all unique transaction types
-    const allTypes = [...new Set(filteredData.map(row => row.typ))];
+    const allTypes = [...new Set(csvData.map(row => row.typ))];
     console.log('All transaction types in data:', allTypes);
     
-    filteredData.forEach(row => {
+    csvData.forEach(row => {
         if (!row.projekt) return;
         
         if (!projectData[row.projekt]) {
@@ -1691,13 +1717,13 @@ function updatePagination() {
     paginationInfo.innerHTML = `Zobrazeno ${startItem}-${endItem} z ${totalItems} záznamů`;
     
     paginationControls.innerHTML = `
-        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        ${generatePageNumbers(currentPage, totalPages)}
-        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
-            <i class="fas fa-chevron-right"></i>
-        </button>
+            <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            ${generatePageNumbers(currentPage, totalPages)}
+            <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                <i class="fas fa-chevron-right"></i>
+            </button>
     `;
 }
 
@@ -1809,7 +1835,7 @@ function loadDemoTransactions() {
 
 // Advanced Statistics
 function updateAdvancedStatistics() {
-    const stats = calculateAdvancedStatistics(filteredData);
+    const stats = calculateAdvancedStatistics(csvData);
     
     document.getElementById('monthly-rate').textContent = locale.formatNumber(stats.monthlyRate);
     document.getElementById('investment-streak').textContent = stats.investmentStreak + ' dnů';

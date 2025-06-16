@@ -212,11 +212,12 @@
                         </div>
                         <div class="stat-content">
                             <h3 class="stat-value" id="date-range-start">--</h3>
+                            <h4 class="stat-subvalue" id="oldest-transaction-amount">0 Kč</h4>
                             <p class="stat-label">
                                 Nejstarší transakce
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Datum první transakce v portfoliu.</span>
+                                    <span class="tooltip-content">Datum a částka první transakce v portfoliu.</span>
                                 </span>
                             </p>
                         </div>
@@ -227,11 +228,12 @@
                         </div>
                         <div class="stat-content">
                             <h3 class="stat-value" id="date-range-end">--</h3>
+                            <h4 class="stat-subvalue" id="newest-transaction-amount">0 Kč</h4>
                             <p class="stat-label">
                                 Nejnovější transakce
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Datum poslední transakce v portfoliu.</span>
+                                    <span class="tooltip-content">Datum a částka poslední transakce v portfoliu.</span>
                                 </span>
                             </p>
                         </div>
@@ -391,7 +393,7 @@
                     <!-- Integrated Filters -->
                     <div class="table-filters">
                         <div class="filter-row">
-                            <!-- Project Filter -->
+                            <!-- Left Column: Project and Date -->
                             <div class="filter-group">
                                 <label class="filter-label">Projekt</label>
                                 <div class="dropdown-container">
@@ -400,20 +402,7 @@
                                         <!-- Populated by JavaScript -->
                                     </select>
                                 </div>
-                            </div>
-
-                            <!-- Transaction Type Checkboxes -->
-                            <div class="filter-group">
-                                <label class="filter-label">Typ transakce</label>
-                                <div class="checkbox-container" id="transaction-type-checkboxes">
-                                    <!-- Populated by JavaScript -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="filter-row">
-                            <!-- Date Range Filter -->
-                            <div class="filter-group">
+                                
                                 <label class="filter-label">Časové období</label>
                                 <div class="date-range-container">
                                     <input type="text" id="date-from" placeholder="Od" class="date-input">
@@ -426,6 +415,14 @@
                                     <button class="preset-btn" data-days="180">6 měsíců</button>
                                     <button class="preset-btn" data-days="365">1 rok</button>
                                     <button class="preset-btn" data-days="all">Vše</button>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Transaction Type Checkboxes -->
+                            <div class="filter-group">
+                                <label class="filter-label">Typ transakce</label>
+                                <div class="checkbox-container" id="transaction-type-checkboxes">
+                                    <!-- Populated by JavaScript -->
                                 </div>
                             </div>
                         </div>

@@ -628,13 +628,14 @@ body {
 .filter-group {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-3);
+    gap: var(--spacing-2);
 }
 
 .filter-label {
     font-weight: 500;
     color: var(--gray-700);
     font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-2);
 }
 
 .date-range-container {
@@ -648,6 +649,8 @@ body {
     border: 1px solid var(--gray-300);
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
+    background: var(--bg-primary);
+    color: var(--gray-700);
     transition: all var(--transition-normal);
 }
 
@@ -874,7 +877,8 @@ body {
     z-index: 1000;
     box-shadow: var(--shadow);
     transition: opacity var(--transition-normal), visibility var(--transition-normal);
-    max-width: 400px;
+    max-width: 600px;
+    min-width: 300px;
     white-space: normal;
 }
 
@@ -903,7 +907,7 @@ body {
     background-color: var(--gray-50);
     border-radius: var(--radius-md);
     border: 1px solid var(--gray-200);
-    max-height: 140px;
+    height: 180px;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
@@ -1063,9 +1067,9 @@ body {
 
 .filter-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1.5fr auto;
+    grid-template-columns: 1fr 1fr;
     gap: var(--spacing-4);
-    align-items: end;
+    align-items: start;
 }
 
 .filter-select {
@@ -1077,6 +1081,7 @@ body {
     background: var(--bg-primary);
     color: var(--gray-700);
     transition: all var(--transition-normal);
+    min-height: 38px;
 }
 
 .filter-select:focus {
