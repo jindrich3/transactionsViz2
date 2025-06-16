@@ -1370,13 +1370,31 @@ function createTimeSeriesChart() {
             datasets: [{
                 label: 'Kumulativní čistá investice',
                 data: chartData,
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderColor: '#3B82F6',
+                backgroundColor: (context) => {
+                    const chart = context.chart;
+                    const {ctx, chartArea} = chart;
+                    if (!chartArea) {
+                        return null;
+                    }
+                    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+                    gradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.15)');
+                    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.02)');
+                    return gradient;
+                },
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4,
                 pointRadius: 0,
-                pointHoverRadius: 0
+                pointHoverRadius: 8,
+                pointHoverBorderWidth: 3,
+                pointHoverBorderColor: '#FFFFFF',
+                pointHoverBackgroundColor: '#3B82F6',
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                borderCapStyle: 'round',
+                borderJoinStyle: 'round'
             }]
         },
         options: {
@@ -1387,7 +1405,45 @@ function createTimeSeriesChart() {
                     display: false
                 },
                 tooltip: {
-                    enabled: false
+                    enabled: true,
+                    backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#E5E7EB',
+                    borderColor: '#3B82F6',
+                    borderWidth: 1,
+                    cornerRadius: 12,
+                    padding: 16,
+                    displayColors: false,
+                    titleFont: {
+                        size: 14,
+                        weight: '600',
+                        family: 'Inter, system-ui, sans-serif'
+                    },
+                    bodyFont: {
+                        size: 13,
+                        weight: '500',
+                        family: 'Inter, system-ui, sans-serif'
+                    },
+                    titleAlign: 'center',
+                    bodyAlign: 'center',
+                    caretSize: 8,
+                    caretPadding: 10,
+                    titleMarginBottom: 8,
+                    position: 'nearest',
+                    xAlign: 'center',
+                    yAlign: 'top',
+                    callbacks: {
+                        title: function(context) {
+                            const date = new Date(context[0].parsed.x);
+                            return date.toLocaleDateString('cs-CZ', { 
+                                year: 'numeric', 
+                                month: 'long' 
+                            });
+                        },
+                        label: function(context) {
+                            return `Velikost portfolia: ${locale.formatNumber(context.parsed.y)}`;
+                        }
+                    }
                 }
             },
             scales: {
@@ -1401,27 +1457,92 @@ function createTimeSeriesChart() {
                     },
                     title: {
                         display: true,
-                        text: 'Měsíc'
+                        text: 'Měsíc',
+                        color: '#FFFFFF',
+                        font: {
+                            size: 12,
+                            weight: '500',
+                            family: 'Inter, system-ui, sans-serif'
+                        },
+                        padding: 12
+                    },
+                    ticks: {
+                        color: '#9CA3AF',
+                        font: {
+                            size: 11,
+                            family: 'Inter, system-ui, sans-serif'
+                        },
+                        maxTicksLimit: 8,
+                        padding: 8
+                    },
+                    grid: {
+                        color: 'rgba(156, 163, 175, 0.1)',
+                        lineWidth: 1
+                    },
+                    border: {
+                        color: 'rgba(156, 163, 175, 0.2)',
+                        width: 1
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Čistá investice (Kč)'
+                        text: 'Čistá investice (Kč)',
+                        color: '#FFFFFF',
+                        font: {
+                            size: 12,
+                            weight: '500',
+                            family: 'Inter, system-ui, sans-serif'
+                        },
+                        padding: 12
                     },
                     ticks: {
+                        color: '#9CA3AF',
+                        font: {
+                            size: 11,
+                            family: 'Inter, system-ui, sans-serif'
+                        },
+                        padding: 8,
                         callback: function(value) {
-                            return locale.formatNumber(value);
+                            if (value === 0) return '0';
+                            const thousands = value / 1000;
+                            if (thousands >= 1000) {
+                                return (thousands / 1000).toFixed(1).replace('.0', '') + ' mil.';
+                            }
+                            return Math.round(thousands) + ' tis.';
                         }
+                    },
+                    grid: {
+                        color: 'rgba(156, 163, 175, 0.1)',
+                        lineWidth: 1
+                    },
+                    border: {
+                        color: 'rgba(156, 163, 175, 0.2)',
+                        width: 1
                     }
                 }
             },
             interaction: {
-                intersect: false
+                intersect: false,
+                mode: 'index'
+            },
+            hover: {
+                animationDuration: 200
             },
             animation: {
-                duration: 1000,
-                easing: 'easeInOutQuart'
+                duration: 1500,
+                easing: 'easeInOutCubic',
+                delay: (context) => {
+                    return context.dataIndex * 50; // Stagger animation
+                }
+            },
+            elements: {
+                line: {
+                    borderCapStyle: 'round'
+                },
+                point: {
+                    hoverRadius: 8
+                }
             }
         }
     });
