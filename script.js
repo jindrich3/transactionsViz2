@@ -1497,10 +1497,24 @@ function createProjectTypeChart() {
     const projectTypes = validProjectTypes.map(([type]) => type);
     const chartData = validProjectTypes.map(([, value]) => value);
     
+    // Enhanced color palette with better contrast and visual appeal
     const colors = [
-        '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-        '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#14b8a6'
+        '#3B82F6', // Blue
+        '#10B981', // Emerald
+        '#F59E0B', // Amber
+        '#EF4444', // Red
+        '#8B5CF6', // Violet
+        '#06B6D4', // Cyan
+        '#84CC16', // Lime
+        '#F97316', // Orange
+        '#EC4899', // Pink
+        '#14B8A6', // Teal
+        '#6366F1', // Indigo
+        '#22C55E'  // Green
     ];
+    
+    // Calculate total for percentage display
+    const total = chartData.reduce((a, b) => a + b, 0);
     
     charts.projectType = new Chart(ctx, {
         type: 'doughnut',
@@ -1509,36 +1523,107 @@ function createProjectTypeChart() {
             datasets: [{
                 data: chartData,
                 backgroundColor: colors.slice(0, projectTypes.length),
-                borderWidth: 2,
-                borderColor: '#ffffff'
+                borderWidth: 3,
+                borderColor: '#1F2937',
+                hoverBorderWidth: 4,
+                hoverBorderColor: '#FFFFFF',
+                hoverBackgroundColor: colors.slice(0, projectTypes.length).map(color => color + 'E6'), // Add transparency on hover
+                borderRadius: 2,
+                offset: 8 // Creates gap between segments
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '60%', // Makes the doughnut thinner for better appearance
             plugins: {
                 legend: {
                     position: 'bottom',
+                    align: 'center',
                     labels: {
-                        padding: 20,
-                        usePointStyle: true
+                        padding: 25,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: {
+                            size: 13,
+                            weight: '500',
+                            family: 'Inter, system-ui, sans-serif'
+                        },
+                        color: '#FFFFFF',
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    // Replace "legacy" with "participace"
+                                    const displayLabel = label.toLowerCase() === 'legacy' ? 'participace' : label;
+                                    return {
+                                        text: `${displayLabel} (${percentage}%)`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].borderColor,
+                                        lineWidth: data.datasets[0].borderWidth,
+                                        pointStyle: 'circle',
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
                     }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#E5E7EB',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12,
+                    displayColors: true,
+                    titleFont: {
+                        size: 14,
+                        weight: '600'
+                    },
+                    bodyFont: {
+                        size: 13,
+                        weight: '500'
+                    },
                     callbacks: {
+                        title: function(context) {
+                            const label = context[0].label;
+                            // Replace "legacy" with "participace" in tooltip title
+                            return label.toLowerCase() === 'legacy' ? 'participace' : label;
+                        },
                         label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.parsed * 100) / total).toFixed(1);
-                            return context.label + ': ' + 
-                                locale.formatNumber(context.parsed) + 
-                                ' (' + percentage + '%)';
+                            const value = context.parsed;
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return [
+                                `Částka: ${locale.formatNumber(value)}`,
+                                `Podíl: ${percentage}%`
+                            ];
                         }
                     }
                 }
             },
             animation: {
-                duration: 1000,
-                easing: 'easeInOutQuart'
+                duration: 1200,
+                easing: 'easeInOutCubic',
+                animateRotate: true,
+                animateScale: true
+            },
+            hover: {
+                animationDuration: 300
+            },
+            interaction: {
+                intersect: false,
+                mode: 'nearest'
+            },
+            elements: {
+                arc: {
+                    borderAlign: 'center'
+                }
             }
         }
     });
@@ -1725,49 +1810,101 @@ function createPortfolioExposureChart(retryCount = 0) {
         return;
     }
     
-    // Generate colors for the pie chart
+    // Enhanced color palette with emerald/teal theme for portfolio exposure
     const colors = [
-        '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
-        '#db2777', '#0891b2', '#65a30d', '#dc2626', '#9333ea',
-        '#0d9488', '#ea580c', '#be123c', '#0369a1', '#7c2d12'
+        '#10B981', // Emerald
+        '#06B6D4', // Cyan
+        '#14B8A6', // Teal
+        '#22C55E', // Green
+        '#3B82F6', // Blue
+        '#8B5CF6', // Violet
+        '#F59E0B', // Amber
+        '#EF4444', // Red
+        '#84CC16', // Lime
+        '#F97316', // Orange
+        '#EC4899', // Pink
+        '#6366F1', // Indigo
+        '#059669', // Emerald dark
+        '#0891B2', // Cyan dark
+        '#0D9488'  // Teal dark
     ];
     
-    const backgroundColors = validProjects.map((_, index) => colors[index % colors.length]);
-    const borderColors = backgroundColors.map(color => color);
+    // Calculate total for percentage display
+    const total = validProjects.reduce((sum, [, exposure]) => sum + exposure, 0);
     
     charts.portfolioExposure = new Chart(ctx, {
-        type: 'pie',
+        type: 'doughnut',
         data: {
-            labels: validProjects.map(([name]) => name.length > 25 ? name.substring(0, 25) + '...' : name),
+            labels: validProjects.map(([name]) => name),
             datasets: [{
                 data: validProjects.map(([, exposure]) => exposure),
-                backgroundColor: backgroundColors,
-                borderColor: borderColors,
-                borderWidth: 2
+                backgroundColor: colors.slice(0, validProjects.length),
+                borderWidth: 3,
+                borderColor: '#1F2937',
+                hoverBorderWidth: 4,
+                hoverBorderColor: '#FFFFFF',
+                hoverBackgroundColor: colors.slice(0, validProjects.length).map(color => color + 'E6'), // Add transparency on hover
+                borderRadius: 2,
+                offset: 6 // Creates gap between segments
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '65%', // Slightly thicker than project type chart
             plugins: {
                 legend: {
                     display: false
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#E5E7EB',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12,
+                    displayColors: true,
+                    titleFont: {
+                        size: 14,
+                        weight: '600'
+                    },
+                    bodyFont: {
+                        size: 13,
+                        weight: '500'
+                    },
                     callbacks: {
+                        title: function(context) {
+                            return validProjects[context[0].dataIndex][0];
+                        },
                         label: function(context) {
-                            const label = validProjects[context.dataIndex][0];
                             const value = context.parsed;
-                            const total = validProjects.reduce((sum, [, exposure]) => sum + exposure, 0);
                             const percentage = ((value / total) * 100).toFixed(1);
-                            return `${label}: ${locale.formatNumber(value)} (${percentage}%)`;
+                            return [
+                                `Expozice: ${locale.formatNumber(value)}`,
+                                `Podíl: ${percentage}%`
+                            ];
                         }
                     }
                 }
             },
             animation: {
-                duration: 1000,
-                easing: 'easeInOutQuart'
+                duration: 1300,
+                easing: 'easeInOutCubic',
+                animateRotate: true,
+                animateScale: true
+            },
+            hover: {
+                animationDuration: 300
+            },
+            interaction: {
+                intersect: false,
+                mode: 'nearest'
+            },
+            elements: {
+                arc: {
+                    borderAlign: 'center'
+                }
             }
         }
     });
