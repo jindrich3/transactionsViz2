@@ -89,6 +89,8 @@ body {
     background-color: var(--bg-secondary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    position: relative;
+    z-index: 0;
 }
 
 /* Container */
@@ -866,35 +868,78 @@ body {
     height: 400px;
 }
 
-.chart-empty {
-    text-align: center;
-    padding: var(--spacing-12) var(--spacing-6);
-    background: var(--bg-secondary);
-    border-radius: var(--radius-lg);
-    border: 2px dashed var(--gray-600);
-    height: 300px;
+/* Modern Chart Empty State Styling */
+.chart-empty-modern {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 300px;
+    padding: 40px 20px;
+    text-align: center;
+    background: transparent;
+    position: relative;
 }
 
-.chart-empty .empty-icon {
-    font-size: 3rem;
-    color: var(--gray-500);
-    margin-bottom: var(--spacing-3);
+.empty-icon-modern {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    position: relative;
+    transition: all 0.3s ease;
 }
 
-.chart-empty .empty-title {
-    font-size: var(--font-size-lg);
+.empty-icon-modern::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(16, 185, 129, 0.3));
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.chart-empty-modern:hover .empty-icon-modern::before {
+    opacity: 1;
+}
+
+.empty-icon-modern i {
+    font-size: 32px;
+    color: #3B82F6;
+    transition: all 0.3s ease;
+}
+
+.chart-empty-modern:hover .empty-icon-modern i {
+    color: #2563EB;
+    transform: scale(1.1);
+}
+
+.empty-title-modern {
+    font-size: 18px;
     font-weight: 600;
-    color: var(--gray-300);
-    margin-bottom: var(--spacing-2);
+    color: #FFFFFF;
+    margin: 0 0 12px 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.4;
 }
 
-.chart-empty .empty-message {
-    color: var(--gray-400);
-    font-size: var(--font-size-sm);
+.empty-message-modern {
+    font-size: 14px;
+    font-weight: 400;
+    color: #9CA3AF;
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.5;
+    max-width: 300px;
 }
 
 /* Info tooltips */
@@ -1965,7 +2010,35 @@ select:focus {
 }
 
 .chart-card-enhanced-time .chart-container {
-    overflow: visible;
-    padding: 10px 15px;
-    margin: -10px -15px;
+    overflow: visible !important;
+    padding: 40px;
+    margin: -20px;
+}
+
+/* Apply same overflow fix to all enhanced chart containers */
+.chart-card-enhanced .chart-container,
+.chart-card-enhanced-portfolio .chart-container {
+    overflow: visible !important;
+    padding: 40px;
+    margin: -20px;
+}
+
+/* Ensure all chart containers allow tooltips to overflow */
+.chart-card,
+.chart-card-enhanced,
+.chart-card-enhanced-time,
+.chart-card-enhanced-portfolio {
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Ensure chart containers have enough space for tooltips */
+.chart-container {
+    overflow: visible !important;
+    position: relative;
+}
+
+/* Ensure Chart.js tooltips appear above everything */
+.chartjs-tooltip {
+    z-index: 9999 !important;
 } 

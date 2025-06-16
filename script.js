@@ -1561,6 +1561,8 @@ function createProjectTypeChart() {
         charts.projectType = null;
     }
     
+
+    
     const ctx = document.getElementById('project-type-chart').getContext('2d');
     
     // Calculate net investment by project type using the specified formula:
@@ -1715,7 +1717,6 @@ function createProjectTypeChart() {
                     callbacks: {
                         title: function(context) {
                             const label = context[0].label;
-                            // Replace "legacy" with "participace" in tooltip title
                             return label.toLowerCase() === 'legacy' ? 'participace' : label;
                         },
                         label: function(context) {
@@ -1794,7 +1795,7 @@ function createTopProjectsChart() {
     const validProjects = Object.entries(projectTotals)
         .filter(([, value]) => value > 0)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 10);
+        .slice(0, 8);
     
     if (validProjects.length === 0) {
         // Show empty state
@@ -1809,43 +1810,181 @@ function createTopProjectsChart() {
     charts.topProjects = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: validProjects.map(([name]) => name.length > 20 ? name.substring(0, 20) + '...' : name),
+            labels: validProjects.map(([name]) => name.length > 14 ? name.substring(0, 14) + '...' : name),
             datasets: [{
                 label: 'Čistá investice',
                 data: validProjects.map(([, amount]) => amount),
-                backgroundColor: '#2563eb',
-                borderColor: '#1d4ed8',
-                borderWidth: 1
+                backgroundColor: (context) => {
+                    const chart = context.chart;
+                    const {ctx, chartArea} = chart;
+                    if (!chartArea) {
+                        return '#3B82F6';
+                    }
+                    const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+                    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
+                    gradient.addColorStop(0.7, 'rgba(59, 130, 246, 0.9)');
+                    gradient.addColorStop(1, 'rgba(29, 78, 216, 1)');
+                    return gradient;
+                },
+                borderColor: '#1E40AF',
+                borderWidth: 0,
+                borderRadius: 6,
+                borderSkipped: false,
+                hoverBackgroundColor: (context) => {
+                    const chart = context.chart;
+                    const {ctx, chartArea} = chart;
+                    if (!chartArea) {
+                        return '#60A5FA';
+                    }
+                    const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+                    gradient.addColorStop(0, 'rgba(96, 165, 250, 0.9)');
+                    gradient.addColorStop(0.7, 'rgba(59, 130, 246, 1)');
+                    gradient.addColorStop(1, 'rgba(29, 78, 216, 1)');
+                    return gradient;
+                },
+                hoverBorderColor: '#1D4ED8',
+                hoverBorderWidth: 2
             }]
         },
         options: {
             indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 20,
+                    top: 10,
+                    bottom: 10
+                }
+            },
             plugins: {
                 legend: {
                     display: false
                 },
                 tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#E5E7EB',
+                    borderColor: '#3B82F6',
+                    borderWidth: 1,
+                    cornerRadius: 12,
+                    padding: 16,
+                    displayColors: false,
+                    titleFont: {
+                        size: 14,
+                        weight: '600',
+                        family: 'Inter, system-ui, sans-serif'
+                    },
+                    bodyFont: {
+                        size: 13,
+                        weight: '500',
+                        family: 'Inter, system-ui, sans-serif'
+                    },
+                    titleAlign: 'center',
+                    bodyAlign: 'center',
+                    caretSize: 8,
+                    caretPadding: 10,
+                    titleMarginBottom: 8,
                     callbacks: {
+                        title: function(context) {
+                            const fullName = validProjects[context[0].dataIndex][0];
+                            return fullName;
+                        },
                         label: function(context) {
-                            return locale.formatNumber(context.parsed.x);
+                            const value = context.parsed.x;
+                            if (value === 0) return '0';
+                            const thousands = value / 1000;
+                            if (thousands >= 1000) {
+                                const millions = (thousands / 1000).toFixed(1).replace('.0', '');
+                                return `Investice: ${millions} mil. Kč`;
+                            }
+                            return `Investice: ${Math.round(thousands)} tis. Kč`;
                         }
                     }
                 }
             },
             scales: {
                 x: {
+                    title: {
+                        display: true,
+                        text: 'Čistá investice',
+                        color: '#FFFFFF',
+                        font: {
+                            size: 12,
+                            weight: '500',
+                            family: 'Inter, system-ui, sans-serif'
+                        },
+                        padding: 12
+                    },
                     ticks: {
+                        color: '#9CA3AF',
+                        font: {
+                            size: 11,
+                            family: 'Inter, system-ui, sans-serif'
+                        },
+                        padding: 8,
                         callback: function(value) {
-                            return locale.formatNumber(value);
+                            if (value === 0) return '0';
+                            const thousands = value / 1000;
+                            if (thousands >= 1000) {
+                                return (thousands / 1000).toFixed(1).replace('.0', '') + ' mil.';
+                            }
+                            return Math.round(thousands) + ' tis.';
                         }
+                    },
+                    grid: {
+                        color: 'rgba(156, 163, 175, 0.1)',
+                        lineWidth: 1
+                    },
+                    border: {
+                        color: 'rgba(156, 163, 175, 0.2)',
+                        width: 1
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: '#FFFFFF',
+                        font: {
+                            size: 11,
+                            weight: '500',
+                            family: 'Inter, system-ui, sans-serif'
+                        },
+                        padding: 12,
+                        callback: function(value, index) {
+                            const label = this.getLabelForValue(value);
+                            return label.length > 14 ? label.substring(0, 14) + '...' : label;
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(156, 163, 175, 0.05)',
+                        lineWidth: 1
+                    },
+                    border: {
+                        color: 'rgba(156, 163, 175, 0.2)',
+                        width: 1
                     }
                 }
             },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            hover: {
+                animationDuration: 200
+            },
             animation: {
-                duration: 1000,
-                easing: 'easeInOutQuart'
+                duration: 1500,
+                easing: 'easeInOutCubic',
+                delay: (context) => {
+                    return context.dataIndex * 100; // Stagger animation for each bar
+                }
+            },
+            elements: {
+                bar: {
+                    borderRadius: 6
+                }
             }
         }
     });
@@ -2021,6 +2160,9 @@ function createPortfolioExposureChart(retryCount = 0) {
                         size: 13,
                         weight: '500'
                     },
+                    position: 'nearest',
+                    xAlign: 'center',
+                    yAlign: 'bottom',
                     callbacks: {
                         title: function(context) {
                             return validProjects[context[0].dataIndex][0];
@@ -2447,12 +2589,12 @@ function setStatValueWithZeroClass(elementId, value) {
 
 function createChartEmptyState(iconClass, title, message) {
     return `
-        <div class="chart-empty">
-            <div class="empty-icon">
+        <div class="chart-empty-modern">
+            <div class="empty-icon-modern">
                 <i class="${iconClass}"></i>
             </div>
-            <h3 class="empty-title">${title}</h3>
-            <p class="empty-message">${message}</p>
+            <h3 class="empty-title-modern">${title}</h3>
+            ${message ? `<p class="empty-message-modern">${message}</p>` : ''}
         </div>
     `;
 }
