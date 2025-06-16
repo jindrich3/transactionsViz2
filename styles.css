@@ -171,9 +171,112 @@ body {
     }
 }
 
+/* Main Content Section - Side by Side Layout */
+.main-content-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-8);
+    align-items: start;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+/* Help Section */
+.help-section {
+    margin-bottom: 0;
+    animation: none; /* Remove individual animation since parent handles it */
+}
+
+.help-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-5);
+    max-width: none; /* Remove max-width restriction */
+    margin: 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-normal);
+    height: fit-content;
+}
+
+.help-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.help-card .help-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.2));
+    border-radius: 50%;
+    margin: 0 auto var(--spacing-3);
+    color: white;
+    font-size: 18px;
+}
+
+.help-title {
+    color: white;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: var(--spacing-2);
+}
+
+.help-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    text-align: center;
+    margin-bottom: var(--spacing-4);
+}
+
+.help-steps {
+    display: grid;
+    gap: var(--spacing-2);
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-2);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius);
+    transition: all var(--transition-fast);
+}
+
+.step:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(2px);
+}
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.step-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    font-weight: 500;
+}
+
 /* Upload Section */
 .upload-section {
-    animation: fadeInUp 0.8s ease-out 0.4s both;
+    animation: none; /* Remove individual animation since parent handles it */
 }
 
 .upload-area {
@@ -1380,14 +1483,53 @@ canvas {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .main-content-section {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-6);
+    }
+
     .hero-title {
         font-size: var(--font-size-3xl);
     }
-    
+
     .hero-subtitle {
         font-size: var(--font-size-lg);
     }
     
+    .help-card {
+        padding: var(--spacing-4);
+        margin: 0 var(--spacing-4);
+    }
+
+    .help-card .help-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .help-title {
+        font-size: var(--font-size-base);
+    }
+
+    .help-text {
+        font-size: var(--font-size-xs);
+    }
+
+    .step {
+        padding: var(--spacing-1);
+        gap: var(--spacing-2);
+    }
+
+    .step-number {
+        width: 22px;
+        height: 22px;
+        font-size: 11px;
+    }
+
+    .step-text {
+        font-size: 12px;
+    }
+
     .upload-area {
         padding: var(--spacing-8);
     }
@@ -1451,10 +1593,45 @@ canvas {
         padding: 0 var(--spacing-3);
     }
     
+    .main-content-section {
+        gap: var(--spacing-4);
+    }
+
+    .help-card {
+        padding: var(--spacing-3);
+        margin: 0 var(--spacing-2);
+    }
+
+    .help-card .help-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        margin-bottom: var(--spacing-2);
+    }
+
+    .help-steps {
+        gap: var(--spacing-1);
+    }
+
+    .step {
+        padding: var(--spacing-1);
+        gap: var(--spacing-2);
+    }
+
+    .step-number {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+    }
+
+    .step-text {
+        font-size: 11px;
+    }
+
     .upload-area {
         padding: var(--spacing-6);
     }
-    
+
     .hero-title {
         font-size: var(--font-size-2xl);
     }
