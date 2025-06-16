@@ -552,8 +552,25 @@ function calculateStatistics(data) {
         };
     }
     
-    // Filter by transaction types according to new requirements
-    // Handle both detailed transaction types (from demo data) and simple types (from sample data)
+    // Calculate Aktuální velikost portfolia using the specified formula:
+    // Investice + Autoinvestice - Prodej - Vrácení peněz - Odstoupení - Částečné splacení jistiny - Splacení jistiny
+    let totalInvestment = 0;
+    
+    data.forEach(row => {
+        const amount = Math.abs(row.castka);
+        const type = row.typ;
+        
+        // Apply the formula based on transaction type
+        if (type === 'Autoinvestice' || type === 'Investice') {
+            totalInvestment += amount;
+        } else if (type === 'Prodej' || type === 'Částečné splacení jistiny' || 
+                   type === 'Splacení jistiny' || type === 'Vrácení peněz' || type === 'Odstoupení') {
+            totalInvestment -= amount;
+        }
+        // Other transaction types are ignored in this calculation
+    });
+    
+    // Filter by transaction types for other statistics
     const investments = data.filter(row => 
         row.typ === 'Investice do příležitosti' || 
         row.typ === 'Autoinvestice' ||
@@ -564,17 +581,11 @@ function calculateStatistics(data) {
         row.typ === 'Výběr peněz' ||
         (row.typ === 'Výběr' && !row.detail) // Simple sample data case
     );
-    const exits = data.filter(row => row.typ === 'Odstoupení');
     const fees = data.filter(row => 
         row.typ === 'Poplatek za předčasný prodej' || 
         row.typ === 'Poplatek za výběr' ||
         (row.typ === 'Poplatek' && !row.detail) // Simple sample data case
     );
-    
-    // Celková investice = sum of investments minus sum of exits
-    const totalInvestmentAmount = investments.reduce((sum, row) => sum + Math.abs(row.castka), 0);
-    const totalExitAmount = exits.reduce((sum, row) => sum + Math.abs(row.castka), 0);
-    const totalInvestment = totalInvestmentAmount - totalExitAmount;
     
     // Celkové výběry = sum of withdrawals
     const totalWithdrawals = withdrawals.reduce((sum, row) => sum + Math.abs(row.castka), 0);
@@ -1209,7 +1220,7 @@ function createTimeSeriesChart() {
             monthlyData[monthKey] = 0;
         }
         
-        // Calculate net value: Autoinvestice + Investice - Prodej - Vrácení peněz - Odstoupení
+        // Calculate net value: Autoinvestice + Investice - Prodej - Vrácení peněz - Odstoupení - Splacení jistiny - Částečné splacení jistiny
         const amount = Math.abs(row.castka);
         switch (row.typ) {
             case 'Autoinvestice':
@@ -1219,6 +1230,8 @@ function createTimeSeriesChart() {
             case 'Prodej':
             case 'Vrácení peněz':
             case 'Odstoupení':
+            case 'Splacení jistiny':
+            case 'Částečné splacení jistiny':
                 monthlyData[monthKey] -= amount; // Subtract
                 break;
         }
@@ -1248,11 +1261,8 @@ function createTimeSeriesChart() {
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: '#2563eb',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 5,
-                pointHoverRadius: 7
+                pointRadius: 0,
+                pointHoverRadius: 0
             }]
         },
         options: {
@@ -1263,11 +1273,7 @@ function createTimeSeriesChart() {
                     display: false
                 },
                 tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Kumulativní čistá investice: ' + locale.formatNumber(context.parsed.y);
-                        }
-                    }
+                    enabled: false
                 }
             },
             scales: {
@@ -1353,7 +1359,24 @@ function createProjectTypeChart() {
     
     if (validProjectTypes.length === 0) {
         // Show empty state
-        ctx.canvas.parentElement.innerHTML = '<div class="chart-empty">Žádná data pro zobrazení</div>';
+        ctx.canvas.parentElement.innerHTML = createChartEmptyState(
+            'fas fa-chart-pie',
+            'Žádná data pro zobrazení',
+            'Nebyly nalezeny žádné projekty s daty pro graf'
+        );
+        return;
+    }
+    
+    // Check if only Crowdfunding projects exist (100%)
+    if (validProjectTypes.length === 1 && 
+        (validProjectTypes[0][0].toLowerCase() === 'crowdfunding' || 
+         validProjectTypes[0][0].toLowerCase() === 'cf')) {
+        // Show Crowdfunding empty state
+        ctx.canvas.parentElement.innerHTML = createChartEmptyState(
+            'fas fa-users',
+            'Všechny vaše projekty jsou typu Crowdfunding',
+            ''
+        );
         return;
     }
     
@@ -1426,7 +1449,7 @@ function createTopProjectsChart() {
     const ctx = document.getElementById('top-projects-chart').getContext('2d');
     
     // Calculate net investment by project using the specified formula:
-    // Autoinvestice + Investice - Prodeje - Částečné splacení - Vrácení peněz - Odstoupení
+    // Investice + Autoinvestice - Prodej - Vrácení peněz - Odstoupení - Částečné splacení jistiny
     const projectTotals = {};
     
     csvData.forEach(row => {
@@ -1457,7 +1480,11 @@ function createTopProjectsChart() {
     
     if (validProjects.length === 0) {
         // Show empty state
-        ctx.canvas.parentElement.innerHTML = '<div class="chart-empty">Žádná data pro zobrazení</div>';
+        ctx.canvas.parentElement.innerHTML = createChartEmptyState(
+            'fas fa-chart-bar',
+            'Žádná data pro zobrazení',
+            'Nebyly nalezeny žádné projekty s kladnou čistou investicí'
+        );
         return;
     }
     
@@ -1485,9 +1512,6 @@ function createTopProjectsChart() {
                     callbacks: {
                         label: function(context) {
                             return locale.formatNumber(context.parsed.x);
-                        },
-                        afterLabel: function(context) {
-                            return 'Výpočet: Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Vrácení peněz - Odstoupení';
                         }
                     }
                 }
@@ -1549,53 +1573,28 @@ function createPortfolioExposureChart(retryCount = 0) {
     
     const ctx = canvas.getContext('2d');
     
-    // Calculate portfolio exposure by project
-    // Formula: (Investice + Autoinvestice + Investice do příležitosti - Odstoupení) - (Částečné splacení jistiny + Splacení jistiny) - Prodej
-    // This matches the "Zbývá splatit" calculation from the project table
-    const projectData = {};
-    
-    // Debug: Log all unique transaction types
-    const allTypes = [...new Set(csvData.map(row => row.typ))];
-    console.log('All transaction types in data:', allTypes);
+    // Calculate portfolio exposure by project using the specified formula:
+    // Investice + Autoinvestice - Prodej - Vrácení peněz - Odstoupení - Částečné splacení jistiny
+    const projectExposure = {};
     
     csvData.forEach(row => {
         if (!row.projekt) return;
         
-        if (!projectData[row.projekt]) {
-            projectData[row.projekt] = {
-                investice: 0,
-                splaceno: 0,
-                prodeje: 0
-            };
+        if (!projectExposure[row.projekt]) {
+            projectExposure[row.projekt] = 0;
         }
         
         const amount = Math.abs(row.castka);
+        const type = row.typ;
         
-        // Investice = Autoinvestice + Investice + Investice do příležitosti - Odstoupení
-        if (row.typ === 'Autoinvestice' || 
-            row.typ === 'Investice' || 
-            row.typ === 'Investice do příležitosti') {
-            projectData[row.projekt].investice += amount;
-        } else if (row.typ === 'Odstoupení') {
-            projectData[row.projekt].investice -= amount;
+        // Apply the formula based on transaction type
+        if (type === 'Autoinvestice' || type === 'Investice') {
+            projectExposure[row.projekt] += amount;
+        } else if (type === 'Prodej' || type === 'Částečné splacení jistiny' || 
+                   type === 'Vrácení peněz' || type === 'Odstoupení') {
+            projectExposure[row.projekt] -= amount;
         }
-        
-        // Splaceno = Částečné splacení jistiny + Splacení jistiny
-        else if (row.typ === 'Částečné splacení jistiny' || 
-                 row.typ === 'Splacení jistiny') {
-            projectData[row.projekt].splaceno += amount;
-        }
-        
-        // Prodeje = Prodej
-        else if (row.typ === 'Prodej') {
-            projectData[row.projekt].prodeje += amount;
-        }
-    });
-    
-    // Calculate exposure for each project: Investice - Splaceno - Prodeje
-    const projectExposure = {};
-    Object.entries(projectData).forEach(([project, data]) => {
-        projectExposure[project] = data.investice - data.splaceno - data.prodeje;
+        // Other transaction types are ignored in this calculation
     });
     
     console.log('Project exposure calculations:', projectExposure);
@@ -1607,7 +1606,11 @@ function createPortfolioExposureChart(retryCount = 0) {
     
     if (validProjects.length === 0) {
         // Show empty state
-        canvas.parentElement.innerHTML = '<div class="chart-empty">Žádná aktivní expozice portfolia</div>';
+        canvas.parentElement.innerHTML = createChartEmptyState(
+            'fas fa-chart-pie',
+            'Žádná aktivní expozice portfolia',
+            'Nebyly nalezeny žádné projekty s aktivní expozicí'
+        );
         return;
     }
     
@@ -2035,6 +2038,18 @@ function setStatValueWithZeroClass(elementId, value) {
             element.classList.remove('zero');
         }
     }
+}
+
+function createChartEmptyState(iconClass, title, message) {
+    return `
+        <div class="chart-empty">
+            <div class="empty-icon">
+                <i class="${iconClass}"></i>
+            </div>
+            <h3 class="empty-title">${title}</h3>
+            <p class="empty-message">${message}</p>
+        </div>
+    `;
 }
 
 function debounce(func, wait) {

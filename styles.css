@@ -834,15 +834,34 @@ body {
 }
 
 .chart-empty {
+    text-align: center;
+    padding: var(--spacing-12) var(--spacing-6);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--gray-600);
+    height: 300px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 300px;
-    color: #6b7280;
-    font-style: italic;
-    background-color: #f9fafb;
-    border-radius: 8px;
-    border: 2px dashed #d1d5db;
+}
+
+.chart-empty .empty-icon {
+    font-size: 3rem;
+    color: var(--gray-500);
+    margin-bottom: var(--spacing-3);
+}
+
+.chart-empty .empty-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--gray-300);
+    margin-bottom: var(--spacing-2);
+}
+
+.chart-empty .empty-message {
+    color: var(--gray-400);
+    font-size: var(--font-size-sm);
 }
 
 /* Info tooltips */

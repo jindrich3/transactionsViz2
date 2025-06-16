@@ -108,10 +108,10 @@
                         <div class="stat-content">
                             <h3 class="stat-value" id="total-investment">0 Kč</h3>
                             <p class="stat-label">
-                                Celková investice
+                                Aktuální velikost portfolia
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Součet všech investic minus odstoupení. Zahrnuje Autoinvestice, Investice a Investice do příležitosti.</span>
+                                    <span class="tooltip-content">Investice + Autoinvestice - Prodej - Vrácení peněz - Odstoupení - Částečné splacení jistiny - Splacení jistiny.</span>
                                 </span>
                             </p>
                         </div>
@@ -386,6 +386,10 @@
                                 <i class="fas fa-filter"></i>
                                 Filtry
                             </button>
+                            <button class="btn btn-outline" id="clear-filters">
+                                <i class="fas fa-eraser"></i>
+                                Vymazat filtry
+                            </button>
                             <button class="btn btn-outline" id="export-btn">
                                 <i class="fas fa-download"></i>
                                 Exportovat CSV
@@ -492,7 +496,7 @@
                                 Vývoj velikosti portfolia
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Kumulativní čistá investice v čase. Počítá se jako: Autoinvestice + Investice - Prodej - Vrácení peněz - Odstoupení.</span>
+                                    <span class="tooltip-content">Kumulativní čistá investice v čase. Počítá se jako: Autoinvestice + Investice - Prodej - Vrácení peněz - Odstoupení - Splacení jistiny - Částečné splacení jistiny.</span>
                                 </span>
                             </h3>
                         </div>
@@ -570,7 +574,7 @@
                                     Měsíční investiční sazba:
                                     <span class="info-tooltip">
                                         <i class="fas fa-info-circle info-icon"></i>
-                                        <span class="tooltip-content">Průměrná částka investovaná za měsíc. Počítá se jako celková investice děleno počtem měsíců aktivity.</span>
+                                        <span class="tooltip-content">Průměrná částka investovaná za měsíc. Počítá se jako aktuální velikost portfolia děleno počtem měsíců aktivity.</span>
                                     </span>
                                 </span>
                                 <span class="metric-value" id="monthly-rate">0 Kč</span>
@@ -687,10 +691,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline" id="clear-filters">
-                    <i class="fas fa-eraser"></i>
-                    Vymazat filtry
-                </button>
                 <button class="btn btn-primary" id="apply-filters">
                     <i class="fas fa-check"></i>
                     Použít filtry
