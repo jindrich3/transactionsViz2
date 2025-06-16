@@ -143,6 +143,17 @@ function initializeDatePickers() {
         dateFormat: 'd.m.Y',
         onChange: function(selectedDates) {
             state.filters.dateFrom = selectedDates[0];
+            
+            // Validate: if "To" date exists and is before "From" date, clear "To" date
+            if (state.filters.dateTo && selectedDates[0] && selectedDates[0] > state.filters.dateTo) {
+                dateToPicker.clear();
+                state.filters.dateTo = null;
+            }
+            
+            // Set minimum date for "To" picker
+            dateToPicker.set('minDate', selectedDates[0]);
+            
+            updateClearFiltersButton();
             // Don't apply filters automatically - only when "Použít filtry" is clicked
         }
     });
@@ -151,7 +162,21 @@ function initializeDatePickers() {
         locale: 'cs',
         dateFormat: 'd.m.Y',
         onChange: function(selectedDates) {
+            // Validate: "To" date cannot be before "From" date
+            if (state.filters.dateFrom && selectedDates[0] && selectedDates[0] < state.filters.dateFrom) {
+                // Clear the invalid selection
+                dateToPicker.clear();
+                // Show error message
+                alert('Datum "Do" nemůže být před datem "Od"');
+                return;
+            }
+            
             state.filters.dateTo = selectedDates[0];
+            
+            // Set maximum date for "From" picker
+            dateFromPicker.set('maxDate', selectedDates[0]);
+            
+            updateClearFiltersButton();
             // Don't apply filters automatically - only when "Použít filtry" is clicked
         }
     });
@@ -416,6 +441,16 @@ function resetToLanding() {
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('landing-page').style.display = 'block';
     
+    // Reset scroll position to top
+    window.scrollTo(0, 0);
+    
+    // Force layout recalculation by temporarily hiding and showing the landing page
+    const landingPage = document.getElementById('landing-page');
+    landingPage.style.display = 'none';
+    // Force a reflow
+    landingPage.offsetHeight;
+    landingPage.style.display = 'flex';
+    
     // Reset file selection state
     resetFileSelection();
     
@@ -671,12 +706,14 @@ function updateTransactionTypeFilter() {
     const selectedTypes = Array.from(checkedBoxes).map(checkbox => checkbox.value);
     
     state.filters.selectedTransactionTypes = selectedTypes;
+    updateClearFiltersButton();
     // Don't apply filters automatically - only when "Použít filtry" is clicked
 }
 
 function handleProjectFilter() {
     const selectedProject = document.getElementById('project-filter-select').value;
     state.filters.selectedProject = selectedProject;
+    updateClearFiltersButton();
     // Don't apply filters automatically - only when "Použít filtry" is clicked
 }
 
@@ -704,6 +741,7 @@ function setDatePreset(days) {
         document.getElementById('date-to')._flatpickr.setDate(today);
     }
     
+    updateClearFiltersButton();
     // Don't apply filters automatically - only when "Použít filtry" is clicked
 }
 
@@ -1418,9 +1456,6 @@ function createProjectTypeChart() {
                             return context.label + ': ' + 
                                 locale.formatNumber(context.parsed) + 
                                 ' (' + percentage + '%)';
-                        },
-                        afterLabel: function(context) {
-                            return 'Výpočet: Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Odstoupení - Vrácení peněz';
                         }
                     }
                 }
