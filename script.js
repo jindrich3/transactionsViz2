@@ -1807,10 +1807,14 @@ function createTopProjectsChart() {
         return;
     }
     
+    // Store full project names for tooltips
+    const fullProjectNames = validProjects.map(([name]) => name);
+    const truncatedLabels = validProjects.map(([name]) => name.length > 14 ? name.substring(0, 14) + '...' : name);
+    
     charts.topProjects = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: validProjects.map(([name]) => name.length > 14 ? name.substring(0, 14) + '...' : name),
+            labels: truncatedLabels,
             datasets: [{
                 label: 'Čistá investice',
                 data: validProjects.map(([, amount]) => amount),
@@ -1889,8 +1893,9 @@ function createTopProjectsChart() {
                     titleMarginBottom: 8,
                     callbacks: {
                         title: function(context) {
-                            const fullName = validProjects[context[0].dataIndex][0];
-                            return fullName;
+                            // Use the stored full project names array to ensure correct mapping
+                            const dataIndex = context[0].dataIndex;
+                            return fullProjectNames[dataIndex];
                         },
                         label: function(context) {
                             const value = context.parsed.x;
@@ -1968,8 +1973,8 @@ function createTopProjectsChart() {
                 }
             },
             interaction: {
-                intersect: false,
-                mode: 'index'
+                intersect: true,
+                mode: 'nearest'
             },
             hover: {
                 animationDuration: 200
@@ -2119,12 +2124,16 @@ function createPortfolioExposureChart(retryCount = 0) {
         }
     };
 
+    // Prepare labels and data arrays to ensure proper synchronization
+    const projectLabels = validProjects.map(([name]) => name);
+    const projectData = validProjects.map(([, exposure]) => exposure);
+    
     charts.portfolioExposure = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: validProjects.map(([name]) => name),
+            labels: projectLabels,
             datasets: [{
-                data: validProjects.map(([, exposure]) => exposure),
+                data: projectData,
                 backgroundColor: colors.slice(0, validProjects.length),
                 borderWidth: 3,
                 borderColor: '#1F2937',
@@ -2165,7 +2174,8 @@ function createPortfolioExposureChart(retryCount = 0) {
                     yAlign: 'bottom',
                     callbacks: {
                         title: function(context) {
-                            return validProjects[context[0].dataIndex][0];
+                            // Always use the label from the chart data which corresponds to the correct project name
+                            return context[0].label;
                         },
                         label: function(context) {
                             const value = context.parsed;
@@ -2188,8 +2198,8 @@ function createPortfolioExposureChart(retryCount = 0) {
                 animationDuration: 300
             },
             interaction: {
-                intersect: false,
-                mode: 'nearest'
+                intersect: true,
+                mode: 'point'
             },
             elements: {
                 arc: {
