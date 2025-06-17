@@ -85,8 +85,8 @@ body {
     font-family: var(--font-family);
     font-size: var(--font-size-base);
     line-height: 1.6;
-    color: var(--gray-800);
-    background-color: var(--bg-secondary);
+    color: #f9fafb !important;
+    background-color: #111827 !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     position: relative;
@@ -772,7 +772,9 @@ body {
 
 /* Dashboard Header */
 .dashboard-header {
-    background: var(--bg-primary);
+    background: #1f2937 !important;
+    border-bottom: 1px solid #374151 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
     padding: var(--spacing-6) 0;
     position: fixed;
     top: 0;
@@ -801,12 +803,12 @@ body {
 .dashboard-title {
     font-size: var(--font-size-2xl);
     font-weight: 700;
-    color: white;
+    color: #f9fafb !important;
     margin-bottom: var(--spacing-1);
 }
 
 .dashboard-subtitle {
-    color: var(--gray-500);
+    color: #d1d5db !important;
     font-size: var(--font-size-sm);
 }
 
@@ -2139,20 +2141,53 @@ select:focus {
     }
 }
 
-/* Dark mode support (basic) */
+/* Force dark mode always - override system preferences */
+:root {
+    /* Force dark theme values regardless of system setting */
+    --bg-primary: #1f2937 !important;
+    --bg-secondary: #111827 !important;
+    --bg-tertiary: #0f172a !important;
+    --gray-800: #f9fafb !important;
+    --gray-700: #f3f4f6 !important;
+    --gray-600: #e5e7eb !important;
+    --gray-500: #d1d5db !important;
+    --gray-400: #9ca3af !important;
+    --gray-300: #6b7280 !important;
+    --gray-200: #4b5563 !important;
+    --gray-100: #374151 !important;
+}
+
+/* Override light mode with dark values */
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg-primary: #1f2937 !important;
+        --bg-secondary: #111827 !important;
+        --bg-tertiary: #0f172a !important;
+        --gray-800: #f9fafb !important;
+        --gray-700: #f3f4f6 !important;
+        --gray-600: #e5e7eb !important;
+        --gray-500: #d1d5db !important;
+        --gray-400: #9ca3af !important;
+        --gray-300: #6b7280 !important;
+        --gray-200: #4b5563 !important;
+        --gray-100: #374151 !important;
+    }
+}
+
+/* Maintain dark mode when system is dark */
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg-primary: #1f2937;
-        --bg-secondary: #111827;
-        --bg-tertiary: #0f172a;
-        --gray-800: #f9fafb;
-        --gray-700: #f3f4f6;
-        --gray-600: #e5e7eb;
-        --gray-500: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-300: #6b7280;
-        --gray-200: #4b5563;
-        --gray-100: #374151;
+        --bg-primary: #1f2937 !important;
+        --bg-secondary: #111827 !important;
+        --bg-tertiary: #0f172a !important;
+        --gray-800: #f9fafb !important;
+        --gray-700: #f3f4f6 !important;
+        --gray-600: #e5e7eb !important;
+        --gray-500: #d1d5db !important;
+        --gray-400: #9ca3af !important;
+        --gray-300: #6b7280 !important;
+        --gray-200: #4b5563 !important;
+        --gray-100: #374151 !important;
     }
 }
 
