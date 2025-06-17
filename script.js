@@ -1899,13 +1899,7 @@ function createTopProjectsChart() {
                         },
                         label: function(context) {
                             const value = context.parsed.x;
-                            if (value === 0) return '0';
-                            const thousands = value / 1000;
-                            if (thousands >= 1000) {
-                                const millions = (thousands / 1000).toFixed(1).replace('.0', '');
-                                return `Investice: ${millions} mil. Kč`;
-                            }
-                            return `Investice: ${Math.round(thousands)} tis. Kč`;
+                            return `Expozice: ${locale.formatNumber(value)}`;
                         }
                     }
                 }

@@ -215,9 +215,9 @@ body {
     max-width: none;
     margin: 0;
     box-shadow: 
-        0 32px 80px rgba(0, 0, 0, 0.25),
-        0 16px 48px rgba(0, 0, 0, 0.15),
-        0 8px 24px rgba(0, 0, 0, 0.1),
+        0 16px 40px rgba(0, 0, 0, 0.08),
+        0 8px 24px rgba(0, 0, 0, 0.06),
+        0 4px 12px rgba(0, 0, 0, 0.04),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transition: all var(--transition-normal);
     height: 100%;
@@ -246,9 +246,9 @@ body {
 .help-card:hover {
     transform: translateY(-6px);
     box-shadow: 
-        0 48px 120px rgba(0, 0, 0, 0.3),
-        0 24px 64px rgba(0, 0, 0, 0.2),
-        0 12px 32px rgba(0, 0, 0, 0.15),
+        0 24px 60px rgba(0, 0, 0, 0.12),
+        0 12px 32px rgba(0, 0, 0, 0.08),
+        0 6px 16px rgba(0, 0, 0, 0.06),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -362,13 +362,13 @@ body {
     flex-shrink: 0;
     position: relative;
     z-index: 2;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
     transition: all 0.3s ease;
 }
 
 .step:hover .step-number {
     transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .step-text {
@@ -404,9 +404,9 @@ body {
     align-items: center;
     justify-content: center;
     box-shadow: 
-        0 32px 80px rgba(0, 0, 0, 0.25),
-        0 16px 48px rgba(0, 0, 0, 0.15),
-        0 8px 24px rgba(0, 0, 0, 0.1),
+        0 16px 40px rgba(0, 0, 0, 0.08),
+        0 8px 24px rgba(0, 0, 0, 0.06),
+        0 4px 12px rgba(0, 0, 0, 0.04),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
@@ -429,9 +429,9 @@ body {
 .upload-area:hover {
     transform: translateY(-6px);
     box-shadow: 
-        0 48px 120px rgba(0, 0, 0, 0.3),
-        0 24px 64px rgba(0, 0, 0, 0.2),
-        0 12px 32px rgba(0, 0, 0, 0.15),
+        0 24px 60px rgba(0, 0, 0, 0.12),
+        0 12px 32px rgba(0, 0, 0, 0.08),
+        0 6px 16px rgba(0, 0, 0, 0.06),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -443,9 +443,9 @@ body {
     background: rgba(59, 130, 246, 0.2);
     transform: scale(1.02);
     box-shadow: 
-        0 48px 120px rgba(59, 130, 246, 0.35),
-        0 24px 64px rgba(59, 130, 246, 0.25),
-        0 16px 48px rgba(0, 0, 0, 0.2),
+        0 24px 60px rgba(59, 130, 246, 0.2),
+        0 12px 32px rgba(59, 130, 246, 0.15),
+        0 8px 24px rgba(0, 0, 0, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
@@ -500,9 +500,9 @@ body {
     position: relative;
     z-index: 2;
     box-shadow: 
-        0 12px 32px rgba(59, 130, 246, 0.5),
-        0 8px 24px rgba(59, 130, 246, 0.35),
-        0 4px 12px rgba(0, 0, 0, 0.15),
+        0 6px 16px rgba(59, 130, 246, 0.25),
+        0 4px 12px rgba(59, 130, 246, 0.18),
+        0 2px 6px rgba(0, 0, 0, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     overflow: hidden;
@@ -529,9 +529,9 @@ body {
 .upload-btn:hover {
     transform: translateY(-3px) scale(1.02);
     box-shadow: 
-        0 20px 48px rgba(59, 130, 246, 0.6),
-        0 12px 32px rgba(59, 130, 246, 0.4),
-        0 6px 16px rgba(0, 0, 0, 0.2),
+        0 10px 24px rgba(59, 130, 246, 0.3),
+        0 6px 16px rgba(59, 130, 246, 0.2),
+        0 3px 8px rgba(0, 0, 0, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -542,9 +542,9 @@ body {
 .upload-btn:active {
     transform: translateY(0);
     box-shadow: 
-        0 4px 12px rgba(59, 130, 246, 0.4),
-        0 2px 8px rgba(59, 130, 246, 0.25),
-        0 1px 4px rgba(0, 0, 0, 0.1);
+        0 2px 6px rgba(59, 130, 246, 0.2),
+        0 1px 4px rgba(59, 130, 246, 0.15),
+        0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .secondary-btn {
@@ -712,17 +712,7 @@ body {
     }
 }
 
-/* Section Divider */
-.section-divider {
-    padding: var(--spacing-8) 0;
-}
 
-.divider-line {
-    border: none;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gray-300), transparent);
-    margin: 0;
-}
 
 /* Section Title */
 .section-title {
@@ -782,7 +772,6 @@ body {
 /* Dashboard Header */
 .dashboard-header {
     background: var(--bg-primary);
-    box-shadow: var(--shadow-sm);
     padding: var(--spacing-6) 0;
     position: fixed;
     top: 0;
@@ -990,10 +979,11 @@ body {
 }
 
 .stat-card {
-    background: var(--bg-primary);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
     padding: var(--spacing-6);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
+    border-radius: 20px;
+    border: none;
     transition: all var(--transition-normal);
     display: flex;
     align-items: center;
@@ -1001,6 +991,8 @@ body {
     animation: slideInUp 0.6s ease-out forwards;
     opacity: 0;
     transform: translateY(20px);
+    position: relative;
+    overflow: hidden;
 }
 
 .stat-card:nth-child(1) { animation-delay: 0.1s; }
@@ -1020,20 +1012,22 @@ body {
 }
 
 .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px) !important;
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .stat-icon {
     width: 60px;
     height: 60px;
-    border-radius: var(--radius-lg);
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(16, 185, 129, 0.7));
     color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
 }
 
 .stat-value {
@@ -1063,7 +1057,6 @@ body {
 .filters-card {
     background: var(--bg-primary);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
     padding: var(--spacing-6);
 }
 
@@ -1109,18 +1102,26 @@ body {
 .date-input, .search-input {
     flex: 1;
     padding: var(--spacing-2) var(--spacing-3);
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-md);
+    border: none;
+    border-radius: 12px;
     font-size: var(--font-size-sm);
-    background: var(--bg-primary);
-    color: var(--gray-700);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
     transition: all var(--transition-normal);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.05),
+        0 1px 3px rgba(0, 0, 0, 0.03),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .date-input:focus, .search-input:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    box-shadow: 
+        0 4px 12px rgba(59, 130, 246, 0.2),
+        0 2px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .date-presets {
@@ -1132,19 +1133,25 @@ body {
 
 .preset-btn {
     padding: var(--spacing-1) var(--spacing-3);
-    border: 1px solid var(--gray-300);
-    background: var(--bg-primary);
-    color: var(--gray-600);
-    border-radius: var(--radius);
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
     font-size: var(--font-size-xs);
     cursor: pointer;
     transition: all var(--transition-normal);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.05),
+        0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .preset-btn:hover, .preset-btn.active {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(16, 185, 129, 0.7));
     color: white;
-    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 12px rgba(59, 130, 246, 0.3),
+        0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .search-container {
@@ -1259,22 +1266,34 @@ body {
 }
 
 .chart-card {
-    background: var(--bg-primary);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: none;
+    box-shadow: 
+        0 16px 40px rgba(0, 0, 0, 0.15),
+        0 8px 24px rgba(0, 0, 0, 0.1),
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
     padding: var(--spacing-6);
     transition: all var(--transition-normal);
     position: relative;
     z-index: 1;
+    overflow: hidden;
 }
 
 .chart-card:hover {
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 24px 60px rgba(0, 0, 0, 0.2),
+        0 12px 32px rgba(0, 0, 0, 0.15),
+        0 6px 16px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .chart-header {
     margin-bottom: var(--spacing-4);
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: var(--spacing-3);
 }
 
@@ -1403,7 +1422,6 @@ body {
     line-height: 1.4;
     white-space: nowrap;
     z-index: 999999;
-    box-shadow: var(--shadow);
     transition: opacity var(--transition-normal), visibility var(--transition-normal);
     max-width: 600px;
     min-width: 300px;
@@ -1537,7 +1555,6 @@ canvas {
 .advanced-stat-card {
     background: var(--bg-primary);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
     padding: var(--spacing-6);
 }
 
@@ -1588,15 +1605,21 @@ canvas {
 }
 
 .table-card {
-    background: var(--bg-primary);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: none;
     overflow: visible;
+    transition: all var(--transition-normal);
+}
+
+.table-card:hover {
+    transform: translateY(-2px);
 }
 
 .table-header {
     padding: var(--spacing-6);
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1606,6 +1629,12 @@ canvas {
     font-size: var(--font-size-lg);
     font-weight: 600;
     color: white;
+}
+
+.table-actions {
+    display: flex;
+    gap: var(--spacing-2);
+    align-items: center;
 }
 
 /* Table Filters */
@@ -1625,19 +1654,27 @@ canvas {
 .filter-select {
     width: 100%;
     padding: var(--spacing-2) var(--spacing-3);
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-md);
+    border: none;
+    border-radius: 12px;
     font-size: var(--font-size-sm);
-    background: var(--bg-primary);
-    color: var(--gray-700);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
     transition: all var(--transition-normal);
     min-height: 38px;
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.05),
+        0 1px 3px rgba(0, 0, 0, 0.03),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .filter-select:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    box-shadow: 
+        0 4px 12px rgba(59, 130, 246, 0.2),
+        0 2px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .dropdown-container {
@@ -1654,20 +1691,22 @@ canvas {
 }
 
 .data-table th {
-    background: var(--bg-secondary);
+    background: rgba(255, 255, 255, 0.08);
     padding: var(--spacing-3) var(--spacing-4);
     text-align: left;
     font-weight: 600;
-    color: var(--gray-700);
+    color: rgba(255, 255, 255, 0.9);
     font-size: var(--font-size-sm);
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: none;
     cursor: pointer;
-    transition: background-color var(--transition-normal);
+    transition: all var(--transition-normal);
     white-space: nowrap;
+    position: relative;
 }
 
 .data-table th:hover {
-    background: var(--gray-100);
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
 }
 
 .data-table th i {
@@ -1688,13 +1727,13 @@ canvas {
 
 .data-table td {
     padding: var(--spacing-3) var(--spacing-4);
-    border-bottom: 1px solid var(--gray-100);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     font-size: var(--font-size-sm);
     vertical-align: middle;
 }
 
 .data-table tr:hover {
-    background: var(--bg-secondary);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .amount-positive {
@@ -1725,7 +1764,7 @@ canvas {
 /* Pagination */
 .table-pagination {
     padding: var(--spacing-4) var(--spacing-6);
-    border-top: 1px solid var(--gray-200);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1757,17 +1796,24 @@ canvas {
 
 .rows-select {
     padding: var(--spacing-1) var(--spacing-2);
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius);
-    background: var(--bg-primary);
-    color: white;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
     font-size: var(--font-size-sm);
     cursor: pointer;
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.05),
+        0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .rows-select:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    box-shadow: 
+        0 4px 12px rgba(59, 130, 246, 0.2),
+        0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .pagination-controls {
@@ -1777,26 +1823,35 @@ canvas {
 
 .pagination-btn {
     padding: var(--spacing-2) var(--spacing-3);
-    border: 1px solid var(--gray-300);
-    background: var(--bg-primary);
-    color: var(--gray-600);
-    border-radius: var(--radius);
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
     font-size: var(--font-size-sm);
     cursor: pointer;
     transition: all var(--transition-normal);
     min-width: 40px;
     text-align: center;
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.05),
+        0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .pagination-btn:hover:not(:disabled) {
-    background: var(--gray-50);
-    border-color: var(--gray-400);
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .pagination-btn.active {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(16, 185, 129, 0.7));
     color: white;
-    border-color: var(--primary-color);
+    box-shadow: 
+        0 4px 12px rgba(59, 130, 246, 0.3),
+        0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .pagination-btn:disabled {
@@ -2087,16 +2142,21 @@ select:focus {
 }
 
 .modal {
-    background: var(--bg-primary);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(25px);
+    border-radius: 24px;
+    border: none;
+    box-shadow: 
+        0 32px 80px rgba(0, 0, 0, 0.25),
+        0 16px 48px rgba(0, 0, 0, 0.15),
+        0 8px 24px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     width: 90%;
     max-width: 600px;
     max-height: 90vh;
     overflow: hidden;
     transform: scale(0.9) translateY(20px);
     transition: all var(--transition-normal);
-    border: 1px solid var(--gray-200);
 }
 
 .modal-overlay.show .modal {
@@ -2105,11 +2165,11 @@ select:focus {
 
 .modal-header {
     padding: var(--spacing-6);
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--bg-secondary);
+    background: transparent;
 }
 
 .modal-header h3 {
@@ -2263,50 +2323,55 @@ select:focus {
 
 /* Flatpickr Calendar Styling */
 .flatpickr-calendar {
-    background: var(--gray-100) !important;
-    border: 1px solid var(--gray-300) !important;
-    box-shadow: var(--shadow-lg) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(20px) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.15), 
+        0 10px 10px -5px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
 .flatpickr-calendar .flatpickr-month {
-    background: var(--gray-100) !important;
+    background: transparent !important;
 }
 
 .flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months {
-    background: var(--gray-100) !important;
-    color: var(--gray-700) !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .flatpickr-calendar .numInputWrapper {
-    background: var(--gray-100) !important;
+    background: transparent !important;
 }
 
 .flatpickr-calendar .numInputWrapper input {
-    background: var(--gray-100) !important;
-    color: var(--gray-700) !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .flatpickr-calendar .flatpickr-weekdays {
-    background: var(--gray-100) !important;
+    background: transparent !important;
 }
 
 .flatpickr-calendar .flatpickr-weekday {
-    background: var(--gray-100) !important;
-    color: var(--gray-600) !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.7) !important;
 }
 
 .flatpickr-calendar .flatpickr-days {
-    background: var(--gray-100) !important;
+    background: transparent !important;
 }
 
 .flatpickr-calendar .flatpickr-day {
-    background: var(--gray-100) !important;
-    color: var(--gray-700) !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.8) !important;
 }
 
 .flatpickr-calendar .flatpickr-day:hover {
-    background: var(--gray-200) !important;
-    color: var(--gray-800) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: white !important;
 }
 
 .flatpickr-calendar .flatpickr-day.selected {
@@ -2326,12 +2391,12 @@ select:focus {
 
 .flatpickr-calendar .flatpickr-prev-month,
 .flatpickr-calendar .flatpickr-next-month {
-    color: var(--gray-600) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
 }
 
 .flatpickr-calendar .flatpickr-prev-month:hover,
 .flatpickr-calendar .flatpickr-next-month:hover {
-    color: var(--primary-color) !important;
+    color: rgba(59, 130, 246, 0.9) !important;
 }
 
 /* Enhanced styling for project type chart */
@@ -2342,11 +2407,16 @@ select:focus {
 /* Beautiful chart card specific enhancements */
 .chart-card-enhanced {
     background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(31, 41, 55, 0.98) 100%);
-    border: 1px solid rgba(55, 65, 81, 0.3);
+    border: none;
+    border-radius: 20px;
     position: relative;
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .chart-card-enhanced::before {
