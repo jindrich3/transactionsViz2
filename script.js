@@ -471,24 +471,80 @@ function resetToLanding() {
 
 // Dashboard Initialization
 function initializeDashboard() {
+    console.log('initializeDashboard called with', csvData.length, 'transactions');
+    
+    try {
     // Set filteredData to show all data initially (no filters)
     filteredData = [...csvData];
     
     // Update transaction count in header
-    document.getElementById('transaction-count').textContent = csvData.length;
+        const transactionCountEl = document.getElementById('transaction-count');
+        if (transactionCountEl) {
+            transactionCountEl.textContent = csvData.length;
+        }
     
+        // Call functions with error handling
+        try {
     calculateOverviewStatistics();
+        } catch (e) {
+            console.error('Error in calculateOverviewStatistics:', e);
+        }
+        
+        try {
     updateStatistics();
+        } catch (e) {
+            console.error('Error in updateStatistics:', e);
+        }
+        
+        try {
     createFilterOptions();
+        } catch (e) {
+            console.error('Error in createFilterOptions:', e);
+        }
+        
+        try {
     createCharts();
+        } catch (e) {
+            console.error('Error in createCharts:', e);
+        }
+        
+        try {
     updateTable();
+        } catch (e) {
+            console.error('Error in updateTable:', e);
+        }
+        
+        try {
     updateAdvancedStatistics();
+        } catch (e) {
+            console.error('Error in updateAdvancedStatistics:', e);
+        }
+        
+        // FORCE timeline creation
+        console.log('About to call createTimeline...');
+        try {
+            createTimeline();
+        } catch (e) {
+            console.error('Error in createTimeline:', e);
+        }
     
     // Initialize button state (should be disabled initially)
+        try {
     updateClearFiltersButton();
+        } catch (e) {
+            console.error('Error in updateClearFiltersButton:', e);
+        }
     
     // Set "Vše" preset as active by default
+        try {
     setDefaultPresetButton();
+        } catch (e) {
+            console.error('Error in setDefaultPresetButton:', e);
+        }
+        
+    } catch (error) {
+        console.error('Critical error in initializeDashboard:', error);
+    }
 }
 
 // Overview Statistics (Fixed - not affected by filters)
@@ -890,7 +946,7 @@ function resetFilterUI() {
     }
 }
 
-// Apply Filters - Only affects the main transactions table
+// Apply Filters - Only affects the main transactions table and timeline
 function applyFilters() {
     filteredData = csvData.filter(row => {
         // Date filter
@@ -912,8 +968,9 @@ function applyFilters() {
     // Update clear filters button state
     updateClearFiltersButton();
     
-    // Update only the main transactions table (not charts, statistics, etc.)
+    // Update the main transactions table and timeline
     updateTable();
+    updateTimeline();
 }
 
 // Modal Functions
@@ -2617,43 +2674,423 @@ function debounce(func, wait) {
 
 // Header scroll behavior
 function setupHeaderScrollBehavior() {
-    let lastScrollTop = 0;
-    let scrollThreshold = 10; // Minimum scroll distance to trigger hide/show
-    let isHeaderHidden = false;
-    
+    let lastScrollY = window.scrollY;
     const header = document.querySelector('.dashboard-header');
     
-    if (!header) return; // Exit if header doesn't exist
+    if (!header) return;
     
-    const handleScroll = debounce(() => {
-        const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const throttledScroll = debounce(() => {
+        const currentScrollY = window.scrollY;
         
-        // Don't hide header when at the top of the page
-        if (currentScrollTop <= scrollThreshold) {
-            if (isHeaderHidden) {
-                header.classList.remove('header-hidden');
-                isHeaderHidden = false;
-            }
-            lastScrollTop = currentScrollTop;
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            // Scrolling down & past threshold
+            header.style.transform = 'translateY(-100%)';
+        } else {
+            // Scrolling up or at top
+            header.style.transform = 'translateY(0)';
+        }
+        
+        lastScrollY = currentScrollY;
+    }, 10);
+    
+    window.addEventListener('scroll', throttledScroll);
+}
+
+// Timeline state
+let timelineState = {
+    currentPage: 0,
+    pagesData: [],
+    filteredTransactions: []
+};
+
+// Timeline functionality
+function createTimeline() {
+    console.log('Creating timeline with data:', filteredData.length, 'transactions');
+    const timelineContainer = document.getElementById('timeline-container');
+    if (!timelineContainer) {
+        console.error('Timeline container not found');
+        return;
+    }
+    if (!filteredData.length) {
+        console.log('No filtered data available for timeline');
+        timelineContainer.innerHTML = '<div class="timeline-empty">Žádná data k zobrazení</div>';
             return;
         }
         
-        // Check scroll direction and distance
-        const scrollDifference = Math.abs(currentScrollTop - lastScrollTop);
-        
-        if (scrollDifference > scrollThreshold) {
-            if (currentScrollTop > lastScrollTop && !isHeaderHidden) {
-                // Scrolling down - hide header
-                header.classList.add('header-hidden');
-                isHeaderHidden = true;
-            } else if (currentScrollTop < lastScrollTop && isHeaderHidden) {
-                // Scrolling up - show header
-                header.classList.remove('header-hidden');
-                isHeaderHidden = false;
-            }
-            lastScrollTop = currentScrollTop;
-        }
-    }, 50); // Debounce scroll events for better performance
+    // Filter only specific transaction types
+    const allowedTypes = ['Investice', 'Autoinvestice', 'Prodej', 'Odstoupení', 'Vklad peněz', 'Výběr peněz', 'Vrácení peněz'];
+    const timelineTransactions = filteredData.filter(transaction => 
+        allowedTypes.includes(transaction.typ)
+    );
     
-    window.addEventListener('scroll', handleScroll);
-} 
+    console.log('Filtered timeline transactions:', timelineTransactions.length);
+    
+    if (timelineTransactions.length === 0) {
+        timelineContainer.innerHTML = '<div class="timeline-empty">Žádné relevantní transakce k zobrazení</div>';
+        return;
+    }
+    
+    // Sort transactions by date (oldest first for horizontal timeline)
+    timelineState.filteredTransactions = timelineTransactions.sort((a, b) => a.datum - b.datum);
+    
+    // Group transactions into 4-month pages
+    createTimelinePages();
+    
+    // Reset to first page
+    timelineState.currentPage = 0;
+    
+    // Render timeline with pagination
+    renderTimelinePage();
+}
+
+function createTimelinePages() {
+    if (timelineState.filteredTransactions.length === 0) return;
+    
+    // Get date range
+    const firstDate = timelineState.filteredTransactions[0].datum;
+    const lastDate = timelineState.filteredTransactions[timelineState.filteredTransactions.length - 1].datum;
+    
+    // Create 4-month periods
+    timelineState.pagesData = [];
+    let currentDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+    const endDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
+    
+    while (currentDate <= endDate) {
+        const pageStartDate = new Date(currentDate);
+        const pageEndDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 4, 0);
+        
+        // Filter transactions for this 4-month period
+        const pageTransactions = timelineState.filteredTransactions.filter(transaction => {
+            return transaction.datum >= pageStartDate && transaction.datum <= pageEndDate;
+        });
+        
+        if (pageTransactions.length > 0) {
+            timelineState.pagesData.push({
+                startDate: pageStartDate,
+                endDate: pageEndDate,
+                transactions: pageTransactions,
+                label: formatPageLabel(pageStartDate, pageEndDate)
+            });
+        }
+        
+        // Move to next 4-month period
+        currentDate.setMonth(currentDate.getMonth() + 4);
+    }
+    
+    console.log('Created', timelineState.pagesData.length, 'timeline pages');
+}
+
+function formatPageLabel(startDate, endDate) {
+    const startMonth = locale.months[startDate.getMonth()];
+    const startYear = startDate.getFullYear();
+    const endMonth = locale.months[endDate.getMonth()];
+    const endYear = endDate.getFullYear();
+    
+    if (startYear === endYear) {
+        return `${startMonth} - ${endMonth} ${startYear}`;
+    } else {
+        return `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
+    }
+}
+
+function renderTimelinePage() {
+    const timelineContainer = document.getElementById('timeline-container');
+    timelineContainer.innerHTML = '';
+    
+    if (timelineState.pagesData.length === 0) {
+        timelineContainer.innerHTML = '<div class="timeline-empty">Žádné relevantní transakce k zobrazení</div>';
+        return;
+    }
+    
+    const currentPageData = timelineState.pagesData[timelineState.currentPage];
+    
+    // Create timeline wrapper
+    const timelineWrapper = document.createElement('div');
+    timelineWrapper.className = 'timeline-paged';
+    
+    // Create navigation header
+    const timelineHeader = document.createElement('div');
+    timelineHeader.className = 'timeline-header';
+    
+    const prevButton = document.createElement('button');
+    prevButton.className = 'timeline-nav-btn timeline-nav-prev';
+    prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    prevButton.disabled = timelineState.currentPage === 0;
+    prevButton.addEventListener('click', () => navigateTimeline(-1));
+    
+    const pageInfo = document.createElement('div');
+    pageInfo.className = 'timeline-page-info';
+    pageInfo.innerHTML = `
+        <div class="timeline-period-label">${currentPageData.label}</div>
+        <div class="timeline-page-counter">${timelineState.currentPage + 1} / ${timelineState.pagesData.length}</div>
+    `;
+    
+    const nextButton = document.createElement('button');
+    nextButton.className = 'timeline-nav-btn timeline-nav-next';
+    nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+    nextButton.disabled = timelineState.currentPage === timelineState.pagesData.length - 1;
+    nextButton.addEventListener('click', () => navigateTimeline(1));
+    
+    timelineHeader.appendChild(prevButton);
+    timelineHeader.appendChild(pageInfo);
+    timelineHeader.appendChild(nextButton);
+    
+    // Create timeline track
+    const timelineTrack = document.createElement('div');
+    timelineTrack.className = 'timeline-track';
+    
+    // Create timeline line
+    const timelineLine = document.createElement('div');
+    timelineLine.className = 'timeline-line-horizontal';
+    timelineTrack.appendChild(timelineLine);
+    
+    // Create month labels container
+    const monthLabelsContainer = document.createElement('div');
+    monthLabelsContainer.className = 'timeline-month-labels';
+    
+    // Generate month labels for the 4-month period
+    const startDate = new Date(currentPageData.startDate);
+    const endDate = new Date(currentPageData.endDate);
+    
+    let currentMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const periodEnd = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
+    
+    while (currentMonth <= periodEnd) {
+        const monthLabel = document.createElement('div');
+        monthLabel.className = 'timeline-month-label';
+        
+        // Calculate position of this month within the 4-month period
+        const monthPosition = ((currentMonth.getTime() - currentPageData.startDate.getTime()) / 
+                             (currentPageData.endDate.getTime() - currentPageData.startDate.getTime())) * 100;
+        
+        monthLabel.style.left = `${Math.max(0, Math.min(100, monthPosition))}%`;
+        monthLabel.textContent = `${(currentMonth.getMonth() + 1).toString().padStart(2, '0')}/${currentMonth.getFullYear().toString().slice(-2)}`;
+        
+        monthLabelsContainer.appendChild(monthLabel);
+        
+        // Move to next month
+        currentMonth.setMonth(currentMonth.getMonth() + 1);
+    }
+    
+    timelineTrack.appendChild(monthLabelsContainer);
+    
+    // Create events container
+    const eventsContainer = document.createElement('div');
+    eventsContainer.className = 'timeline-events-horizontal';
+    
+    // Add events for current page with overlap detection
+    const eventElements = currentPageData.transactions.map((transaction, index) => 
+        createPagedTimelineEvent(transaction, index, currentPageData)
+    );
+    
+    // Handle overlapping events by stacking them vertically
+    handleEventOverlaps(eventElements);
+    
+    eventElements.forEach(eventElement => {
+        eventsContainer.appendChild(eventElement);
+    });
+    
+    timelineTrack.appendChild(eventsContainer);
+    timelineWrapper.appendChild(timelineHeader);
+    timelineWrapper.appendChild(timelineTrack);
+    timelineContainer.appendChild(timelineWrapper);
+    
+    console.log('Rendered timeline page', timelineState.currentPage + 1, 'with', currentPageData.transactions.length, 'events');
+}
+
+function navigateTimeline(direction) {
+    const newPage = timelineState.currentPage + direction;
+    if (newPage >= 0 && newPage < timelineState.pagesData.length) {
+        timelineState.currentPage = newPage;
+        renderTimelinePage();
+    }
+}
+
+function createPagedTimelineEvent(transaction, index, pageData) {
+    const eventElement = document.createElement('div');
+    eventElement.className = 'timeline-event-horizontal';
+    
+    // Calculate position based on date within the 4-month period
+    const pageStartTime = pageData.startDate.getTime();
+    const pageEndTime = pageData.endDate.getTime();
+    const transactionTime = transaction.datum.getTime();
+    
+    const position = ((transactionTime - pageStartTime) / (pageEndTime - pageStartTime)) * 100;
+    eventElement.style.left = `${Math.max(0, Math.min(100, position))}%`;
+    
+    // Store position and transaction data for overlap detection
+    eventElement.dataset.position = position;
+    eventElement.dataset.date = transaction.datum.toDateString();
+    eventElement.transaction = transaction;
+    
+    // Get transaction type info
+    const typeInfo = getTransactionTypeInfo(transaction.typ);
+    
+    // Create event marker (small dot)
+    const eventMarker = document.createElement('div');
+    eventMarker.className = `event-marker ${typeInfo.colorClass}`;
+    eventMarker.innerHTML = `<i class="${typeInfo.icon}"></i>`;
+    
+    // Add tooltip functionality
+    addHorizontalTimelineTooltip(eventElement, transaction);
+    
+    eventElement.appendChild(eventMarker);
+    
+    return eventElement;
+}
+
+function handleEventOverlaps(eventElements) {
+    // Group events by date to detect same-day transactions
+    const eventsByDate = {};
+    
+    eventElements.forEach(element => {
+        const date = element.dataset.date;
+        if (!eventsByDate[date]) {
+            eventsByDate[date] = [];
+        }
+        eventsByDate[date].push(element);
+    });
+    
+    // For each date with multiple events, create a small cluster
+    Object.values(eventsByDate).forEach(dateEvents => {
+        if (dateEvents.length > 1) {
+            // Sort by transaction time if available, otherwise by type
+            dateEvents.sort((a, b) => {
+                const timeA = a.transaction.datum.getTime();
+                const timeB = b.transaction.datum.getTime();
+                if (timeA !== timeB) return timeA - timeB;
+                return a.transaction.typ.localeCompare(b.transaction.typ);
+            });
+            
+            // Create a small horizontal spread for same-day events
+            const clusterWidth = Math.min(dateEvents.length * 8, 24); // Max 24px spread
+            const startOffset = -clusterWidth / 2;
+            
+            dateEvents.forEach((element, index) => {
+                if (index === 0) {
+                    // First event stays at original position
+                    element.style.zIndex = 15;
+                } else {
+                    // Subsequent events get slight horizontal offset and higher z-index
+                    const offsetX = startOffset + (index * (clusterWidth / (dateEvents.length - 1)));
+                    element.style.left = `calc(${element.dataset.position}% + ${offsetX}px)`;
+                    element.style.zIndex = 15 + index;
+                    element.classList.add('clustered-event');
+                }
+            });
+        }
+    });
+}
+
+function getTransactionTypeInfo(type) {
+    const typeMap = {
+        'Investice': { icon: 'fas fa-arrow-up', colorClass: 'investice' },
+        'Autoinvestice': { icon: 'fas fa-sync-alt', colorClass: 'autoinvestice' },
+        'Odstoupení': { icon: 'fas fa-sign-out-alt', colorClass: 'odstoupeni' },
+        'Prodej': { icon: 'fas fa-handshake', colorClass: 'prodej' },
+        'Vklad peněz': { icon: 'fas fa-plus', colorClass: 'vklad-penez' },
+        'Výběr peněz': { icon: 'fas fa-minus', colorClass: 'vyber-penez' },
+        'Vrácení peněz': { icon: 'fas fa-undo', colorClass: 'vyber-penez' }
+    };
+    
+    return typeMap[type] || { icon: 'fas fa-circle', colorClass: 'investice' };
+}
+
+function addHorizontalTimelineTooltip(element, transaction) {
+    let tooltip = null;
+    
+    element.addEventListener('mouseenter', (e) => {
+        // Create tooltip
+        tooltip = document.createElement('div');
+        tooltip.className = 'timeline-tooltip-horizontal';
+        
+        let tooltipContent = `
+            <div class="tooltip-header">${transaction.typ}</div>
+            <div class="tooltip-row"><strong>Datum:</strong> ${locale.formatDate(transaction.datum)}</div>
+            <div class="tooltip-row"><strong>Částka:</strong> ${locale.formatNumber(Math.abs(transaction.castka))} Kč</div>
+        `;
+        
+        if (transaction.projekt && transaction.projekt.trim()) {
+            tooltipContent += `<div class="tooltip-row"><strong>Projekt:</strong> ${transaction.projekt}</div>`;
+        }
+        
+        tooltip.innerHTML = tooltipContent;
+        tooltip.style.position = 'fixed';
+        tooltip.style.zIndex = '10000';
+        tooltip.style.pointerEvents = 'none';
+        
+        document.body.appendChild(tooltip);
+        
+        // Position tooltip
+        const rect = element.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        
+        // Position above the event by default
+        let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+        let top = rect.top - tooltipRect.height - 15;
+        
+        // Adjust if tooltip goes off screen horizontally
+        if (left < 10) {
+            left = 10;
+        } else if (left + tooltipRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - tooltipRect.width - 10;
+        }
+        
+        // If tooltip would go above viewport, show below instead
+        if (top < 10) {
+            top = rect.bottom + 15;
+            tooltip.classList.add('tooltip-below');
+        } else {
+            tooltip.classList.remove('tooltip-below');
+        }
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        tooltip.style.visibility = 'visible';
+        tooltip.style.opacity = '1';
+    });
+    
+    element.addEventListener('mouseleave', () => {
+        if (tooltip && tooltip.parentNode) {
+            tooltip.style.opacity = '0';
+            tooltip.style.visibility = 'hidden';
+            setTimeout(() => {
+                if (tooltip && tooltip.parentNode) {
+                    tooltip.parentNode.removeChild(tooltip);
+                }
+                tooltip = null;
+            }, 200);
+        }
+    });
+}
+
+// Update timeline when data changes
+function updateTimeline() {
+    console.log('updateTimeline called');
+    try {
+        createTimeline();
+    } catch (error) {
+        console.error('Error creating timeline:', error);
+        const timelineContainer = document.getElementById('timeline-container');
+        if (timelineContainer) {
+            timelineContainer.innerHTML = `<div class="timeline-empty">Chyba při vytváření časové osy: ${error.message}</div>`;
+        }
+    }
+}
+
+// Debug function for testing timeline
+window.debugTimeline = function() {
+    console.log('=== TIMELINE DEBUG ===');
+    console.log('csvData length:', csvData.length);
+    console.log('filteredData length:', filteredData.length);
+    console.log('Timeline container exists:', !!document.getElementById('timeline-container'));
+    console.log('Dashboard visible:', document.getElementById('dashboard').style.display !== 'none');
+    
+    if (filteredData.length > 0) {
+        console.log('Sample transaction:', filteredData[0]);
+        console.log('Calling createTimeline...');
+        createTimeline();
+    } else {
+        console.log('No filtered data available');
+    }
+}; 
