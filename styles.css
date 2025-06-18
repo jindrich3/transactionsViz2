@@ -1258,13 +1258,13 @@ body {
 
 /* Charts Section */
 .charts-section {
-    padding: var(--spacing-8) 0;
+    padding: var(--spacing-4) 0 var(--spacing-8);
 }
 
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: var(--spacing-6);
+    gap: var(--spacing-8);
 }
 
 .chart-main {
@@ -1603,7 +1603,7 @@ canvas {
 
 /* Table Section */
 .table-section {
-    padding: var(--spacing-8) 0 var(--spacing-12);
+    padding: var(--spacing-8) 0 var(--spacing-4);
 }
 
 .table-card {

@@ -485,7 +485,8 @@
                             <div class="rows-per-page">
                                 <label for="table-rows-select">Řádků na stránku:</label>
                                 <select id="table-rows-select" class="rows-select">
-                                    <option value="20" selected>20</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="20">20</option>
                                     <option value="50">50</option>
                                     <option value="200">200</option>
                                 </select>
@@ -543,10 +544,71 @@
                                 <!-- Populated by JavaScript -->
                             </div>
                             <div class="pagination-controls-wrapper">
+                                                            <div class="rows-per-page">
+                                <label for="project-table-rows-select">Řádků na stránku:</label>
+                                <select id="project-table-rows-select" class="rows-select">
+                                    <option value="10" selected>10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                    <option value="200">200</option>
+                                </select>
+                            </div>
+                                <div class="pagination-controls">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Statistics Table -->
+                    <div class="table-card chart-main">
+                        <div class="table-header">
+                            <h3>
+                                Měsíční statistiky
+                                <span class="info-tooltip">
+                                    <i class="fas fa-info-circle info-icon"></i>
+                                    <span class="tooltip-content">Měsíční souhrn všech transakcí s výpočty:<br/><br/>
+<strong>Investice:</strong> Autoinvestice + Investice - Odstoupení - Vrácení peněz<br/><br/>
+<strong>Výnosy:</strong> Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta<br/><br/>
+<strong>Splaceno:</strong> Splacení jistiny + Částečné splacení jistiny<br/><br/>
+<strong>Prodeje:</strong> Prodej<br/><br/>
+<strong>Odměny:</strong> Odměna + Mimořádný příjem<br/><br/>
+<strong>Poplatky:</strong> Poplatek za předčasný prodej + Poplatek za výběr<br/><br/>
+<strong>Vklady:</strong> Vklad peněz<br/><br/>
+<strong>Výběry:</strong> Výběr peněz</span>
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table" id="monthly-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="mesic">Měsíc <i class="fas fa-sort"></i></th>
+                                        <th data-sort="investice">Investice <i class="fas fa-sort"></i></th>
+                                        <th data-sort="vynosy">Výnosy <i class="fas fa-sort"></i></th>
+                                        <th data-sort="splaceno">Splaceno <i class="fas fa-sort"></i></th>
+                                        <th data-sort="prodeje">Prodeje <i class="fas fa-sort"></i></th>
+                                        <th data-sort="marketingove_odmeny">Odměny <i class="fas fa-sort"></i></th>
+                                        <th data-sort="poplatky">Poplatky <i class="fas fa-sort"></i></th>
+                                        <th data-sort="vklady">Vklady <i class="fas fa-sort"></i></th>
+                                        <th data-sort="vybery">Výběry <i class="fas fa-sort"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthly-table-body">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-pagination" id="monthly-table-pagination">
+                            <div class="pagination-info">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                            <div class="pagination-controls-wrapper">
                                 <div class="rows-per-page">
-                                    <label for="project-table-rows-select">Řádků na stránku:</label>
-                                    <select id="project-table-rows-select" class="rows-select">
-                                        <option value="20" selected>20</option>
+                                    <label for="monthly-table-rows-select">Řádků na stránku:</label>
+                                    <select id="monthly-table-rows-select" class="rows-select">
+                                        <option value="10" selected>10</option>
+                                        <option value="20">20</option>
                                         <option value="50">50</option>
                                         <option value="200">200</option>
                                     </select>

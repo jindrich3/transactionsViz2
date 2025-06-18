@@ -26,7 +26,7 @@ const state = {
     },
     pagination: {
         currentPage: 1,
-        itemsPerPage: 20
+        itemsPerPage: 10
     },
     sorting: {
         column: 'datum',
@@ -96,7 +96,16 @@ function setupEventListeners() {
     
     // Table functionality
     document.querySelectorAll('[data-sort]').forEach(th => {
-        th.addEventListener('click', (e) => handleTableSort(e.target.dataset.sort));
+        th.addEventListener('click', (e) => {
+            const table = th.closest('table');
+            if (table.id === 'monthly-table') {
+                handleMonthlyTableSort(e.target.dataset.sort);
+            } else if (table.id === 'project-table') {
+                sortProjectTable(e.target.dataset.sort);
+            } else {
+                handleTableSort(e.target.dataset.sort);
+            }
+        });
     });
     
     document.getElementById('export-btn').addEventListener('click', exportToCSV);
@@ -104,6 +113,7 @@ function setupEventListeners() {
     // Rows per page dropdowns
     document.getElementById('table-rows-select').addEventListener('change', handleMainTableRowsChange);
     document.getElementById('project-table-rows-select').addEventListener('change', handleProjectTableRowsChange);
+    document.getElementById('monthly-table-rows-select').addEventListener('change', handleMonthlyTableRowsChange);
     
     // Demo transactions button
     document.getElementById('demo-transactions-btn').addEventListener('click', loadDemoTransactions);
@@ -506,6 +516,12 @@ function initializeDashboard() {
     createCharts();
         } catch (e) {
             console.error('Error in createCharts:', e);
+        }
+        
+        try {
+    createMonthlyTable();
+        } catch (e) {
+            console.error('Error in createMonthlyTable:', e);
         }
         
         try {
@@ -1210,7 +1226,7 @@ let projectTableSortDirection = 'asc';
 // Project table pagination state
 let projectTablePagination = {
     currentPage: 1,
-    itemsPerPage: 20
+    itemsPerPage: 10
 };
 let allProjectData = [];
 
@@ -2431,6 +2447,278 @@ function handleProjectTableRowsChange(event) {
     projectTablePagination.itemsPerPage = newItemsPerPage;
     projectTablePagination.currentPage = 1; // Reset to first page
     updateProjectTable();
+}
+
+// Monthly table variables and functions
+let monthlyTableSortField = 'mesic';
+let monthlyTableSortDirection = 'desc';
+
+// Monthly table pagination state
+let monthlyTablePagination = {
+    currentPage: 1,
+    itemsPerPage: 10
+};
+let allMonthlyData = [];
+
+function calculateMonthlyData() {
+    const monthlyData = {};
+    
+    // Process each transaction and group by month
+    csvData.forEach(row => {
+        const monthKey = `${row.datum.getFullYear()}-${String(row.datum.getMonth() + 1).padStart(2, '0')}`;
+        const displayMonth = `${String(row.datum.getMonth() + 1).padStart(2, '0')}/${String(row.datum.getFullYear()).slice(-2)}`;
+        
+        if (!monthlyData[monthKey]) {
+            monthlyData[monthKey] = {
+                mesic: displayMonth,
+                yearMonth: monthKey, // For sorting
+                investice: 0,
+                vynosy: 0,
+                splaceno: 0,
+                prodeje: 0,
+                marketingove_odmeny: 0,
+                poplatky: 0,
+                vklady: 0,
+                vybery: 0
+            };
+        }
+        
+        const amount = Math.abs(row.castka);
+        
+        // Investice = Autoinvestice + Investice - Odstoupení - Vrácení peněz
+        if (row.typ === 'Autoinvestice' || row.typ === 'Investice') {
+            monthlyData[monthKey].investice += amount;
+        } else if (row.typ === 'Odstoupení' || row.typ === 'Vrácení peněz') {
+            monthlyData[monthKey].investice -= amount;
+        }
+        
+        // Výnosy = Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta
+        else if (row.typ === 'Výnos' || 
+                 row.typ === 'Bonusový výnos' || 
+                 row.typ === 'Zákonné úroky z prodlení' || 
+                 row.typ === 'Smluvní pokuta') {
+            monthlyData[monthKey].vynosy += amount;
+        }
+        
+        // Splaceno = Splacení jistiny + Částečné splacení jistiny
+        else if (row.typ === 'Splacení jistiny' || 
+                 row.typ === 'Částečné splacení jistiny') {
+            monthlyData[monthKey].splaceno += amount;
+        }
+        
+        // Prodeje = Prodej
+        else if (row.typ === 'Prodej') {
+            monthlyData[monthKey].prodeje += amount;
+        }
+        
+        // Marketingové odměny = Odměna + Mimořádný příjem
+        else if (row.typ === 'Odměna' || row.typ === 'Mimořádný příjem') {
+            monthlyData[monthKey].marketingove_odmeny += amount;
+        }
+        
+        // Poplatky = Poplatek za předčasný prodej + Poplatek za výběr
+        else if (row.typ === 'Poplatek za předčasný prodej' || 
+                 row.typ === 'Poplatek za výběr') {
+            monthlyData[monthKey].poplatky += amount;
+        }
+        
+        // Vklady = Vklad peněz
+        else if (row.typ === 'Vklad peněz') {
+            monthlyData[monthKey].vklady += amount;
+        }
+        
+        // Výběry = Výběr peněz
+        else if (row.typ === 'Výběr peněz') {
+            monthlyData[monthKey].vybery += amount;
+        }
+    });
+    
+    // Convert to array and filter out months with no significant activity
+    return Object.values(monthlyData).filter(month => 
+        month.investice !== 0 || month.vynosy !== 0 || month.splaceno !== 0 || 
+        month.prodeje !== 0 || month.marketingove_odmeny !== 0 || month.poplatky !== 0 ||
+        month.vklady !== 0 || month.vybery !== 0
+    );
+}
+
+function createMonthlyTable() {
+    allMonthlyData = calculateMonthlyData();
+    allMonthlyData = sortMonthlyData(allMonthlyData);
+    updateMonthlyTable();
+}
+
+function sortMonthlyData(data) {
+    return [...data].sort((a, b) => {
+        const field = monthlyTableSortField;
+        let comparison = 0;
+        
+        if (field === 'mesic') {
+            // Sort by yearMonth for proper chronological order
+            comparison = a.yearMonth.localeCompare(b.yearMonth);
+        } else {
+            comparison = a[field] - b[field];
+        }
+        
+        return monthlyTableSortDirection === 'asc' ? comparison : -comparison;
+    });
+}
+
+function updateMonthlyTable() {
+    const tableBody = document.getElementById('monthly-table-body');
+    
+    if (allMonthlyData.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #666;">Žádné měsíční data nenalezena</td></tr>';
+        updateMonthlyTablePagination();
+        return;
+    }
+    
+    // Paginate the data
+    const paginatedData = paginateMonthlyData(allMonthlyData);
+    
+    tableBody.innerHTML = paginatedData.map(month => {
+        const investiceFormatted = formatAmountWithZeroClass(month.investice);
+        const vynosyFormatted = formatAmountWithZeroClass(month.vynosy);
+        const splacenoFormatted = formatAmountWithZeroClass(month.splaceno);
+        const prodejeFormatted = formatAmountWithZeroClass(month.prodeje);
+        const marketingovyFormatted = formatAmountWithZeroClass(month.marketingove_odmeny);
+        const poplatkyFormatted = formatAmountWithZeroClass(month.poplatky);
+        const vkladyFormatted = formatAmountWithZeroClass(month.vklady);
+        const vyberyFormatted = formatAmountWithZeroClass(month.vybery);
+        
+        return `
+            <tr>
+                <td>${month.mesic}</td>
+                <td class="${investiceFormatted.className}">${investiceFormatted.formattedAmount}</td>
+                <td class="${vynosyFormatted.className}">${vynosyFormatted.formattedAmount}</td>
+                <td class="${splacenoFormatted.className}">${splacenoFormatted.formattedAmount}</td>
+                <td class="${prodejeFormatted.className}">${prodejeFormatted.formattedAmount}</td>
+                <td class="${marketingovyFormatted.className}">${marketingovyFormatted.formattedAmount}</td>
+                <td class="${poplatkyFormatted.className}">${poplatkyFormatted.formattedAmount}</td>
+                <td class="${vkladyFormatted.className}">${vkladyFormatted.formattedAmount}</td>
+                <td class="${vyberyFormatted.className}">${vyberyFormatted.formattedAmount}</td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Update sort indicators
+    updateMonthlySortIndicators(monthlyTableSortField);
+    
+    // Update pagination
+    updateMonthlyTablePagination();
+}
+
+function updateMonthlySortIndicators(field) {
+    // Update header indicators
+    const headers = document.querySelectorAll('#monthly-table th[data-sort] i');
+    headers.forEach(icon => {
+        icon.className = 'fas fa-sort';
+    });
+    
+    const currentHeader = document.querySelector(`#monthly-table th[data-sort="${field}"] i`);
+    if (currentHeader) {
+        currentHeader.className = monthlyTableSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+    }
+}
+
+function paginateMonthlyData(data) {
+    const startIndex = (monthlyTablePagination.currentPage - 1) * monthlyTablePagination.itemsPerPage;
+    const endIndex = startIndex + monthlyTablePagination.itemsPerPage;
+    return data.slice(startIndex, endIndex);
+}
+
+function updateMonthlyTablePagination() {
+    const totalItems = allMonthlyData.length;
+    const totalPages = Math.ceil(totalItems / monthlyTablePagination.itemsPerPage);
+    const currentPage = monthlyTablePagination.currentPage;
+    
+    const paginationInfo = document.querySelector('#monthly-table-pagination .pagination-info');
+    const paginationControls = document.querySelector('#monthly-table-pagination .pagination-controls');
+    
+    if (totalItems === 0) {
+        paginationInfo.innerHTML = '';
+        paginationControls.innerHTML = '';
+        return;
+    }
+    
+    const startItem = (currentPage - 1) * monthlyTablePagination.itemsPerPage + 1;
+    const endItem = Math.min(currentPage * monthlyTablePagination.itemsPerPage, totalItems);
+    
+    paginationInfo.innerHTML = `Zobrazeno ${startItem}-${endItem} z ${totalItems} měsíců`;
+    
+    paginationControls.innerHTML = `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changeMonthlyPage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        ${generateMonthlyPageNumbers(currentPage, totalPages)}
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changeMonthlyPage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+}
+
+function generateMonthlyPageNumbers(currentPage, totalPages) {
+    let pages = '';
+    const maxVisible = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        pages += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changeMonthlyPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    return pages;
+}
+
+function changeMonthlyPage(page) {
+    const totalPages = Math.ceil(allMonthlyData.length / monthlyTablePagination.itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        monthlyTablePagination.currentPage = page;
+        updateMonthlyTable();
+    }
+}
+
+// Debounced sort function to prevent rapid clicking issues
+const debouncedSortMonthlyTable = debounce(function(field) {
+    // Toggle direction if same field
+    if (monthlyTableSortField === field) {
+        monthlyTableSortDirection = monthlyTableSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        monthlyTableSortField = field;
+        // Default direction depends on field type
+        monthlyTableSortDirection = field === 'mesic' ? 'desc' : 'desc';
+    }
+    
+    // Update header indicators
+    updateMonthlySortIndicators(field);
+    
+    // Reset to first page when sorting changes
+    monthlyTablePagination.currentPage = 1;
+    
+    // Sort existing data instead of recalculating everything
+    if (allMonthlyData.length > 0) {
+        allMonthlyData = sortMonthlyData(allMonthlyData);
+        updateMonthlyTable();
+    }
+}, 100);
+
+function handleMonthlyTableSort(field) {
+    debouncedSortMonthlyTable(field);
+}
+
+function handleMonthlyTableRowsChange(event) {
+    const newItemsPerPage = parseInt(event.target.value);
+    monthlyTablePagination.itemsPerPage = newItemsPerPage;
+    monthlyTablePagination.currentPage = 1; // Reset to first page
+    updateMonthlyTable();
 }
 
 function loadDemoTransactions() {
