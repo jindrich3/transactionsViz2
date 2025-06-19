@@ -1631,6 +1631,60 @@ canvas {
     align-items: center;
 }
 
+.period-toggle {
+    display: flex;
+    gap: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.period-toggle-btn {
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: var(--spacing-2) var(--spacing-4) !important;
+    font-size: var(--font-size-sm) !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    transition: all 0.2s ease !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.period-toggle-btn:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.period-toggle-btn:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.period-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.period-toggle-btn.active {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(16, 185, 129, 0.7)) !important;
+    color: white !important;
+    box-shadow: 
+        0 4px 12px rgba(59, 130, 246, 0.3),
+        0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.period-toggle-btn:first-child {
+    border-top-left-radius: var(--radius-md) !important;
+    border-bottom-left-radius: var(--radius-md) !important;
+}
+
+.period-toggle-btn:last-child {
+    border-top-right-radius: var(--radius-md) !important;
+    border-bottom-right-radius: var(--radius-md) !important;
+}
+
 /* Table Filters */
 .table-filters {
     padding: var(--spacing-4) var(--spacing-6);

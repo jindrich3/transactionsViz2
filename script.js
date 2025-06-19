@@ -118,6 +118,14 @@ function setupEventListeners() {
     // Demo transactions button
     document.getElementById('demo-transactions-btn').addEventListener('click', loadDemoTransactions);
     
+    // Period toggle buttons
+    document.querySelectorAll('.period-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const mode = e.target.dataset.period;
+            switchPeriodMode(mode);
+        });
+    });
+    
     // Header hide on scroll
     setupHeaderScrollBehavior();
 }
@@ -2495,6 +2503,7 @@ let monthlyTablePagination = {
     itemsPerPage: 10
 };
 let allMonthlyData = [];
+let currentPeriodMode = 'monthly'; // 'monthly' or 'yearly'
 
 function calculateMonthlyData() {
     const monthlyData = {};
@@ -2602,8 +2611,118 @@ function calculateMonthlyData() {
     );
 }
 
+function calculateYearlyData() {
+    const yearlyData = {};
+    
+    // Process each transaction and group by year
+    csvData.forEach(row => {
+        const yearKey = row.datum.getFullYear().toString();
+        const displayYear = yearKey;
+        
+        if (!yearlyData[yearKey]) {
+            yearlyData[yearKey] = {
+                mesic: displayYear,
+                yearMonth: yearKey, // For sorting
+                investice: 0,
+                vynosy: 0,
+                splaceno: 0,
+                prodeje: 0,
+                marketingove_odmeny: 0,
+                poplatky: 0,
+                vklady: 0,
+                vybery: 0,
+                zisk: 0,
+                zmena_procenta: null
+            };
+        }
+        
+        const amount = Math.abs(row.castka);
+        
+        // Investice = Autoinvestice + Investice - Odstoupení - Vrácení peněz
+        if (row.typ === 'Autoinvestice' || row.typ === 'Investice') {
+            yearlyData[yearKey].investice += amount;
+        } else if (row.typ === 'Odstoupení' || row.typ === 'Vrácení peněz') {
+            yearlyData[yearKey].investice -= amount;
+        }
+        
+        // Výnosy = Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta
+        else if (row.typ === 'Výnos' || 
+                 row.typ === 'Bonusový výnos' || 
+                 row.typ === 'Zákonné úroky z prodlení' || 
+                 row.typ === 'Smluvní pokuta') {
+            yearlyData[yearKey].vynosy += amount;
+        }
+        
+        // Splaceno = Splacení jistiny + Částečné splacení jistiny
+        else if (row.typ === 'Splacení jistiny' || 
+                 row.typ === 'Částečné splacení jistiny') {
+            yearlyData[yearKey].splaceno += amount;
+        }
+        
+        // Prodeje = Prodej
+        else if (row.typ === 'Prodej') {
+            yearlyData[yearKey].prodeje += amount;
+        }
+        
+        // Marketingové odměny = Odměna + Mimořádný příjem
+        else if (row.typ === 'Odměna' || row.typ === 'Mimořádný příjem') {
+            yearlyData[yearKey].marketingove_odmeny += amount;
+        }
+        
+        // Poplatky = Poplatek za předčasný prodej + Poplatek za výběr
+        else if (row.typ === 'Poplatek za předčasný prodej' || 
+                 row.typ === 'Poplatek za výběr') {
+            yearlyData[yearKey].poplatky += amount;
+        }
+        
+        // Vklady = Vklad peněz
+        else if (row.typ === 'Vklad peněz') {
+            yearlyData[yearKey].vklady += amount;
+        }
+        
+        // Výběry = Výběr peněz
+        else if (row.typ === 'Výběr peněz') {
+            yearlyData[yearKey].vybery += amount;
+        }
+    });
+    
+    // Calculate zisk for each year: Výnosy + Odměny - Poplatky
+    Object.values(yearlyData).forEach(year => {
+        year.zisk = year.vynosy + year.marketingove_odmeny - year.poplatky;
+    });
+    
+    // Convert to array and sort by year for percentage calculation
+    const yearlyArray = Object.values(yearlyData).sort((a, b) => a.yearMonth.localeCompare(b.yearMonth));
+    
+    // Calculate percentage change for each year
+    for (let i = 1; i < yearlyArray.length; i++) {
+        const currentYear = yearlyArray[i];
+        const previousYear = yearlyArray[i - 1];
+        
+        if (previousYear.zisk !== 0) {
+            currentYear.zmena_procenta = ((currentYear.zisk - previousYear.zisk) / Math.abs(previousYear.zisk)) * 100;
+        } else if (currentYear.zisk !== 0) {
+            // If previous year was 0 but current is not, it's infinite growth - show as 100%
+            currentYear.zmena_procenta = currentYear.zisk > 0 ? 100 : -100;
+        } else {
+            currentYear.zmena_procenta = 0;
+        }
+    }
+    
+    // Filter out years with no significant activity
+    return yearlyArray.filter(year => 
+        year.investice !== 0 || year.vynosy !== 0 || year.splaceno !== 0 || 
+        year.prodeje !== 0 || year.marketingove_odmeny !== 0 || year.poplatky !== 0 ||
+        year.zisk !== 0 || year.vklady !== 0 || year.vybery !== 0
+    );
+}
+
 function createMonthlyTable() {
-    allMonthlyData = calculateMonthlyData();
+    if (currentPeriodMode === 'monthly') {
+        allMonthlyData = calculateMonthlyData();
+    } else {
+        allMonthlyData = calculateYearlyData();
+    }
     allMonthlyData = sortMonthlyData(allMonthlyData);
     updateMonthlyTable();
 }
@@ -2628,7 +2747,8 @@ function updateMonthlyTable() {
     const tableBody = document.getElementById('monthly-table-body');
     
     if (allMonthlyData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px; color: #666;">Žádné měsíční data nenalezena</td></tr>';
+        const emptyMessage = currentPeriodMode === 'monthly' ? 'Žádné měsíční data nenalezena' : 'Žádné roční data nenalezena';
+        tableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 20px; color: #666;">${emptyMessage}</td></tr>`;
         updateMonthlyTablePagination();
         return;
     }
@@ -2788,6 +2908,64 @@ function handleMonthlyTableRowsChange(event) {
     monthlyTablePagination.itemsPerPage = newItemsPerPage;
     monthlyTablePagination.currentPage = 1; // Reset to first page
     updateMonthlyTable();
+}
+
+function switchPeriodMode(mode) {
+    if (mode === currentPeriodMode) return;
+    
+    currentPeriodMode = mode;
+    
+    // Update UI elements
+    updatePeriodUI();
+    
+    // Reset pagination to first page
+    monthlyTablePagination.currentPage = 1;
+    
+    // Recreate table with new data
+    createMonthlyTable();
+}
+
+function updatePeriodUI() {
+    // Update toggle buttons
+    document.querySelectorAll('.period-toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-period="${currentPeriodMode}"]`).classList.add('active');
+    
+    // Update title and tooltip
+    const title = document.getElementById('period-stats-title');
+    const tooltip = document.getElementById('period-stats-tooltip');
+    const columnHeader = document.getElementById('period-column-header');
+    
+    if (currentPeriodMode === 'monthly') {
+        title.textContent = 'Měsíční statistiky';
+        columnHeader.textContent = 'Měsíc';
+        tooltip.innerHTML = `Měsíční souhrn všech transakcí s výpočty:<br/><br/>
+<strong>Investice:</strong> Autoinvestice + Investice - Odstoupení - Vrácení peněz<br/><br/>
+<strong>Výnosy:</strong> Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta<br/><br/>
+<strong>Splaceno:</strong> Splacení jistiny + Částečné splacení jistiny<br/><br/>
+<strong>Prodeje:</strong> Prodej<br/><br/>
+<strong>Odměny:</strong> Odměna + Mimořádný příjem<br/><br/>
+<strong>Poplatky:</strong> Poplatek za předčasný prodej + Poplatek za výběr<br/><br/>
+<strong>Vklady:</strong> Vklad peněz<br/><br/>
+<strong>Výběry:</strong> Výběr peněz<br/><br/>
+<strong>Zisk:</strong> Výnosy + Odměny - Poplatky<br/><br/>
+<strong>% změna:</strong> Procentuální změna zisku oproti předchozímu měsíci`;
+    } else {
+        title.textContent = 'Roční statistiky';
+        columnHeader.textContent = 'Rok';
+        tooltip.innerHTML = `Roční souhrn všech transakcí s výpočty:<br/><br/>
+<strong>Investice:</strong> Autoinvestice + Investice - Odstoupení - Vrácení peněz<br/><br/>
+<strong>Výnosy:</strong> Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta<br/><br/>
+<strong>Splaceno:</strong> Splacení jistiny + Částečné splacení jistiny<br/><br/>
+<strong>Prodeje:</strong> Prodej<br/><br/>
+<strong>Odměny:</strong> Odměna + Mimořádný příjem<br/><br/>
+<strong>Poplatky:</strong> Poplatek za předčasný prodej + Poplatek za výběr<br/><br/>
+<strong>Vklady:</strong> Vklad peněz<br/><br/>
+<strong>Výběry:</strong> Výběr peněz<br/><br/>
+<strong>Zisk:</strong> Výnosy + Odměny - Poplatky<br/><br/>
+<strong>% změna:</strong> Procentuální změna zisku oproti předchozímu roku`;
+    }
 }
 
 function loadDemoTransactions() {
@@ -3383,6 +3561,32 @@ function getTransactionTypeInfo(type) {
     return typeMap[type] || { icon: 'fas fa-circle', colorClass: 'investice' };
 }
 
+function calculatePortfolioSizeAtDate(targetDate) {
+    // Get all transactions up to the target date, sorted by date
+    const transactionsUpToDate = filteredData
+        .filter(transaction => transaction.datum <= targetDate)
+        .sort((a, b) => a.datum - b.datum);
+    
+    let portfolioSize = 0;
+    
+    // Calculate portfolio size using the same formula as in the portfolio chart
+    transactionsUpToDate.forEach(transaction => {
+        const amount = Math.abs(transaction.castka);
+        const type = transaction.typ;
+        
+        // Apply portfolio calculation formula
+        if (type === 'Autoinvestice' || type === 'Investice') {
+            portfolioSize += amount;
+        } else if (type === 'Prodej' || type === 'Částečné splacení jistiny' || 
+                   type === 'Splacení jistiny' || type === 'Vrácení peněz' || type === 'Odstoupení') {
+            portfolioSize -= amount;
+        }
+        // Other transaction types (Vklad peněz, Výběr peněz) don't affect portfolio size
+    });
+    
+    return portfolioSize;
+}
+
 function addHorizontalTimelineTooltip(element, transaction) {
     let tooltip = null;
     
@@ -3391,10 +3595,14 @@ function addHorizontalTimelineTooltip(element, transaction) {
         tooltip = document.createElement('div');
         tooltip.className = 'timeline-tooltip-horizontal';
         
+        // Calculate portfolio size at the date of this transaction
+        const portfolioSize = calculatePortfolioSizeAtDate(transaction.datum);
+        
         let tooltipContent = `
             <div class="tooltip-header">${transaction.typ}</div>
             <div class="tooltip-row"><strong>Datum:</strong> ${locale.formatDate(transaction.datum)}</div>
             <div class="tooltip-row"><strong>Částka:</strong> ${locale.formatNumber(Math.abs(transaction.castka))} Kč</div>
+            <div class="tooltip-row"><strong>Velikost portfolia:</strong> ${locale.formatNumber(portfolioSize)} Kč</div>
         `;
         
         if (transaction.projekt && transaction.projekt.trim()) {

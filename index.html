@@ -594,10 +594,10 @@
                     <div class="table-card chart-main">
                         <div class="table-header">
                             <h3>
-                                Měsíční statistiky
+                                <span id="period-stats-title">Měsíční statistiky</span>
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Měsíční souhrn všech transakcí s výpočty:<br/><br/>
+                                    <span class="tooltip-content" id="period-stats-tooltip">Měsíční souhrn všech transakcí s výpočty:<br/><br/>
 <strong>Investice:</strong> Autoinvestice + Investice - Odstoupení - Vrácení peněz<br/><br/>
 <strong>Výnosy:</strong> Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta<br/><br/>
 <strong>Splaceno:</strong> Splacení jistiny + Částečné splacení jistiny<br/><br/>
@@ -607,15 +607,27 @@
 <strong>Vklady:</strong> Vklad peněz<br/><br/>
 <strong>Výběry:</strong> Výběr peněz<br/><br/>
 <strong>Zisk:</strong> Výnosy + Odměny - Poplatky<br/><br/>
-<strong>% změna:</strong> Procentuální změna zisku oproti předchozímu měsíci</span>
+<strong>% změna:</strong> Procentuální změna zisku oproti předchozímu období</span>
                                 </span>
                             </h3>
+                            <div class="table-actions">
+                                <div class="period-toggle">
+                                    <button class="btn btn-secondary period-toggle-btn active" data-period="monthly">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        Měsíční
+                                    </button>
+                                    <button class="btn btn-secondary period-toggle-btn" data-period="yearly">
+                                        <i class="fas fa-calendar"></i>
+                                        Roční
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="table-container">
                             <table class="data-table" id="monthly-table">
                                 <thead>
                                     <tr>
-                                        <th data-sort="mesic">Měsíc <i class="fas fa-sort"></i></th>
+                                        <th data-sort="mesic"><span id="period-column-header">Měsíc</span> <i class="fas fa-sort"></i></th>
                                         <th data-sort="investice">Investice <i class="fas fa-sort"></i></th>
                                         <th data-sort="vynosy">Výnosy <i class="fas fa-sort"></i></th>
                                         <th data-sort="splaceno">Splaceno <i class="fas fa-sort"></i></th>
