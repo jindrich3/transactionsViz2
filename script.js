@@ -3024,8 +3024,8 @@ function createTimeline() {
     // Group transactions into 4-month pages
     createTimelinePages();
     
-    // Reset to first page
-    timelineState.currentPage = 0;
+    // Set to last page (most recent transactions)
+    timelineState.currentPage = Math.max(0, timelineState.pagesData.length - 1);
     
     // Render timeline with pagination
     renderTimelinePage();
