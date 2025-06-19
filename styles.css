@@ -101,6 +101,11 @@ body {
     overflow: visible;
 }
 
+/* Dashboard containers should be wider to accommodate tables */
+.dashboard .container {
+    max-width: 1300px;
+}
+
 @media (min-width: 640px) {
     .container {
         padding: 0 var(--spacing-6);
@@ -977,7 +982,7 @@ body {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-6);
     overflow: visible;
 }

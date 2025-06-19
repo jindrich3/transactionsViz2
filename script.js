@@ -2515,7 +2515,9 @@ function calculateMonthlyData() {
                 marketingove_odmeny: 0,
                 poplatky: 0,
                 vklady: 0,
-                vybery: 0
+                vybery: 0,
+                zisk: 0,
+                zmena_procenta: null
             };
         }
         
@@ -2569,11 +2571,34 @@ function calculateMonthlyData() {
         }
     });
     
-    // Convert to array and filter out months with no significant activity
-    return Object.values(monthlyData).filter(month => 
+    // Calculate zisk for each month: Výnosy + Odměny - Poplatky
+    Object.values(monthlyData).forEach(month => {
+        month.zisk = month.vynosy + month.marketingove_odmeny - month.poplatky;
+    });
+    
+    // Convert to array and sort by month for percentage calculation
+    const monthlyArray = Object.values(monthlyData).sort((a, b) => a.yearMonth.localeCompare(b.yearMonth));
+    
+    // Calculate percentage change for each month
+    for (let i = 1; i < monthlyArray.length; i++) {
+        const currentMonth = monthlyArray[i];
+        const previousMonth = monthlyArray[i - 1];
+        
+        if (previousMonth.zisk !== 0) {
+            currentMonth.zmena_procenta = ((currentMonth.zisk - previousMonth.zisk) / Math.abs(previousMonth.zisk)) * 100;
+        } else if (currentMonth.zisk !== 0) {
+            // If previous month was 0 but current is not, it's infinite growth - show as 100%
+            currentMonth.zmena_procenta = currentMonth.zisk > 0 ? 100 : -100;
+        } else {
+            currentMonth.zmena_procenta = 0;
+        }
+    }
+    
+    // Filter out months with no significant activity
+    return monthlyArray.filter(month => 
         month.investice !== 0 || month.vynosy !== 0 || month.splaceno !== 0 || 
         month.prodeje !== 0 || month.marketingove_odmeny !== 0 || month.poplatky !== 0 ||
-        month.vklady !== 0 || month.vybery !== 0
+        month.zisk !== 0 || month.vklady !== 0 || month.vybery !== 0
     );
 }
 
@@ -2603,7 +2628,7 @@ function updateMonthlyTable() {
     const tableBody = document.getElementById('monthly-table-body');
     
     if (allMonthlyData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #666;">Žádné měsíční data nenalezena</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px; color: #666;">Žádné měsíční data nenalezena</td></tr>';
         updateMonthlyTablePagination();
         return;
     }
@@ -2620,6 +2645,8 @@ function updateMonthlyTable() {
         const poplatkyFormatted = formatAmountWithZeroClass(month.poplatky);
         const vkladyFormatted = formatAmountWithZeroClass(month.vklady);
         const vyberyFormatted = formatAmountWithZeroClass(month.vybery);
+        const ziskFormatted = formatAmountWithZeroClass(month.zisk);
+        const zmenaFormatted = formatPercentageChange(month.zmena_procenta);
         
         return `
             <tr>
@@ -2632,6 +2659,8 @@ function updateMonthlyTable() {
                 <td class="${poplatkyFormatted.className}">${poplatkyFormatted.formattedAmount}</td>
                 <td class="${vkladyFormatted.className}">${vkladyFormatted.formattedAmount}</td>
                 <td class="${vyberyFormatted.className}">${vyberyFormatted.formattedAmount}</td>
+                <td class="${ziskFormatted.className}">${ziskFormatted.formattedAmount}</td>
+                <td class="${zmenaFormatted.className}">${zmenaFormatted.formattedValue}</td>
             </tr>
         `;
     }).join('');
@@ -2644,15 +2673,19 @@ function updateMonthlyTable() {
 }
 
 function updateMonthlySortIndicators(field) {
-    // Update header indicators
-    const headers = document.querySelectorAll('#monthly-table th[data-sort] i');
+    // Update header indicators - only target sort icons (not info-circle icons)
+    const headers = document.querySelectorAll('#monthly-table th[data-sort] i.fa-sort, #monthly-table th[data-sort] i.fa-sort-up, #monthly-table th[data-sort] i.fa-sort-down');
     headers.forEach(icon => {
         icon.className = 'fas fa-sort';
     });
     
-    const currentHeader = document.querySelector(`#monthly-table th[data-sort="${field}"] i`);
-    if (currentHeader) {
-        currentHeader.className = monthlyTableSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+    // Find the sort icon for the current field (last <i> element in the header)
+    const currentHeaderCell = document.querySelector(`#monthly-table th[data-sort="${field}"]`);
+    if (currentHeaderCell) {
+        const sortIcon = currentHeaderCell.querySelector('i:last-child');
+        if (sortIcon) {
+            sortIcon.className = monthlyTableSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+        }
     }
 }
 
@@ -2957,6 +2990,36 @@ function formatAmountWithZeroClass(amount) {
     const className = Math.abs(amount) < 0.01 ? 'amount-zero' : 
                      (amount >= 0 ? 'amount-positive' : 'amount-negative');
     return { formattedAmount, className };
+}
+
+function formatPercentageChange(percentage) {
+    if (percentage === null || percentage === undefined) {
+        return { 
+            formattedValue: '<span style="color: #666;">—</span>', 
+            className: 'amount-neutral' 
+        };
+    }
+    
+    const absPercentage = Math.abs(percentage);
+    let className, icon, color;
+    
+    if (percentage > 0) {
+        className = 'amount-positive';
+        icon = '<i class="fas fa-arrow-up" style="margin-right: 4px;"></i>';
+        color = '#10b981'; // Green
+    } else if (percentage < 0) {
+        className = 'amount-negative';
+        icon = '<i class="fas fa-arrow-down" style="margin-right: 4px;"></i>';
+        color = '#ef4444'; // Red
+    } else {
+        className = 'amount-neutral';
+        icon = '';
+        color = '#666';
+    }
+    
+    const formattedValue = `<span style="color: ${color};">${icon}${absPercentage.toFixed(1)}%</span>`;
+    
+    return { formattedValue, className };
 }
 
 function setStatValueWithZeroClass(elementId, value) {

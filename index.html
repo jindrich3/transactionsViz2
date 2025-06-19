@@ -7,7 +7,7 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAVlJREFUWEftml0uBEEQhb8RG2E7gZOwE7ARO4EdwUY4CRvhJGzERtiInfgRG+EkbISNcBLvmXeaMZmpmq6Z6XnJk0n6p+qre6uqE/xwkR/ufyEBHgAvwBPwdijwAryzFwIPAG4P/gPwBOAVwCP+ZKsB3Br8CuDW4FcAtwZ/q0HXgQd4BR7gFXiAV+ABXoEHGH8OHgGXgCdYBQ7ABnAD3LdqWQCHwCFwCBwCh8AhcAgcAofAIXAIHAKHwCFwCBwCh8AhcAocgk7gEHQCh6ATOASdwCHoBA5BJ3AIXoFD8AocAofAJW8B7AF7wB6wB+wBe8AesAfAC4AF4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+AC/+MCPgA2VJxD3bKxAAAAAElFTkSuQmCC">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAVlJREFUWEftml0uBEEQhb8RG2E7gZOwE7ARO4EdwUY4CRvhJGzERtiInfgRG+EkbISNcBLvmXeaMZmpmq6Z6XnJk0n6p+qre6uqE/xwkR/ufyEBHgAvwBPwdijwAryzFwIPAG4P/gPwBOAVwCP+ZKsB3Br8CuDW4FcAtwZ/q0HXgQd4BR7gFXiAV+ABXoEHGH8OHgGXgCdYBQ7ABnAD3LdqWQCHwCFwCBwCh8AhcAgcAofAIXAIHAKHwCFwCBwCh8AhcAocgk7gEHQCh6ATOASdwCHoBA5BJ3AIXoFD8AocAofAJW8B7AF7wB6wB+wBe8AesAfAC4AF4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+AC/+MCPgA2VJxD3bKxAAAAAElFTkSuQmCC">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -605,7 +605,9 @@
 <strong>Odměny:</strong> Odměna + Mimořádný příjem<br/><br/>
 <strong>Poplatky:</strong> Poplatek za předčasný prodej + Poplatek za výběr<br/><br/>
 <strong>Vklady:</strong> Vklad peněz<br/><br/>
-<strong>Výběry:</strong> Výběr peněz</span>
+<strong>Výběry:</strong> Výběr peněz<br/><br/>
+<strong>Zisk:</strong> Výnosy + Odměny - Poplatky<br/><br/>
+<strong>% změna:</strong> Procentuální změna zisku oproti předchozímu měsíci</span>
                                 </span>
                             </h3>
                         </div>
@@ -622,6 +624,12 @@
                                         <th data-sort="poplatky">Poplatky <i class="fas fa-sort"></i></th>
                                         <th data-sort="vklady">Vklady <i class="fas fa-sort"></i></th>
                                         <th data-sort="vybery">Výběry <i class="fas fa-sort"></i></th>
+                                        <th data-sort="zisk">
+                                            Zisk <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th data-sort="zmena_procenta">
+                                            % změna <i class="fas fa-sort"></i>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody id="monthly-table-body">
