@@ -584,6 +584,7 @@ function calculateOverviewStatistics() {
     // Update fixed overview display with zero value styling
     setStatValueWithZeroClass('total-investment', overviewStats.totalInvestment);
     setStatValueWithZeroClass('total-profits', overviewStats.totalProfits);
+    setStatValueWithZeroClass('total-deposits', overviewStats.totalDeposits);
     setStatValueWithZeroClass('total-withdrawals', overviewStats.totalWithdrawals);
     setStatValueWithZeroClass('marketing-rewards', marketingRewards);
     setStatValueWithZeroClass('largest-investment', overviewStats.largestInvestment);
@@ -591,6 +592,7 @@ function calculateOverviewStatistics() {
     setStatValueWithZeroClass('oldest-transaction-amount', overviewStats.oldestAmount);
     setStatValueWithZeroClass('newest-transaction-amount', overviewStats.newestAmount);
     setStatValueWithZeroClass('total-fees', overviewStats.totalFees);
+    setStatValueWithZeroClass('wallet-balance', overviewStats.walletBalance);
     
     // Handle percentage display for gross current yield
     const grossYieldElement = document.getElementById('gross-current-yield');
@@ -666,12 +668,14 @@ function calculateStatistics(data) {
             totalTransactions: 0,
             totalInvestment: 0,
             totalWithdrawals: 0,
+            totalDeposits: 0,
             averageInvestment: 0,
             portfolioStages: 0,
             largestInvestment: 0,
             totalFees: 0,
             totalProfits: 0,
-            grossCurrentYield: 0
+            grossCurrentYield: 0,
+            walletBalance: 0
         };
     }
     
@@ -713,6 +717,10 @@ function calculateStatistics(data) {
     // Celkové výběry = sum of withdrawals
     const totalWithdrawals = withdrawals.reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
+    // Celkové vklady = sum of deposits
+    const deposits = data.filter(row => row.typ === 'Vklad peněz');
+    const totalDeposits = deposits.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
     // Největší investice = highest amount from investments
     const largestInvestment = investments.length > 0 ? 
         Math.max(...investments.map(row => Math.abs(row.castka))) : 0;
@@ -731,14 +739,25 @@ function calculateStatistics(data) {
     const totalFees = fees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
     // Calculate new statistics
-    // Zisky (Total Profits) = SUM(Bonusový výnos, Smluvní pokuta, Výnos, Zákonné úroky z prodlení)
+    // Celkový čistý zisk = SUM(Bonusový výnos, Smluvní pokuta, Výnos, Zákonné úroky z prodlení, Mimořádný příjem, Odměna) - SUM(Poplatek za předčasný prodej, Poplatek za výběr)
     const profitTransactions = data.filter(row => 
         row.typ === 'Bonusový výnos' || 
         row.typ === 'Smluvní pokuta' || 
         row.typ === 'Výnos' || 
-        row.typ === 'Zákonné úroky z prodlení'
+        row.typ === 'Zákonné úroky z prodlení' ||
+        row.typ === 'Mimořádný příjem' ||
+        row.typ === 'Odměna'
     );
-    const totalProfits = profitTransactions.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const totalProfitIncome = profitTransactions.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
+    // Subtract specific fees from profits
+    const profitReducingFees = data.filter(row => 
+        row.typ === 'Poplatek za předčasný prodej' || 
+        row.typ === 'Poplatek za výběr'
+    );
+    const totalProfitReducingFees = profitReducingFees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
+    const totalProfits = totalProfitIncome - totalProfitReducingFees;
     
     // Total base investments for yield calculation = SUM(Investice, Autoinvestice)
     const baseInvestments = data.filter(row => 
@@ -750,16 +769,33 @@ function calculateStatistics(data) {
     // Hrubý aktuální výnos = (Total Profits / Total Base Investments) * 100
     const grossCurrentYield = totalBaseInvestments > 0 ? (totalProfits / totalBaseInvestments) * 100 : 0;
     
+    // Calculate marketing rewards for wallet balance calculation
+    const marketingRewardsTransactions = data.filter(row => row.typ === 'Odměna');
+    const marketingRewards = marketingRewardsTransactions.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
+    // Calculate purchase offers and returns
+    const purchaseOffers = data.filter(row => row.typ === 'Nabídka ke koupi');
+    const totalPurchaseOffers = purchaseOffers.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
+    const offerReturns = data.filter(row => row.typ === 'Vrácení nabídky');
+    const totalOfferReturns = offerReturns.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
+    // Stav peněženky = Celkové vklady - Aktuální velikost portfolia + Celkový čistý zisk - Celkové výběry - Nabídka ke koupi + Vrácení nabídky
+    const walletBalance = totalDeposits - totalInvestment + totalProfits - totalWithdrawals - totalPurchaseOffers + totalOfferReturns;
+    const walletBalanceAbs = Math.abs(walletBalance);
+    
     return {
         totalTransactions: data.length,
         totalInvestment,
         totalWithdrawals,
+        totalDeposits,
         averageInvestment,
         portfolioStages,
         largestInvestment,
         totalFees,
         totalProfits,
-        grossCurrentYield
+        grossCurrentYield,
+        walletBalance: walletBalanceAbs
     };
 }
 
