@@ -614,7 +614,7 @@ function calculateOverviewStatistics() {
     
     // These don't need zero styling (counts/dates)
     document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
-    document.getElementById('portfolio-stages').textContent = overviewStats.portfolioStages;
+    document.getElementById('portfolio-stages').innerHTML = `${overviewStats.portfolioStages.active} <span style="color: rgba(255, 255, 255, 0.6);"> / ${overviewStats.portfolioStages.total}</span>`;
     document.getElementById('date-range-start').textContent = locale.formatDate(overviewStats.oldestDate);
     document.getElementById('date-range-end').textContent = locale.formatDate(overviewStats.newestDate);
     
@@ -737,11 +737,51 @@ function calculateStatistics(data) {
     const averageInvestment = investments.length > 0 ? 
         investments.reduce((sum, row) => sum + Math.abs(row.castka), 0) / investments.length : 0;
     
-    // Počet etap v portfoliu = count of distinct project names in investments
+    // Počet etap v portfoliu = "Aktivní etapy / Celkové etapy"
     const uniqueInvestmentProjects = new Set(
         investments.map(row => row.projekt).filter(p => p && p.trim() !== '')
     );
-    const portfolioStages = uniqueInvestmentProjects.size;
+    const totalStages = uniqueInvestmentProjects.size;
+    
+    // Calculate active stages - projects where Total Returns < Net Investment
+    const activeStages = Array.from(uniqueInvestmentProjects).filter(project => {
+        // Calculate Net Investment for this project (Investice + Autoinvestice - Odstoupení - Vrácení peněz)
+        const projectInvestments = data.filter(row => 
+            row.projekt === project && (
+                row.typ === 'Investice' || 
+                row.typ === 'Autoinvestice'
+            )
+        );
+        const investmentAmount = projectInvestments.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+        
+        const projectWithdrawals = data.filter(row => 
+            row.projekt === project && (
+                row.typ === 'Odstoupení' || 
+                row.typ === 'Vrácení peněz'
+            )
+        );
+        const withdrawalAmount = projectWithdrawals.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+        
+        const netInvestment = investmentAmount - withdrawalAmount;
+        
+        // Calculate Total Returns for this project (Splacení jistiny + Částečné splacení jistiny)
+        const projectReturns = data.filter(row => 
+            row.projekt === project && (
+                row.typ === 'Splacení jistiny' || 
+                row.typ === 'Částečné splacení jistiny'
+            )
+        );
+        const totalReturns = projectReturns.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+        
+        // Project is active if Total Returns < Net Investment
+        return totalReturns < netInvestment;
+    }).length;
+    
+    const portfolioStages = {
+        active: activeStages,
+        total: totalStages,
+        display: `${activeStages} / ${totalStages}`
+    };
     
     // Poplatky = sum of all fees
     const totalFees = fees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
