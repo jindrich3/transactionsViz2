@@ -599,7 +599,7 @@ function calculateOverviewStatistics() {
     // Handle blocked on market display - show only if value is not 0
     const blockedElement = document.getElementById('blocked-on-market');
     if (overviewStats.blockedOnMarket !== 0) {
-        blockedElement.textContent = `Z toho blok. na tržišti: ${locale.formatNumber(overviewStats.blockedOnMarket)}`;
+        blockedElement.textContent = `Z toho blok. na tržišti: ${formatAmountWithOptionalDecimals(overviewStats.blockedOnMarket).formattedAmount}`;
         blockedElement.style.display = 'block';
     } else {
         blockedElement.style.display = 'none';
@@ -1273,11 +1273,11 @@ function updateProjectTable() {
     const paginatedData = paginateProjectData(allProjectData);
     
     tableBody.innerHTML = paginatedData.map(project => {
-        const investiceFormatted = formatAmountWithZeroClass(project.investice);
-        const vynosyFormatted = formatAmountWithZeroClass(project.vynosy);
-        const splacenoFormatted = formatAmountWithZeroClass(project.splaceno);
-        const prodejeFormatted = formatAmountWithZeroClass(project.prodeje);
-        const zbyvaFormatted = formatAmountWithZeroClass(project.zbyva_splatit);
+        const investiceFormatted = formatAmountWithOptionalDecimals(project.investice);
+        const vynosyFormatted = formatAmountWithOptionalDecimals(project.vynosy);
+        const splacenoFormatted = formatAmountWithOptionalDecimals(project.splaceno);
+        const prodejeFormatted = formatAmountWithOptionalDecimals(project.prodeje);
+        const zbyvaFormatted = formatAmountWithOptionalDecimals(project.zbyva_splatit);
         
         // Format yield percentage - show empty if zero
         const yieldPercentage = project.aktualni_vynos;
@@ -1702,11 +1702,11 @@ function createTimeSeriesChart() {
                                 const datasetLabel = context.dataset.label;
                                 const value = context.parsed.y;
                                 if (datasetLabel === 'Kumulativní čistá investice') {
-                                    return `Velikost portfolia: ${locale.formatNumber(value)}`;
-                                } else if (datasetLabel === 'Kumulativní zisk') {
-                                    return `Celkový zisk: ${locale.formatNumber(value)}`;
-                                }
-                                return `${datasetLabel}: ${locale.formatNumber(value)}`;
+                                                                    return `Velikost portfolia: ${formatAmountWithOptionalDecimals(value).formattedAmount}`;
+                            } else if (datasetLabel === 'Kumulativní zisk') {
+                                return `Celkový zisk: ${formatAmountWithOptionalDecimals(value).formattedAmount}`;
+                            }
+                            return `${datasetLabel}: ${formatAmountWithOptionalDecimals(value).formattedAmount}`;
                             },
                             labelColor: function(context) {
                                 return {
@@ -1989,7 +1989,7 @@ function createProjectTypeChart() {
                             const value = context.parsed;
                             const percentage = ((value / total) * 100).toFixed(1);
                             return [
-                                `Částka: ${locale.formatNumber(value)}`,
+                                `Částka: ${formatAmountWithOptionalDecimals(value).formattedAmount}`,
                                 `Podíl: ${percentage}%`
                             ];
                         }
@@ -2187,7 +2187,7 @@ function createTopProjectsChart() {
                         },
                         label: function(context) {
                             const value = context.parsed.x;
-                            return `Expozice: ${locale.formatNumber(value)}`;
+                            return `Expozice: ${formatAmountWithOptionalDecimals(value).formattedAmount}`;
                         }
                     }
                 }
@@ -2483,7 +2483,7 @@ function createPortfolioExposureChart(retryCount = 0) {
                             const value = context.parsed;
                             const percentage = ((value / total) * 100).toFixed(1);
                             return [
-                                `Expozice: ${locale.formatNumber(value)}`,
+                                `Expozice: ${formatAmountWithOptionalDecimals(value).formattedAmount}`,
                                 `Podíl: ${percentage}%`
                             ];
                         }
@@ -2548,7 +2548,7 @@ function updateTable() {
             <td>${locale.formatDate(row.datum)}</td>
             <td>${row.typ}</td>
             <td title="${row.detail}">${row.detail.length > 50 ? row.detail.substring(0, 50) + '...' : row.detail}</td>
-            <td class="${amountClass}">${locale.formatNumber(row.castka)}</td>
+            <td class="${amountClass}">${formatAmountWithOptionalDecimals(row.castka).formattedAmount}</td>
             <td title="${row.projekt}">${row.projekt.length > 30 ? row.projekt.substring(0, 30) + '...' : row.projekt}</td>
             <td>${formatProjectType(row.typ_projektu)}</td>
         </tr>
@@ -2948,15 +2948,15 @@ function updateMonthlyTable() {
     const paginatedData = paginateMonthlyData(allMonthlyData);
     
     tableBody.innerHTML = paginatedData.map(month => {
-        const investiceFormatted = formatAmountWithZeroClass(month.investice);
-        const vynosyFormatted = formatAmountWithZeroClass(month.vynosy);
-        const splacenoFormatted = formatAmountWithZeroClass(month.splaceno);
-        const prodejeFormatted = formatAmountWithZeroClass(month.prodeje);
-        const marketingovyFormatted = formatAmountWithZeroClass(month.marketingove_odmeny);
-        const poplatkyFormatted = formatAmountWithZeroClass(month.poplatky);
-        const vkladyFormatted = formatAmountWithZeroClass(month.vklady);
-        const vyberyFormatted = formatAmountWithZeroClass(month.vybery);
-        const ziskFormatted = formatAmountWithZeroClass(month.zisk);
+        const investiceFormatted = formatAmountWithOptionalDecimals(month.investice);
+        const vynosyFormatted = formatAmountWithOptionalDecimals(month.vynosy);
+        const splacenoFormatted = formatAmountWithOptionalDecimals(month.splaceno);
+        const prodejeFormatted = formatAmountWithOptionalDecimals(month.prodeje);
+        const marketingovyFormatted = formatAmountWithOptionalDecimals(month.marketingove_odmeny);
+        const poplatkyFormatted = formatAmountWithOptionalDecimals(month.poplatky);
+        const vkladyFormatted = formatAmountWithOptionalDecimals(month.vklady);
+        const vyberyFormatted = formatAmountWithOptionalDecimals(month.vybery);
+        const ziskFormatted = formatAmountWithOptionalDecimals(month.zisk);
         const zmenaFormatted = formatPercentageChange(month.zmena_procenta);
         
         return `
@@ -3372,7 +3372,55 @@ function exportToCSV() {
 
 // Utility Functions
 function formatAmountWithZeroClass(amount) {
-    const formattedAmount = locale.formatNumber(amount);
+    const formattedAmount = formatAmountWithOptionalDecimals(amount).formattedAmount;
+    const className = Math.abs(amount) < 0.01 ? 'amount-zero' : 
+                     (amount >= 0 ? 'amount-positive' : 'amount-negative');
+    return { formattedAmount, className };
+}
+
+function formatAmountWithOptionalDecimals(amount) {
+    // Round to 2 decimal places first to avoid floating point precision issues
+    const roundedAmount = Math.round(amount * 100) / 100;
+    
+    // Check if it's a whole number (no significant decimals)
+    if (Math.abs(roundedAmount - Math.round(roundedAmount)) < 0.01) {
+        // It's a whole number, show no decimals
+        const formattedAmount = new Intl.NumberFormat('cs-CZ', {
+            style: 'currency',
+            currency: 'CZK',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(Math.round(roundedAmount));
+        
+        const className = Math.abs(amount) < 0.01 ? 'amount-zero' : 
+                         (amount >= 0 ? 'amount-positive' : 'amount-negative');
+        return { formattedAmount, className };
+    }
+    
+    // Check if it's a round tenth (like 85.4)
+    const roundedToOneDec = Math.round(roundedAmount * 10) / 10;
+    if (Math.abs(roundedAmount - roundedToOneDec) < 0.01) {
+        // It's a round tenth, show 1 decimal
+        const formattedAmount = new Intl.NumberFormat('cs-CZ', {
+            style: 'currency',
+            currency: 'CZK',
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+        }).format(roundedToOneDec);
+        
+        const className = Math.abs(amount) < 0.01 ? 'amount-zero' : 
+                         (amount >= 0 ? 'amount-positive' : 'amount-negative');
+        return { formattedAmount, className };
+    }
+    
+    // Otherwise, show 2 decimals
+    const formattedAmount = new Intl.NumberFormat('cs-CZ', {
+        style: 'currency',
+        currency: 'CZK',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(roundedAmount);
+    
     const className = Math.abs(amount) < 0.01 ? 'amount-zero' : 
                      (amount >= 0 ? 'amount-positive' : 'amount-negative');
     return { formattedAmount, className };
@@ -3411,7 +3459,7 @@ function formatPercentageChange(percentage) {
 function setStatValueWithZeroClass(elementId, value) {
     const element = document.getElementById(elementId);
     if (element) {
-        element.textContent = locale.formatNumber(value);
+        element.textContent = formatAmountWithOptionalDecimals(value).formattedAmount;
         // Add or remove zero class
         if (Math.abs(value) < 0.01) {
             element.classList.add('zero');
@@ -3809,8 +3857,8 @@ function addHorizontalTimelineTooltip(element, transaction) {
         let tooltipContent = `
             <div class="tooltip-header">${transaction.typ}</div>
             <div class="tooltip-row"><strong>Datum:</strong> ${locale.formatDate(transaction.datum)}</div>
-            <div class="tooltip-row"><strong>Částka:</strong> ${locale.formatNumber(Math.abs(transaction.castka))}</div>
-            <div class="tooltip-row"><strong>Velikost portfolia:</strong> ${locale.formatNumber(portfolioSize)}</div>
+            <div class="tooltip-row"><strong>Částka:</strong> ${formatAmountWithOptionalDecimals(Math.abs(transaction.castka)).formattedAmount}</div>
+            <div class="tooltip-row"><strong>Velikost portfolia:</strong> ${formatAmountWithOptionalDecimals(portfolioSize).formattedAmount}</div>
         `;
         
         if (transaction.projekt && transaction.projekt.trim()) {
