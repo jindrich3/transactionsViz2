@@ -5,6 +5,25 @@ let charts = {};
 let selectedFile = null;
 let overviewStats = {};
 
+// Global color palette for charts
+const colors = [
+    '#10B981', // Emerald
+    '#06B6D4', // Cyan
+    '#14B8A6', // Teal
+    '#22C55E', // Green
+    '#3B82F6', // Blue
+    '#8B5CF6', // Violet
+    '#F59E0B', // Amber
+    '#EF4444', // Red
+    '#84CC16', // Lime
+    '#F97316', // Orange
+    '#EC4899', // Pink
+    '#6366F1', // Indigo
+    '#059669', // Emerald dark
+    '#0891B2', // Cyan dark
+    '#0D9488'  // Teal dark
+];
+
 // Debug function to check canvas availability
 window.debugCanvasElements = function() {
     console.log('=== Canvas Debug Info ===');
@@ -2111,18 +2130,7 @@ function createTopProjectsChart() {
             datasets: [{
                 label: 'Čistá investice',
                 data: validProjects.map(([, amount]) => amount),
-                backgroundColor: (context) => {
-                    const chart = context.chart;
-                    const {ctx, chartArea} = chart;
-                    if (!chartArea) {
-                        return '#3B82F6';
-                    }
-                    const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-                    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
-                    gradient.addColorStop(0.7, 'rgba(59, 130, 246, 0.9)');
-                    gradient.addColorStop(1, 'rgba(29, 78, 216, 1)');
-                    return gradient;
-                },
+                backgroundColor: colors.slice(0, validProjects.length),
                 borderColor: '#1E40AF',
                 borderWidth: 0,
                 borderRadius: 6,
