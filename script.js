@@ -339,8 +339,12 @@ function processCSVData(data) {
                 console.warn(`Invalid row ${index + 1}:`, {
                     datum: cleanRow.datum,
                     castka: cleanRow.castka,
-                    originalRow: row
+                    typ: cleanRow.typ,
+                    detail: cleanRow.detail,
+                    projekt: cleanRow.projekt,
+                    typ_projektu: cleanRow.typ_projektu
                 });
+                console.log('Original row data:', Object.keys(row).map(key => `${key}: "${row[key]}"`).join(', '));
                 return null;
             }
             
@@ -591,6 +595,16 @@ function calculateOverviewStatistics() {
     
     // Update fixed overview display with zero value styling
     setStatValueWithZeroClass('total-investment', overviewStats.totalInvestment);
+    
+    // Handle blocked on market display - show only if value is not 0
+    const blockedElement = document.getElementById('blocked-on-market');
+    if (overviewStats.blockedOnMarket !== 0) {
+        blockedElement.textContent = `Z toho blok. na tržišti: ${locale.formatNumber(overviewStats.blockedOnMarket)}`;
+        blockedElement.style.display = 'block';
+    } else {
+        blockedElement.style.display = 'none';
+    }
+    
     setStatValueWithZeroClass('total-profits', overviewStats.totalProfits);
     setStatValueWithZeroClass('total-deposits', overviewStats.totalDeposits);
     setStatValueWithZeroClass('total-withdrawals', overviewStats.totalWithdrawals);
@@ -614,7 +628,7 @@ function calculateOverviewStatistics() {
     
     // These don't need zero styling (counts/dates)
     document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
-    document.getElementById('portfolio-stages').innerHTML = `${overviewStats.portfolioStages.active} <span style="color: rgba(255, 255, 255, 0.6);"> / ${overviewStats.portfolioStages.total}</span>`;
+    document.getElementById('portfolio-stages').innerHTML = `${overviewStats.portfolioStages.active} <span style="color: rgba(255, 255, 255, 0.6); font-size: 0.8em;"> / ${overviewStats.portfolioStages.total}</span>`;
     document.getElementById('date-range-start').textContent = locale.formatDate(overviewStats.oldestDate);
     document.getElementById('date-range-end').textContent = locale.formatDate(overviewStats.newestDate);
     
@@ -683,7 +697,8 @@ function calculateStatistics(data) {
             totalFees: 0,
             totalProfits: 0,
             grossCurrentYield: 0,
-            walletBalance: 0
+            walletBalance: 0,
+            blockedOnMarket: 0
         };
     }
     
@@ -743,7 +758,7 @@ function calculateStatistics(data) {
     );
     const totalStages = uniqueInvestmentProjects.size;
     
-    // Calculate active stages - projects where Total Returns < Net Investment
+    // Calculate active stages - projects where Splaceno - Investice ≠ 0
     const activeStages = Array.from(uniqueInvestmentProjects).filter(project => {
         // Calculate Net Investment for this project (Investice + Autoinvestice - Odstoupení - Vrácení peněz)
         const projectInvestments = data.filter(row => 
@@ -773,8 +788,11 @@ function calculateStatistics(data) {
         );
         const totalReturns = projectReturns.reduce((sum, row) => sum + Math.abs(row.castka), 0);
         
-        // Project is active if Total Returns < Net Investment
-        return totalReturns < netInvestment;
+        // Calculate the difference: Splaceno - Investováno
+        const difference = totalReturns - netInvestment;
+        
+        // Project is active if Splaceno - Investice ≠ 0 (using small tolerance for floating point comparison)
+        return Math.abs(difference) >= 0.01;
     }).length;
     
     const portfolioStages = {
@@ -828,6 +846,9 @@ function calculateStatistics(data) {
     const offerReturns = data.filter(row => row.typ === 'Vrácení nabídky');
     const totalOfferReturns = offerReturns.reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
+    // Z toho blokováno na tržišti = Nabídka ke koupi - Vrácení nabídky
+    const blockedOnMarket = totalPurchaseOffers - totalOfferReturns;
+    
     // Stav peněženky = Celkové vklady - Aktuální velikost portfolia + Celkový čistý zisk - Celkové výběry - Nabídka ke koupi + Vrácení nabídky
     const walletBalance = totalDeposits - totalInvestment + totalProfits - totalWithdrawals - totalPurchaseOffers + totalOfferReturns;
     const walletBalanceAbs = Math.abs(walletBalance);
@@ -843,7 +864,8 @@ function calculateStatistics(data) {
         totalFees,
         totalProfits,
         grossCurrentYield,
-        walletBalance: walletBalanceAbs
+        walletBalance: walletBalanceAbs,
+        blockedOnMarket
     };
 }
 
@@ -1434,7 +1456,12 @@ function createTimeSeriesChart() {
         charts.timeSeries = null;
     }
     
-    const ctx = document.getElementById('time-chart').getContext('2d');
+    const canvas = document.getElementById('time-chart');
+    if (!canvas) {
+        console.error('Time series chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
     
     // Check if we have data
     if (!csvData || csvData.length === 0) {
@@ -1720,7 +1747,12 @@ function createProjectTypeChart() {
     
 
     
-    const ctx = document.getElementById('project-type-chart').getContext('2d');
+    const canvas = document.getElementById('project-type-chart');
+    if (!canvas) {
+        console.error('Project type chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
     
     // Calculate net investment by project type using the specified formula:
     // Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Odstoupení - Vrácení peněz
@@ -1922,36 +1954,63 @@ function createTopProjectsChart() {
         charts.topProjects = null;
     }
     
-    const ctx = document.getElementById('top-projects-chart').getContext('2d');
+    const canvas = document.getElementById('top-projects-chart');
+    if (!canvas) {
+        console.error('Top projects chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
     
-    // Calculate net investment by project using the specified formula:
-    // Investice + Autoinvestice - Prodej - Vrácení peněz - Odstoupení - Částečné splacení jistiny
-    const projectTotals = {};
+    // Calculate net investment by project, showing only active projects
+    // Active project: Splaceno (Částečné splacení jistiny + Splacení jistiny) - Investice value (Autoinvestice + Investice - Odstoupení - Vrácení peněz) ≠ 0
+    const projectTopData = {};
     
+    // First, collect all transaction data by project
     csvData.forEach(row => {
         if (!row.projekt) return;
         
-            if (!projectTotals[row.projekt]) {
-                projectTotals[row.projekt] = 0;
-            }
+        if (!projectTopData[row.projekt]) {
+            projectTopData[row.projekt] = {
+                investiceValue: 0,  // Autoinvestice + Investice - Odstoupení - Vrácení peněz
+                splacenoValue: 0,   // Částečné splacení jistiny + Splacení jistiny
+                netInvestment: 0    // Net investment for display
+            };
+        }
         
         const amount = Math.abs(row.castka);
         const type = row.typ;
         
-        // Apply the formula based on transaction type
+        // Calculate Investice value (Autoinvestice + Investice - Odstoupení - Vrácení peněz)
         if (type === 'Autoinvestice' || type === 'Investice') {
-            projectTotals[row.projekt] += amount;
+            projectTopData[row.projekt].investiceValue += amount;
+        } else if (type === 'Odstoupení' || type === 'Vrácení peněz') {
+            projectTopData[row.projekt].investiceValue -= amount;
+        }
+        
+        // Calculate Splaceno value (Částečné splacení jistiny + Splacení jistiny)
+        if (type === 'Částečné splacení jistiny' || type === 'Splacení jistiny') {
+            projectTopData[row.projekt].splacenoValue += amount;
+        }
+        
+        // Calculate net investment (for display purposes)
+        if (type === 'Autoinvestice' || type === 'Investice') {
+            projectTopData[row.projekt].netInvestment += amount;
         } else if (type === 'Prodej' || type === 'Částečné splacení jistiny' || 
                    type === 'Vrácení peněz' || type === 'Odstoupení') {
-            projectTotals[row.projekt] -= amount;
+            projectTopData[row.projekt].netInvestment -= amount;
         }
-        // Other transaction types are ignored in this calculation
     });
     
-    // Filter out projects with zero or negative values and sort by value
-    const validProjects = Object.entries(projectTotals)
-        .filter(([, value]) => value > 0)
-        .sort(([, a], [, b]) => b - a)
+    // Filter to show only active projects where Splaceno - Investice ≠ 0 and net investment > 0
+    const validProjects = Object.entries(projectTopData)
+        .filter(([projectName, data]) => {
+            const difference = data.splacenoValue - data.investiceValue;
+            const isActive = Math.abs(difference) >= 0.01; // Use small tolerance for floating point comparison
+            const hasPositiveInvestment = data.netInvestment > 0;
+            return isActive && hasPositiveInvestment;
+        })
+        .map(([projectName, data]) => [projectName, data.netInvestment])
+        .sort(([,a], [,b]) => b - a)
         .slice(0, 8);
     
     if (validProjects.length === 0) {
@@ -2186,35 +2245,55 @@ function createPortfolioExposureChart(retryCount = 0) {
     
     const ctx = canvas.getContext('2d');
     
-    // Calculate portfolio exposure by project using the specified formula:
-    // Investice + Autoinvestice - Prodej - Vrácení peněz - Odstoupení - Částečné splacení jistiny
-    const projectExposure = {};
+    // Calculate portfolio exposure by project, showing only active projects
+    // Active project: Splaceno (Částečné splacení jistiny + Splacení jistiny) - Investice value (Autoinvestice + Investice - Odstoupení - Vrácení peněz) ≠ 0
+    const projectExposureData = {};
     
+    // First, collect all transaction data by project
     csvData.forEach(row => {
         if (!row.projekt) return;
         
-        if (!projectExposure[row.projekt]) {
-            projectExposure[row.projekt] = 0;
+        if (!projectExposureData[row.projekt]) {
+            projectExposureData[row.projekt] = {
+                investiceValue: 0,  // Autoinvestice + Investice - Odstoupení - Vrácení peněz
+                splacenoValue: 0,   // Částečné splacení jistiny + Splacení jistiny
+                exposure: 0         // Current exposure calculation
+            };
         }
         
         const amount = Math.abs(row.castka);
         const type = row.typ;
         
-        // Apply the formula based on transaction type
+        // Calculate Investice value (Autoinvestice + Investice - Odstoupení - Vrácení peněz)
         if (type === 'Autoinvestice' || type === 'Investice') {
-            projectExposure[row.projekt] += amount;
+            projectExposureData[row.projekt].investiceValue += amount;
+        } else if (type === 'Odstoupení' || type === 'Vrácení peněz') {
+            projectExposureData[row.projekt].investiceValue -= amount;
+        }
+        
+        // Calculate Splaceno value (Částečné splacení jistiny + Splacení jistiny)
+        if (type === 'Částečné splacení jistiny' || type === 'Splacení jistiny') {
+            projectExposureData[row.projekt].splacenoValue += amount;
+        }
+        
+        // Calculate current exposure (for display purposes)
+        if (type === 'Autoinvestice' || type === 'Investice') {
+            projectExposureData[row.projekt].exposure += amount;
         } else if (type === 'Prodej' || type === 'Částečné splacení jistiny' || 
                    type === 'Vrácení peněz' || type === 'Odstoupení') {
-            projectExposure[row.projekt] -= amount;
+            projectExposureData[row.projekt].exposure -= amount;
         }
-        // Other transaction types are ignored in this calculation
     });
     
-    console.log('Project exposure calculations:', projectExposure);
-    
-    // Filter out projects with zero or negative exposure and sort by exposure
-    const validProjects = Object.entries(projectExposure)
-        .filter(([, exposure]) => exposure > 0)
+    // Filter to show only active projects where Splaceno - Investice ≠ 0 and exposure > 0
+    const validProjects = Object.entries(projectExposureData)
+        .filter(([projectName, data]) => {
+            const difference = data.splacenoValue - data.investiceValue;
+            const isActive = Math.abs(difference) >= 0.01; // Use small tolerance for floating point comparison
+            const hasPositiveExposure = data.exposure > 0;
+            return isActive && hasPositiveExposure;
+        })
+        .map(([projectName, data]) => [projectName, data.exposure])
         .sort(([,a], [,b]) => b - a);
     
     if (validProjects.length === 0) {
@@ -2388,7 +2467,7 @@ function updateTable() {
     tbody.innerHTML = paginatedData.map(row => {
         // Determine amount CSS class based on transaction type and amount
         let amountClass = row.castka >= 0 ? 'amount-positive' : 'amount-negative';
-        if (row.typ === 'Investice' || row.typ === 'Autoinvestice') {
+        if (row.typ === 'Investice' || row.typ === 'Autoinvestice' || row.typ === 'Nabídka ke koupi') {
             amountClass = 'amount-investment';
         }
         
@@ -3075,10 +3154,27 @@ function updateAdvancedStatistics() {
     const stats = calculateAdvancedStatistics(csvData);
     
     setStatValueWithZeroClass('monthly-rate', stats.monthlyRate);
-    document.getElementById('investment-streak').textContent = stats.investmentStreak + ' dnů';
-    document.getElementById('seasonal-pattern').textContent = stats.seasonalPattern;
-    document.getElementById('investment-concentration').textContent = stats.concentrationPercentage + '%';
-    document.getElementById('avg-days-between').textContent = Math.round(stats.avgDaysBetween);
+    
+    // Only update elements that exist in the DOM
+    const investmentStreakEl = document.getElementById('investment-streak');
+    if (investmentStreakEl) {
+        investmentStreakEl.textContent = stats.investmentStreak + ' dnů';
+    }
+    
+    const seasonalPatternEl = document.getElementById('seasonal-pattern');
+    if (seasonalPatternEl) {
+        seasonalPatternEl.textContent = stats.seasonalPattern;
+    }
+    
+    const investmentConcentrationEl = document.getElementById('investment-concentration');
+    if (investmentConcentrationEl) {
+        investmentConcentrationEl.textContent = stats.concentrationPercentage + '%';
+    }
+    
+    const avgDaysBetweenEl = document.getElementById('avg-days-between');
+    if (avgDaysBetweenEl) {
+        avgDaysBetweenEl.textContent = Math.round(stats.avgDaysBetween);
+    }
 }
 
 function calculateAdvancedStatistics(data) {
