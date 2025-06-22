@@ -1508,8 +1508,9 @@ function createTimeSeriesChart() {
 
     console.log('Creating time series chart with', csvData.length, 'transactions');
     
-    // Group data by month and calculate net investment
+    // Group data by month and calculate net investment and profit
     const monthlyData = {};
+    const monthlyProfit = {};
     
     csvData.forEach(row => {
         const monthKey = `${row.datum.getFullYear()}-${String(row.datum.getMonth() + 1).padStart(2, '0')}`;
@@ -1517,9 +1518,13 @@ function createTimeSeriesChart() {
         if (!monthlyData[monthKey]) {
             monthlyData[monthKey] = 0;
         }
+        if (!monthlyProfit[monthKey]) {
+            monthlyProfit[monthKey] = 0;
+        }
         
-        // Calculate net value: Autoinvestice + Investice - Prodej - Vrácení peněz - Odstoupení - Splacení jistiny - Částečné splacení jistiny
         const amount = Math.abs(row.castka);
+        
+        // Calculate net investment: Autoinvestice + Investice - Prodej - Vrácení peněz - Odstoupení - Splacení jistiny - Částečné splacení jistiny
         switch (row.typ) {
             case 'Autoinvestice':
             case 'Investice':
@@ -1533,27 +1538,55 @@ function createTimeSeriesChart() {
                 monthlyData[monthKey] -= amount; // Subtract
                 break;
         }
+        
+        // Calculate profit: Výnos + Bonusový výnos + Smluvní pokuta + Zákonné úroky z prodlení + Odměna + Mimořádný příjem - Poplatek za předčasný prodej - Poplatek za výběr
+        switch (row.typ) {
+            case 'Výnos':
+            case 'Bonusový výnos':
+            case 'Smluvní pokuta':
+            case 'Zákonné úroky z prodlení':
+            case 'Odměna':
+            case 'Mimořádný příjem':
+                monthlyProfit[monthKey] += amount; // Add positive
+                break;
+            case 'Poplatek za předčasný prodej':
+            case 'Poplatek za výběr':
+                monthlyProfit[monthKey] -= amount; // Subtract
+                break;
+        }
     });
     
+    // Get all months that have either investment or profit data
+    const allMonths = [...new Set([...Object.keys(monthlyData), ...Object.keys(monthlyProfit)])].sort();
+    
     // Convert to chart data format with cumulative values
-    const sortedMonths = Object.keys(monthlyData).sort();
-    let cumulativeValue = 0;
-    const chartData = sortedMonths.map(month => {
-        cumulativeValue += monthlyData[month]; // Add current month to cumulative total
+    let cumulativeInvestment = 0;
+    let cumulativeProfit = 0;
+    
+    const investmentData = allMonths.map(month => {
+        cumulativeInvestment += (monthlyData[month] || 0);
         return {
             x: month + '-01', // First day of month for proper time parsing
-            y: cumulativeValue
+            y: cumulativeInvestment
         };
     });
     
-    console.log('Chart data points:', chartData.length);
+    const profitData = allMonths.map(month => {
+        cumulativeProfit += (monthlyProfit[month] || 0);
+        return {
+            x: month + '-01', // First day of month for proper time parsing
+            y: cumulativeProfit
+        };
+    });
+    
+    console.log('Investment data points:', investmentData.length, 'Profit data points:', profitData.length);
     
     charts.timeSeries = new Chart(ctx, {
         type: 'line',
         data: {
             datasets: [{
                 label: 'Kumulativní čistá investice',
-                data: chartData,
+                data: investmentData,
                 borderColor: '#3B82F6',
                 backgroundColor: (context) => {
                     const chart = context.chart;
@@ -1579,6 +1612,34 @@ function createTimeSeriesChart() {
                 pointBorderColor: 'transparent',
                 borderCapStyle: 'round',
                 borderJoinStyle: 'round'
+            }, {
+                label: 'Kumulativní zisk',
+                data: profitData,
+                borderColor: '#10B981',
+                backgroundColor: (context) => {
+                    const chart = context.chart;
+                    const {ctx, chartArea} = chart;
+                    if (!chartArea) {
+                        return null;
+                    }
+                    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+                    gradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.15)');
+                    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
+                    return gradient;
+                },
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 8,
+                pointHoverBorderWidth: 3,
+                pointHoverBorderColor: '#FFFFFF',
+                pointHoverBackgroundColor: '#10B981',
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                borderCapStyle: 'round',
+                borderJoinStyle: 'round'
             }]
         },
         options: {
@@ -1586,49 +1647,78 @@ function createTimeSeriesChart() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: true,
-                    backgroundColor: 'rgba(31, 41, 55, 0.95)',
-                    titleColor: '#FFFFFF',
-                    bodyColor: '#E5E7EB',
-                    borderColor: '#3B82F6',
-                    borderWidth: 1,
-                    cornerRadius: 12,
-                    padding: 16,
-                    displayColors: false,
-                    titleFont: {
-                        size: 14,
-                        weight: '600',
-                        family: 'Inter, system-ui, sans-serif'
-                    },
-                    bodyFont: {
-                        size: 13,
-                        weight: '500',
-                        family: 'Inter, system-ui, sans-serif'
-                    },
-                    titleAlign: 'center',
-                    bodyAlign: 'center',
-                    caretSize: 8,
-                    caretPadding: 10,
-                    titleMarginBottom: 8,
-                    position: 'nearest',
-                    xAlign: 'center',
-                    yAlign: 'top',
-                    callbacks: {
-                        title: function(context) {
-                            const date = new Date(context[0].parsed.x);
-                            return date.toLocaleDateString('cs-CZ', { 
-                                year: 'numeric', 
-                                month: 'long' 
-                            });
+                    display: true,
+                    position: 'bottom',
+                    align: 'center',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'line',
+                        font: {
+                            size: 12,
+                            weight: '500',
+                            family: 'Inter, system-ui, sans-serif'
                         },
-                        label: function(context) {
-                            return `Velikost portfolia: ${locale.formatNumber(context.parsed.y)}`;
+                        color: '#FFFFFF',
+                        generateLabels: function(chart) {
+                            const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                            const labels = original.call(this, chart);
+                            labels.forEach(label => {
+                                label.text = ''; // Remove text, keep only the colored indicator
+                            });
+                            return labels;
                         }
                     }
-                }
+                },
+                                    tooltip: {
+                        backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#E5E7EB',
+                        borderColor: '#374151',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        padding: 12,
+                        displayColors: true,
+                        titleFont: {
+                            size: 14,
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            size: 13,
+                            weight: '500'
+                        },
+                        position: 'nearest',
+                        xAlign: 'center',
+                        yAlign: 'bottom',
+                        callbacks: {
+                            title: function(context) {
+                                const date = new Date(context[0].parsed.x);
+                                return date.toLocaleDateString('cs-CZ', { 
+                                    year: 'numeric', 
+                                    month: 'long' 
+                                });
+                            },
+                            label: function(context) {
+                                const datasetLabel = context.dataset.label;
+                                const value = context.parsed.y;
+                                if (datasetLabel === 'Kumulativní čistá investice') {
+                                    return `Velikost portfolia: ${locale.formatNumber(value)}`;
+                                } else if (datasetLabel === 'Kumulativní zisk') {
+                                    return `Celkový zisk: ${locale.formatNumber(value)}`;
+                                }
+                                return `${datasetLabel}: ${locale.formatNumber(value)}`;
+                            },
+                            labelColor: function(context) {
+                                return {
+                                    borderColor: context.dataset.borderColor,
+                                    backgroundColor: context.dataset.borderColor,
+                                    borderWidth: 2,
+                                    borderDash: [],
+                                    borderRadius: 2,
+                                };
+                            }
+                        }
+                    }
             },
             scales: {
                 x: {
@@ -1640,15 +1730,7 @@ function createTimeSeriesChart() {
                         }
                     },
                     title: {
-                        display: true,
-                        text: 'Měsíc',
-                        color: '#FFFFFF',
-                        font: {
-                            size: 12,
-                            weight: '500',
-                            family: 'Inter, system-ui, sans-serif'
-                        },
-                        padding: 12
+                        display: false
                     },
                     ticks: {
                         color: '#9CA3AF',
@@ -1670,15 +1752,7 @@ function createTimeSeriesChart() {
                 },
                 y: {
                     title: {
-                        display: true,
-                        text: 'Čistá investice (Kč)',
-                        color: '#FFFFFF',
-                        font: {
-                            size: 12,
-                            weight: '500',
-                            family: 'Inter, system-ui, sans-serif'
-                        },
-                        padding: 12
+                        display: false
                     },
                     ticks: {
                         color: '#9CA3AF',
@@ -1903,6 +1977,9 @@ function createProjectTypeChart() {
                         size: 13,
                         weight: '500'
                     },
+                    position: 'nearest',
+                    xAlign: 'center',
+                    yAlign: 'bottom',
                     callbacks: {
                         title: function(context) {
                             const label = context[0].label;
@@ -2083,30 +2160,25 @@ function createTopProjectsChart() {
                     display: false
                 },
                 tooltip: {
-                    enabled: true,
                     backgroundColor: 'rgba(31, 41, 55, 0.95)',
                     titleColor: '#FFFFFF',
                     bodyColor: '#E5E7EB',
-                    borderColor: '#3B82F6',
+                    borderColor: '#374151',
                     borderWidth: 1,
-                    cornerRadius: 12,
-                    padding: 16,
-                    displayColors: false,
+                    cornerRadius: 8,
+                    padding: 12,
+                    displayColors: true,
                     titleFont: {
                         size: 14,
-                        weight: '600',
-                        family: 'Inter, system-ui, sans-serif'
+                        weight: '600'
                     },
                     bodyFont: {
                         size: 13,
-                        weight: '500',
-                        family: 'Inter, system-ui, sans-serif'
+                        weight: '500'
                     },
-                    titleAlign: 'center',
-                    bodyAlign: 'center',
-                    caretSize: 8,
-                    caretPadding: 10,
-                    titleMarginBottom: 8,
+                    position: 'nearest',
+                    xAlign: 'center',
+                    yAlign: 'bottom',
                     callbacks: {
                         title: function(context) {
                             // Use the stored full project names array to ensure correct mapping
@@ -3737,8 +3809,8 @@ function addHorizontalTimelineTooltip(element, transaction) {
         let tooltipContent = `
             <div class="tooltip-header">${transaction.typ}</div>
             <div class="tooltip-row"><strong>Datum:</strong> ${locale.formatDate(transaction.datum)}</div>
-            <div class="tooltip-row"><strong>Částka:</strong> ${locale.formatNumber(Math.abs(transaction.castka))} Kč</div>
-            <div class="tooltip-row"><strong>Velikost portfolia:</strong> ${locale.formatNumber(portfolioSize)} Kč</div>
+            <div class="tooltip-row"><strong>Částka:</strong> ${locale.formatNumber(Math.abs(transaction.castka))}</div>
+            <div class="tooltip-row"><strong>Velikost portfolia:</strong> ${locale.formatNumber(portfolioSize)}</div>
         `;
         
         if (transaction.projekt && transaction.projekt.trim()) {
