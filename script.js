@@ -645,6 +645,17 @@ function calculateOverviewStatistics() {
         grossYieldElement.classList.remove('amount-zero');
     }
     
+    // Calculate and display 12-month TWRR
+    const twrr12Months = calculate12MonthTWRR();
+    const twrrElement = document.getElementById('twrr-12-months');
+    if (twrr12Months === 0) {
+        twrrElement.textContent = '0%';
+        twrrElement.classList.add('amount-zero');
+    } else {
+        twrrElement.textContent = `${twrr12Months.toFixed(2)}%`;
+        twrrElement.classList.remove('amount-zero');
+    }
+    
     // These don't need zero styling (counts/dates)
     document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
     document.getElementById('portfolio-stages').innerHTML = `${overviewStats.portfolioStages.active} <span style="color: rgba(255, 255, 255, 0.6); font-size: 0.8em;"> / ${overviewStats.portfolioStages.total}</span>`;
@@ -653,6 +664,182 @@ function calculateOverviewStatistics() {
     
     // Calculate and display autoinvest statistics
     calculateAutoinvestStatistics();
+}
+
+function calculate12MonthTWRR() {
+    console.log('=== TWRR CALCULATION START ===');
+    
+    if (!csvData || csvData.length === 0) {
+        console.log('❌ No CSV data available');
+        return 0;
+    }
+    
+    // Get current date and 12 months ago
+    const currentDate = new Date();
+    const twelveMonthsAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 12, 1);
+    
+    console.log(`📅 Date range: ${twelveMonthsAgo.toLocaleDateString('cs-CZ')} to ${currentDate.toLocaleDateString('cs-CZ')}`);
+    console.log(`📊 Total transactions to analyze: ${csvData.length}`);
+    
+    // Group data by month for the last 12 months
+    const monthlyData = {};
+    const monthlyProfit = {};
+    
+    console.log('\n🔍 STEP 1: Processing transactions for last 12 months...');
+    
+    csvData.forEach((row, index) => {
+        if (row.datum >= twelveMonthsAgo) {
+            const monthKey = `${row.datum.getFullYear()}-${String(row.datum.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = 0;
+            }
+            if (!monthlyProfit[monthKey]) {
+                monthlyProfit[monthKey] = 0;
+            }
+            
+            const amount = Math.abs(row.castka);
+            
+            console.log(`  Transaction ${index + 1}: ${row.datum.toLocaleDateString('cs-CZ')} | ${row.typ} | ${amount} Kč`);
+            
+            // Calculate net investment (capital movements)
+            switch (row.typ) {
+                case 'Autoinvestice':
+                case 'Investice':
+                    monthlyData[monthKey] += amount;
+                    console.log(`    ➕ Added to investments: ${amount} Kč (total for ${monthKey}: ${monthlyData[monthKey]} Kč)`);
+                    break;
+                case 'Prodej':
+                case 'Vrácení peněz':
+                case 'Odstoupení':
+                case 'Splacení jistiny':
+                case 'Částečné splacení jistiny':
+                    monthlyData[monthKey] -= amount;
+                    console.log(`    ➖ Subtracted from investments: ${amount} Kč (total for ${monthKey}: ${monthlyData[monthKey]} Kč)`);
+                    break;
+            }
+            
+            // Calculate profit (performance)
+            switch (row.typ) {
+                case 'Výnos':
+                case 'Bonusový výnos':
+                case 'Smluvní pokuta':
+                case 'Zákonné úroky z prodlení':
+                case 'Odměna':
+                case 'Mimořádný příjem':
+                    monthlyProfit[monthKey] += amount;
+                    console.log(`    💰 Added to profits: ${amount} Kč (total for ${monthKey}: ${monthlyProfit[monthKey]} Kč)`);
+                    break;
+                case 'Poplatek za předčasný prodej':
+                case 'Poplatek za výběr':
+                    monthlyProfit[monthKey] -= amount;
+                    console.log(`    💸 Subtracted from profits: ${amount} Kč (total for ${monthKey}: ${monthlyProfit[monthKey]} Kč)`);
+                    break;
+                default:
+                    console.log(`    ⚪ No impact on TWRR calculation`);
+            }
+        }
+    });
+    
+    // Get months in chronological order
+    const allMonths = [...new Set([...Object.keys(monthlyData), ...Object.keys(monthlyProfit)])].sort();
+    
+    console.log(`\n📋 STEP 2: Monthly summaries for last 12 months:`);
+    allMonths.forEach(month => {
+        console.log(`  ${month}: Investment=${monthlyData[month] || 0} Kč, Profit=${monthlyProfit[month] || 0} Kč`);
+    });
+    
+    console.log(`\n🎯 STEP 3: Calculating capital base at start of 12-month period...`);
+    
+    // Calculate CAPITAL BASE (investments only) at the start of 12-month period
+    let capitalBaseAtStart = 0;
+    let transactionsBeforeStart = 0;
+    
+    csvData.forEach(row => {
+        if (row.datum < twelveMonthsAgo) {
+            transactionsBeforeStart++;
+            const amount = Math.abs(row.castka);
+            
+            // Calculate net capital investment before the 12-month period (NO PROFITS)
+            switch (row.typ) {
+                case 'Autoinvestice':
+                case 'Investice':
+                    capitalBaseAtStart += amount;
+                    break;
+                case 'Prodej':
+                case 'Vrácení peněz':
+                case 'Odstoupení':
+                case 'Splacení jistiny':
+                case 'Částečné splacení jistiny':
+                    capitalBaseAtStart -= amount;
+                    break;
+            }
+            // NOTE: We DO NOT include profits in the capital base calculation
+            // Profits are performance results, not capital movements
+        }
+    });
+    
+    console.log(`  📈 Transactions before start date: ${transactionsBeforeStart}`);
+    console.log(`  💼 Capital base at start: ${capitalBaseAtStart.toFixed(2)} Kč`);
+    
+    console.log(`\n🧮 STEP 4: Calculating monthly TWRR rates...`);
+    console.log(`  ⚠️  IMPORTANT: Beginning value = CAPITAL BASE at start of month (investments only)`);
+    console.log(`  ⚠️  IMPORTANT: Ending value = CAPITAL BASE at end of month (after cash flows)`);
+    console.log(`  ⚠️  IMPORTANT: TWRR = Monthly Profit / Beginning Capital Base`);
+    
+    // Track running capital base (investments only, no profits)
+    let runningCapitalBase = capitalBaseAtStart;
+    let compoundedReturn = 1; // Start with 1 for geometric compounding
+    
+    console.log(`  🏁 Capital base at start of 12-month period: ${runningCapitalBase.toFixed(2)} Kč`);
+    console.log(`  🎲 Starting compounded return: ${compoundedReturn}`);
+    
+    allMonths.forEach((month, index) => {
+        const investment = monthlyData[month] || 0;
+        const profit = monthlyProfit[month] || 0;
+        
+        // Beginning value = capital base at START of this month (before cash flows)
+        const beginningCapitalBase = runningCapitalBase;
+        
+        // Ending value = capital base at END of this month (after cash flows, but still no profits)
+        const endingCapitalBase = beginningCapitalBase + investment;
+        
+        // Update running capital base for next month
+        runningCapitalBase = endingCapitalBase;
+        
+        console.log(`\n  📅 Month ${index + 1}: ${month}`);
+        console.log(`    💰 Beginning capital base: ${beginningCapitalBase.toFixed(2)} Kč`);
+        console.log(`    💵 Investment (cash flow): ${investment.toFixed(2)} Kč`);
+        console.log(`    💼 Ending capital base: ${endingCapitalBase.toFixed(2)} Kč`);
+        console.log(`    📈 Profit/Loss (performance): ${profit.toFixed(2)} Kč`);
+        
+        // TWRR calculation: profit divided by beginning capital base
+        if (beginningCapitalBase > 0) {
+            const monthlyReturn = profit / beginningCapitalBase;
+            
+            const previousCompounded = compoundedReturn;
+            compoundedReturn *= (1 + monthlyReturn);
+            
+            console.log(`    🎯 TWRR calculation: ${profit.toFixed(2)} / ${beginningCapitalBase.toFixed(2)}`);
+            console.log(`    📊 Monthly return: ${monthlyReturn.toFixed(6)} (${(monthlyReturn * 100).toFixed(4)}%)`);
+            console.log(`    🔢 Compounded return: ${previousCompounded.toFixed(6)} × (1 + ${monthlyReturn.toFixed(6)}) = ${compoundedReturn.toFixed(6)}`);
+        } else if (beginningCapitalBase === 0 && investment > 0) {
+            // Special case: first investment in the period
+            console.log(`    ⚠️  First investment of the period - no baseline for return calculation`);
+            console.log(`    ℹ️  Cannot calculate return when starting from zero capital base`);
+        } else {
+            console.log(`    ⚠️  No capital base - cannot calculate return`);
+        }
+    });
+    
+    const annualizedReturn = (compoundedReturn - 1) * 100;
+    
+    console.log(`\n✅ STEP 5: Final calculation`);
+    console.log(`  🔢 Final compounded return: ${compoundedReturn.toFixed(6)}`);
+    console.log(`  📊 12-month TWRR: (${compoundedReturn.toFixed(6)} - 1) × 100 = ${annualizedReturn.toFixed(4)}%`);
+    console.log(`=== TWRR CALCULATION END ===\n`);
+    
+    return annualizedReturn;
 }
 
 function calculateAutoinvestStatistics() {
@@ -1509,14 +1696,12 @@ function createTimeSeriesChart() {
                             }
                         },
                         title: {
-                            display: true,
-                            text: 'Měsíc'
+                            display: false
                         }
                     },
                     y: {
                         title: {
-                            display: true,
-                            text: 'Kumulativní čistá investice (Kč)'
+                            display: false
                         }
                     }
             }
@@ -1525,7 +1710,7 @@ function createTimeSeriesChart() {
         return;
 }
 
-    console.log('Creating time series chart with', csvData.length, 'transactions');
+
     
     // Group data by month and calculate net investment and profit
     const monthlyData = {};
@@ -1583,7 +1768,8 @@ function createTimeSeriesChart() {
     let cumulativeProfit = 0;
     
     const investmentData = allMonths.map(month => {
-        cumulativeInvestment += (monthlyData[month] || 0);
+        const investment = monthlyData[month] || 0;
+        cumulativeInvestment += investment;
         return {
             x: month + '-01', // First day of month for proper time parsing
             y: cumulativeInvestment
@@ -1591,14 +1777,50 @@ function createTimeSeriesChart() {
     });
     
     const profitData = allMonths.map(month => {
-        cumulativeProfit += (monthlyProfit[month] || 0);
+        const profit = monthlyProfit[month] || 0;
+        cumulativeProfit += profit;
         return {
             x: month + '-01', // First day of month for proper time parsing
             y: cumulativeProfit
         };
     });
     
-    console.log('Investment data points:', investmentData.length, 'Profit data points:', profitData.length);
+    // Calculate TWRR correctly
+    let twrrCumulativeInvestment = 0;
+    let twrrCumulativeProfit = 0;
+    const twrrData = [];
+    allMonths.forEach(month => {
+        const investment = monthlyData[month] || 0;
+        const profit = monthlyProfit[month] || 0;
+        
+        // Portfolio value at beginning of month (before new investments)
+        const beginningValue = twrrCumulativeInvestment + twrrCumulativeProfit;
+        
+        // Add new investments and profits
+        twrrCumulativeInvestment += investment;
+        twrrCumulativeProfit += profit;
+        
+        // Portfolio value at end of month
+        const endingValue = twrrCumulativeInvestment + twrrCumulativeProfit;
+
+        // Calculate TWRR: (Ending Value - Cash Flows) / Beginning Value
+        // Only calculate if there's a beginning value and some activity
+        if (beginningValue > 0 && (investment !== 0 || profit !== 0)) {
+            const returnRate = profit / beginningValue; // Only profit contributes to return, not new investments
+            twrrData.push({
+                x: month + '-01',
+                y: returnRate * 100 // Convert to percentage
+            });
+        } else if (beginningValue === 0 && (investment !== 0 || profit !== 0)) {
+            // First month with activity - no return calculation possible
+            twrrData.push({
+                x: month + '-01',
+                y: 0
+            });
+        }
+    });
+    
+
     
     charts.timeSeries = new Chart(ctx, {
         type: 'line',
@@ -1657,7 +1879,7 @@ function createTimeSeriesChart() {
                 pointHoverBackgroundColor: '#10B981',
                 pointBackgroundColor: 'transparent',
                 pointBorderColor: 'transparent',
-                borderCapStyle: 'round',
+                                borderCapStyle: 'round',
                 borderJoinStyle: 'round'
             }]
         },
@@ -1689,115 +1911,115 @@ function createTimeSeriesChart() {
                         }
                     }
                 },
-                                    tooltip: {
-                        backgroundColor: 'rgba(31, 41, 55, 0.95)',
-                        titleColor: '#FFFFFF',
-                        bodyColor: '#E5E7EB',
-                        borderColor: '#374151',
-                        borderWidth: 1,
-                        cornerRadius: 8,
-                        padding: 12,
-                        displayColors: true,
-                        titleFont: {
-                            size: 14,
-                            weight: '600'
+                tooltip: {
+                    backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#E5E7EB',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12,
+                    displayColors: true,
+                    titleFont: {
+                        size: 14,
+                        weight: '600'
+                    },
+                    bodyFont: {
+                        size: 13,
+                        weight: '500'
+                    },
+                    position: 'nearest',
+                    xAlign: 'center',
+                    yAlign: 'bottom',
+                    callbacks: {
+                        title: function(context) {
+                            const date = new Date(context[0].parsed.x);
+                            return date.toLocaleDateString('cs-CZ', { 
+                                year: 'numeric', 
+                                month: 'long' 
+                            });
                         },
-                        bodyFont: {
-                            size: 13,
-                            weight: '500'
-                        },
-                        position: 'nearest',
-                        xAlign: 'center',
-                        yAlign: 'bottom',
-                        callbacks: {
-                            title: function(context) {
-                                const date = new Date(context[0].parsed.x);
-                                return date.toLocaleDateString('cs-CZ', { 
-                                    year: 'numeric', 
-                                    month: 'long' 
-                                });
-                            },
-                            label: function(context) {
-                                const datasetLabel = context.dataset.label;
-                                const value = context.parsed.y;
-                                if (datasetLabel === 'Kumulativní čistá investice') {
-                                                                    return `Velikost portfolia: ${formatAmountWithOptionalDecimals(value).formattedAmount}`;
+                        label: function(context) {
+                            const datasetLabel = context.dataset.label;
+                            const value = context.parsed.y;
+                            if (datasetLabel === 'Kumulativní čistá investice') {
+                                return `Velikost portfolia: ${formatAmountWithOptionalDecimals(value).formattedAmount}`;
                             } else if (datasetLabel === 'Kumulativní zisk') {
                                 return `Celkový zisk: ${formatAmountWithOptionalDecimals(value).formattedAmount}`;
                             }
                             return `${datasetLabel}: ${formatAmountWithOptionalDecimals(value).formattedAmount}`;
-                            },
-                            labelColor: function(context) {
-                                return {
-                                    borderColor: context.dataset.borderColor,
-                                    backgroundColor: context.dataset.borderColor,
-                                    borderWidth: 2,
-                                    borderDash: [],
-                                    borderRadius: 2,
-                                };
-                            }
-                        }
-                    }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'month',
-                        displayFormats: {
-                            month: 'MM/yy'
-                        }
-                    },
-                    title: {
-                        display: false
-                    },
-                    ticks: {
-                        color: '#9CA3AF',
-                        font: {
-                            size: 11,
-                            family: 'Inter, system-ui, sans-serif'
                         },
-                        maxTicksLimit: 8,
-                        padding: 8
-                    },
-                    grid: {
-                        color: 'rgba(156, 163, 175, 0.1)',
-                        lineWidth: 1
-                    },
-                    border: {
-                        color: 'rgba(156, 163, 175, 0.2)',
-                        width: 1
-                    }
-                },
-                y: {
-                    title: {
-                        display: false
-                    },
-                    ticks: {
-                        color: '#9CA3AF',
-                        font: {
-                            size: 11,
-                            family: 'Inter, system-ui, sans-serif'
-                        },
-                        padding: 8,
-                        callback: function(value) {
-                            if (value === 0) return '0';
-                            const thousands = value / 1000;
-                            if (thousands >= 1000) {
-                                return (thousands / 1000).toFixed(1).replace('.0', '') + ' mil.';
-                            }
-                            return Math.round(thousands) + ' tis.';
+                        labelColor: function(context) {
+                            return {
+                                borderColor: context.dataset.borderColor,
+                                backgroundColor: context.dataset.borderColor,
+                                borderWidth: 2,
+                                borderDash: [],
+                                borderRadius: 2,
+                            };
                         }
-                    },
-                    grid: {
-                        color: 'rgba(156, 163, 175, 0.1)',
-                        lineWidth: 1
-                    },
-                    border: {
-                        color: 'rgba(156, 163, 175, 0.2)',
-                        width: 1
                     }
                 }
+            },
+            scales: {
+                                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'month',
+                            displayFormats: {
+                                month: 'MM/yy'
+                            }
+                        },
+                        title: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#9CA3AF',
+                            font: {
+                                size: 11,
+                                family: 'Inter, system-ui, sans-serif'
+                            },
+                            maxTicksLimit: 8,
+                            padding: 8
+                        },
+                        grid: {
+                            color: 'rgba(156, 163, 175, 0.1)',
+                            lineWidth: 1
+                        },
+                        border: {
+                            color: 'rgba(156, 163, 175, 0.2)',
+                            width: 1
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#9CA3AF',
+                            font: {
+                                size: 11,
+                                family: 'Inter, system-ui, sans-serif'
+                            },
+                            padding: 8,
+                            callback: function(value) {
+                                if (value === 0) return '0';
+                                const thousands = value / 1000;
+                                if (thousands >= 1000) {
+                                    return (thousands / 1000).toFixed(1).replace('.0', '') + ' mil.';
+                                }
+                                return Math.round(thousands) + ' tis.';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(156, 163, 175, 0.1)',
+                            lineWidth: 1
+                        },
+                        border: {
+                            color: 'rgba(156, 163, 175, 0.2)',
+                            width: 1
+                        }
+                    }
             },
             interaction: {
                 intersect: false,
@@ -3855,6 +4077,9 @@ function addHorizontalTimelineTooltip(element, transaction) {
     let tooltip = null;
     
     element.addEventListener('mouseenter', (e) => {
+        // Get type information for the transaction
+        const typeInfo = getTransactionTypeInfo(transaction.typ);
+        
         // Create tooltip
         tooltip = document.createElement('div');
         tooltip.className = 'timeline-tooltip-horizontal';
@@ -3863,7 +4088,7 @@ function addHorizontalTimelineTooltip(element, transaction) {
         const portfolioSize = calculatePortfolioSizeAtDate(transaction.datum);
         
         let tooltipContent = `
-            <div class="tooltip-header">${transaction.typ}</div>
+            <div class="tooltip-header"><i class="${typeInfo.icon}"></i> ${transaction.typ}</div>
             <div class="tooltip-row"><strong>Datum:</strong> ${locale.formatDate(transaction.datum)}</div>
             <div class="tooltip-row"><strong>Částka:</strong> ${formatAmountWithOptionalDecimals(Math.abs(transaction.castka)).formattedAmount}</div>
             <div class="tooltip-row"><strong>Velikost portfolia:</strong> ${formatAmountWithOptionalDecimals(portfolioSize).formattedAmount}</div>
