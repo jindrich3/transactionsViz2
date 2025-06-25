@@ -599,14 +599,22 @@ function calculateOverviewStatistics() {
     overviewStats = calculateStatistics(csvData);
     
     // Calculate date range and find oldest/newest transactions
-    const sortedTransactions = csvData.slice().sort((a, b) => a.datum - b.datum);
-    const oldestTransaction = sortedTransactions[0];
-    const newestTransaction = sortedTransactions[sortedTransactions.length - 1];
-    
-    overviewStats.oldestDate = oldestTransaction.datum;
-    overviewStats.newestDate = newestTransaction.datum;
-    overviewStats.oldestAmount = Math.abs(oldestTransaction.castka);
-    overviewStats.newestAmount = Math.abs(newestTransaction.castka);
+    if (csvData && csvData.length > 0) {
+        const sortedTransactions = csvData.slice().sort((a, b) => a.datum - b.datum);
+        const oldestTransaction = sortedTransactions[0];
+        const newestTransaction = sortedTransactions[sortedTransactions.length - 1];
+        
+        overviewStats.oldestDate = oldestTransaction.datum;
+        overviewStats.newestDate = newestTransaction.datum;
+        overviewStats.oldestAmount = Math.abs(oldestTransaction.castka);
+        overviewStats.newestAmount = Math.abs(newestTransaction.castka);
+    } else {
+        // Handle case when no data is available
+        overviewStats.oldestDate = null;
+        overviewStats.newestDate = null;
+        overviewStats.oldestAmount = 0;
+        overviewStats.newestAmount = 0;
+    }
     
     // Calculate marketing rewards
     const marketingRewards = csvData.filter(row => row.typ === 'Odměna')
@@ -617,10 +625,10 @@ function calculateOverviewStatistics() {
     
     // Handle blocked on market display - show only if value is not 0
     const blockedElement = document.getElementById('blocked-on-market');
-    if (overviewStats.blockedOnMarket !== 0) {
+    if (blockedElement && overviewStats.blockedOnMarket !== 0) {
         blockedElement.textContent = `Z toho blok. na tržišti: ${formatAmountWithOptionalDecimals(overviewStats.blockedOnMarket).formattedAmount}`;
         blockedElement.style.display = 'block';
-    } else {
+    } else if (blockedElement) {
         blockedElement.style.display = 'none';
     }
     
@@ -637,30 +645,49 @@ function calculateOverviewStatistics() {
     
     // Handle percentage display for gross current yield
     const grossYieldElement = document.getElementById('gross-current-yield');
-    if (overviewStats.grossCurrentYield === 0) {
-        grossYieldElement.textContent = '0%';
-        grossYieldElement.classList.add('amount-zero');
-    } else {
-        grossYieldElement.textContent = `${overviewStats.grossCurrentYield.toFixed(2)}%`;
-        grossYieldElement.classList.remove('amount-zero');
+    if (grossYieldElement) {
+        if (overviewStats.grossCurrentYield === 0) {
+            grossYieldElement.textContent = '0%';
+            grossYieldElement.classList.add('amount-zero');
+        } else {
+            grossYieldElement.textContent = `${overviewStats.grossCurrentYield.toFixed(2)}%`;
+            grossYieldElement.classList.remove('amount-zero');
+        }
     }
     
     // Calculate and display 12-month TWRR
     const twrr12Months = calculate12MonthTWRR();
     const twrrElement = document.getElementById('twrr-12-months');
-    if (twrr12Months === 0) {
-        twrrElement.textContent = '0%';
-        twrrElement.classList.add('amount-zero');
-    } else {
-        twrrElement.textContent = `${twrr12Months.toFixed(2)}%`;
-        twrrElement.classList.remove('amount-zero');
+    if (twrrElement) {
+        if (twrr12Months === 0) {
+            twrrElement.textContent = '0%';
+            twrrElement.classList.add('amount-zero');
+        } else {
+            twrrElement.textContent = `${twrr12Months.toFixed(2)}%`;
+            twrrElement.classList.remove('amount-zero');
+        }
     }
     
-    // These don't need zero styling (counts/dates)
-    document.getElementById('transaction-count-stat').textContent = overviewStats.totalTransactions;
-    document.getElementById('portfolio-stages').innerHTML = `${overviewStats.portfolioStages.active} <span style="color: rgba(255, 255, 255, 0.6); font-size: 0.8em;"> / ${overviewStats.portfolioStages.total}</span>`;
-    document.getElementById('date-range-start').textContent = locale.formatDate(overviewStats.oldestDate);
-    document.getElementById('date-range-end').textContent = locale.formatDate(overviewStats.newestDate);
+    // These don't need zero styling (counts/dates) - add null checks
+    const transactionCountElement = document.getElementById('transaction-count-stat');
+    if (transactionCountElement) {
+        transactionCountElement.textContent = overviewStats.totalTransactions;
+    }
+    
+    const portfolioStagesElement = document.getElementById('portfolio-stages');
+    if (portfolioStagesElement) {
+        portfolioStagesElement.innerHTML = `${overviewStats.portfolioStages.active} <span style="color: rgba(255, 255, 255, 0.6); font-size: 0.8em;"> / ${overviewStats.portfolioStages.total}</span>`;
+    }
+    
+    const dateRangeStartElement = document.getElementById('date-range-start');
+    if (dateRangeStartElement) {
+        dateRangeStartElement.textContent = overviewStats.oldestDate ? locale.formatDate(overviewStats.oldestDate) : '--';
+    }
+    
+    const dateRangeEndElement = document.getElementById('date-range-end');
+    if (dateRangeEndElement) {
+        dateRangeEndElement.textContent = overviewStats.newestDate ? locale.formatDate(overviewStats.newestDate) : '--';
+    }
     
     // Calculate and display autoinvest statistics
     calculateAutoinvestStatistics();
