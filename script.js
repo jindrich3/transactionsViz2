@@ -633,9 +633,17 @@ function calculateOverviewStatistics() {
     }
     
     setStatValueWithZeroClass('total-profits', overviewStats.totalProfits);
+    
+    // Handle marketing rewards display - show only if value is not 0
+    const marketingRewardsElement = document.getElementById('total-marketing-rewards');
+    if (marketingRewardsElement && overviewStats.totalMarketingRewards !== 0) {
+        marketingRewardsElement.textContent = `Navíc market. odměny: ${formatAmountWithOptionalDecimals(overviewStats.totalMarketingRewards).formattedAmount}`;
+        marketingRewardsElement.style.display = 'block';
+    } else if (marketingRewardsElement) {
+        marketingRewardsElement.style.display = 'none';
+    }
     setStatValueWithZeroClass('total-deposits', overviewStats.totalDeposits);
     setStatValueWithZeroClass('total-withdrawals', overviewStats.totalWithdrawals);
-    setStatValueWithZeroClass('marketing-rewards', marketingRewards);
     setStatValueWithZeroClass('largest-investment', overviewStats.largestInvestment);
     setStatValueWithZeroClass('average-investment', overviewStats.averageInvestment);
     setStatValueWithZeroClass('oldest-transaction-amount', overviewStats.oldestAmount);
@@ -1038,14 +1046,12 @@ function calculateStatistics(data) {
     const totalFees = fees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
     // Calculate new statistics
-    // Celkový čistý zisk = SUM(Bonusový výnos, Smluvní pokuta, Výnos, Zákonné úroky z prodlení, Mimořádný příjem, Odměna) - SUM(Poplatek za předčasný prodej, Poplatek za výběr)
+    // Celkový čistý výnos investic = SUM(Bonusový výnos, Smluvní pokuta, Výnos, Zákonné úroky z prodlení) - SUM(Poplatek za předčasný prodej, Poplatek za výběr)
     const profitTransactions = data.filter(row => 
         row.typ === 'Bonusový výnos' || 
         row.typ === 'Smluvní pokuta' || 
         row.typ === 'Výnos' || 
-        row.typ === 'Zákonné úroky z prodlení' ||
-        row.typ === 'Mimořádný příjem' ||
-        row.typ === 'Odměna'
+        row.typ === 'Zákonné úroky z prodlení'
     );
     const totalProfitIncome = profitTransactions.reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
@@ -1058,6 +1064,13 @@ function calculateStatistics(data) {
     
     const totalProfits = totalProfitIncome - totalProfitReducingFees;
     
+    // Calculate marketing rewards separately (Mimořádný příjem + Odměna)
+    const allMarketingRewards = data.filter(row => 
+        row.typ === 'Mimořádný příjem' || 
+        row.typ === 'Odměna'
+    );
+    const totalMarketingRewards = allMarketingRewards.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
     // Total base investments for yield calculation = SUM(Investice, Autoinvestice)
     const baseInvestments = data.filter(row => 
         row.typ === 'Investice' || 
@@ -1068,9 +1081,9 @@ function calculateStatistics(data) {
     // Hrubý aktuální výnos = (Total Profits / Total Base Investments) * 100
     const grossCurrentYield = totalBaseInvestments > 0 ? (totalProfits / totalBaseInvestments) * 100 : 0;
     
-    // Calculate marketing rewards for wallet balance calculation
-    const marketingRewardsTransactions = data.filter(row => row.typ === 'Odměna');
-    const marketingRewards = marketingRewardsTransactions.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    // Calculate only "Odměna" for wallet balance calculation (keep existing logic)
+    const rewardTransactions = data.filter(row => row.typ === 'Odměna');
+    const marketingRewards = rewardTransactions.reduce((sum, row) => sum + Math.abs(row.castka), 0);
     
     // Calculate purchase offers and returns
     const purchaseOffers = data.filter(row => row.typ === 'Nabídka ke koupi');
@@ -1082,7 +1095,7 @@ function calculateStatistics(data) {
     // Z toho blokováno na tržišti = Nabídka ke koupi - Vrácení nabídky
     const blockedOnMarket = totalPurchaseOffers - totalOfferReturns;
     
-    // Stav peněženky = Celkové vklady - Aktuální velikost portfolia + Celkový čistý zisk - Celkové výběry - Nabídka ke koupi + Vrácení nabídky
+    // Stav peněženky = Celkové vklady - Aktuální velikost portfolia + Celkový čistý výnos investic - Celkové výběry - Nabídka ke koupi + Vrácení nabídky
     const walletBalance = totalDeposits - totalInvestment + totalProfits - totalWithdrawals - totalPurchaseOffers + totalOfferReturns;
     const walletBalanceAbs = Math.abs(walletBalance);
     
@@ -1096,6 +1109,7 @@ function calculateStatistics(data) {
         largestInvestment,
         totalFees,
         totalProfits,
+        totalMarketingRewards,
         grossCurrentYield,
         walletBalance: walletBalanceAbs,
         blockedOnMarket

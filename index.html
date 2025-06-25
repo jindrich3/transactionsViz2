@@ -139,6 +139,14 @@
         <!-- Statistics Cards -->
         <section class="stats-section">
             <div class="container">
+                <h2 class="section-title">
+                    Základní statistiky
+                    <span class="info-tooltip">
+                        <i class="fas fa-info-circle info-icon"></i>
+                        <span class="tooltip-content">Přehled základních statistik portfolia včetně velikosti, výnosů, vkladů a dalších klíčových metrik.</span>
+                    </span>
+                </h2>
+                
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">
@@ -177,11 +185,12 @@
                         </div>
                         <div class="stat-content">
                             <h3 class="stat-value" id="total-profits">0 Kč</h3>
+                            <h4 class="stat-subvalue" id="total-marketing-rewards" style="display: none;">Navíc market. odměny: 0 Kč</h4>
                             <p class="stat-label">
-                                Celkový čistý zisk
+                                Celkový čistý výnos investic
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Čistý zisk za celou dobu investování na Investownu včetně marketingových odměn a po odečtení poplatků. Výpočet: (Bonusový výnos + Smluvní pokuta + Výnos + Zákonné úroky z prodlení + Mimořádný příjem + Odměna) - (Poplatek za předčasný prodej + Poplatek za výběr).</span>
+                                    <span class="tooltip-content">Čistý výnos z investic za celou dobu investování na Investownu po odečtení poplatků. Výpočet: (Bonusový výnos + Smluvní pokuta + Výnos + Zákonné úroky z prodlení) - (Poplatek za předčasný prodej + Poplatek za výběr). Marketingové odměny jsou zobrazeny samostatně.</span>
                                 </span>
                             </p>
                         </div>
@@ -216,21 +225,7 @@
                             </p>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-gift"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="marketing-rewards">0 Kč</h3>
-                            <p class="stat-label">
-                                Marketingové odměny
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Celková částka všech marketingových odměn. Součet všech transakcí typu "Odměna".</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
+
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-crown"></i>
@@ -348,7 +343,7 @@
                                 Stav peněženky
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Teoretický stav peněženky na platformě vypočítaný jako: Celkové vklady - Aktuální velikost portfolia + Celkový čistý zisk - Celkové výběry - Nabídka ke koupi + Vrácení nabídky. Hodnota je zobrazena v absolutní hodnotě.</span>
+                                    <span class="tooltip-content">Teoretický stav peněženky na platformě vypočítaný jako: Celkové vklady - Aktuální velikost portfolia + Celkový čistý výnos investic - Celkové výběry - Nabídka ke koupi + Vrácení nabídky. Hodnota je zobrazena v absolutní hodnotě.</span>
                                 </span>
                             </p>
                         </div>
