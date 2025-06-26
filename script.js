@@ -538,6 +538,14 @@ function initializeDashboard() {
         }
         
         try {
+            updateFeeBreakdown();
+        updateNetProfitBreakdown();
+        updateMarketingRewardsBreakdown();
+    } catch (e) {
+        console.error('Error in breakdown updates:', e);
+    }
+        
+        try {
     createFilterOptions();
         } catch (e) {
             console.error('Error in createFilterOptions:', e);
@@ -916,6 +924,239 @@ function calculateAutoinvestStatistics() {
         document.getElementById('autoinvest-first-date').textContent = locale.formatDate(firstTransaction.datum);
         document.getElementById('autoinvest-last-date').textContent = locale.formatDate(lastTransaction.datum);
     }
+}
+
+// Fee Breakdown Calculation
+function updateFeeBreakdown() {
+    if (!csvData || csvData.length === 0) {
+        // Set all values to zero
+        setStatValueWithZeroClass('fee-breakdown-total', 0);
+        setStatValueWithZeroClass('early-sale-fee', 0);
+        setStatValueWithZeroClass('withdrawal-fee', 0);
+        
+        // Reset progress bars and percentages
+        const earlySaleProgress = document.getElementById('early-sale-progress');
+        const withdrawalProgress = document.getElementById('withdrawal-progress');
+        const earlySalePercentageEl = document.getElementById('early-sale-percentage');
+        const withdrawalPercentageEl = document.getElementById('withdrawal-percentage');
+        
+        if (earlySaleProgress) {
+            earlySaleProgress.style.width = '0%';
+        }
+        if (withdrawalProgress) {
+            withdrawalProgress.style.width = '0%';
+        }
+        if (earlySalePercentageEl) {
+            earlySalePercentageEl.textContent = '0%';
+        }
+        if (withdrawalPercentageEl) {
+            withdrawalPercentageEl.textContent = '0%';
+        }
+        
+        return;
+    }
+    
+    // Calculate fee breakdown
+    const earlySaleFees = csvData.filter(row => row.typ === 'Poplatek za předčasný prodej');
+    const withdrawalFees = csvData.filter(row => row.typ === 'Poplatek za výběr');
+    
+    const earlySaleTotal = earlySaleFees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const withdrawalTotal = withdrawalFees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const totalFees = earlySaleTotal + withdrawalTotal;
+    
+    // Update total
+    setStatValueWithZeroClass('fee-breakdown-total', totalFees);
+    
+    // Update individual fee amounts
+    setStatValueWithZeroClass('early-sale-fee', earlySaleTotal);
+    setStatValueWithZeroClass('withdrawal-fee', withdrawalTotal);
+    
+    // Calculate percentages for display
+    const earlySalePercentage = totalFees > 0 ? (earlySaleTotal / totalFees) * 100 : 0;
+    const withdrawalPercentage = totalFees > 0 ? (withdrawalTotal / totalFees) * 100 : 0;
+    
+    // Update progress bars with animation
+    const earlySaleProgress = document.getElementById('early-sale-progress');
+    const withdrawalProgress = document.getElementById('withdrawal-progress');
+    const earlySalePercentageEl = document.getElementById('early-sale-percentage');
+    const withdrawalPercentageEl = document.getElementById('withdrawal-percentage');
+    
+    // Update percentage displays
+    if (earlySalePercentageEl) {
+        earlySalePercentageEl.textContent = `${earlySalePercentage.toFixed(0)}%`;
+    }
+    
+    if (withdrawalPercentageEl) {
+        withdrawalPercentageEl.textContent = `${withdrawalPercentage.toFixed(0)}%`;
+    }
+    
+    // Animate progress bars
+    if (earlySaleProgress) {
+        earlySaleProgress.style.width = '0%';
+        setTimeout(() => {
+            earlySaleProgress.style.width = `${earlySalePercentage}%`;
+        }, 100);
+    }
+    
+    if (withdrawalProgress) {
+        withdrawalProgress.style.width = '0%';
+        setTimeout(() => {
+            withdrawalProgress.style.width = `${withdrawalPercentage}%`;
+        }, 100);
+    }
+}
+
+// Net Investment Profit Breakdown Calculation
+function updateNetProfitBreakdown() {
+    if (!csvData || csvData.length === 0) {
+        // Set all values to zero
+        setStatValueWithZeroClass('net-profit-breakdown-total', 0);
+        setStatValueWithZeroClass('profit-returns', 0);
+        setStatValueWithZeroClass('profit-bonus', 0);
+        setStatValueWithZeroClass('profit-penalty', 0);
+        setStatValueWithZeroClass('profit-interest', 0);
+        setStatValueWithZeroClass('profit-fees', 0);
+        
+        // Reset progress bars and percentages
+        const elements = ['profit-returns', 'profit-bonus', 'profit-penalty', 'profit-interest', 'profit-fees'];
+        elements.forEach(element => {
+            const progressEl = document.getElementById(`${element}-progress`);
+            const percentageEl = document.getElementById(`${element}-percentage`);
+            
+            if (progressEl) progressEl.style.width = '0%';
+            if (percentageEl) percentageEl.textContent = '0%';
+        });
+        
+        return;
+    }
+    
+    // Calculate individual components
+    const returns = csvData.filter(row => row.typ === 'Výnos');
+    const bonusReturns = csvData.filter(row => row.typ === 'Bonusový výnos');
+    const penalties = csvData.filter(row => row.typ === 'Smluvní pokuta');
+    const legalInterest = csvData.filter(row => row.typ === 'Zákonné úroky z prodlení');
+    const earlySaleFees = csvData.filter(row => row.typ === 'Poplatek za předčasný prodej');
+    const withdrawalFees = csvData.filter(row => row.typ === 'Poplatek za výběr');
+    
+    const returnsTotal = returns.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const bonusTotal = bonusReturns.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const penaltyTotal = penalties.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const interestTotal = legalInterest.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const earlySaleFeesTotal = earlySaleFees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const withdrawalFeesTotal = withdrawalFees.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
+    const totalFees = earlySaleFeesTotal + withdrawalFeesTotal;
+    const grossProfit = returnsTotal + bonusTotal + penaltyTotal + interestTotal;
+    const netProfit = grossProfit - totalFees;
+    
+    // Update total
+    setStatValueWithZeroClass('net-profit-breakdown-total', netProfit);
+    
+    // Update individual amounts
+    setStatValueWithZeroClass('profit-returns', returnsTotal);
+    setStatValueWithZeroClass('profit-bonus', bonusTotal);
+    setStatValueWithZeroClass('profit-penalty', penaltyTotal);
+    setStatValueWithZeroClass('profit-interest', interestTotal);
+    setStatValueWithZeroClass('profit-fees', totalFees);
+    
+    // Calculate percentages for display (based on gross profit for positive components, total fees for negative)
+    const totalGross = grossProfit + totalFees; // Total for percentage calculation
+    
+    if (totalGross > 0) {
+        const returnsPercentage = (returnsTotal / totalGross) * 100;
+        const bonusPercentage = (bonusTotal / totalGross) * 100;
+        const penaltyPercentage = (penaltyTotal / totalGross) * 100;
+        const interestPercentage = (interestTotal / totalGross) * 100;
+        const feesPercentage = (totalFees / totalGross) * 100;
+        
+        // Update percentage displays and progress bars
+        const updates = [
+            { id: 'profit-returns', percentage: returnsPercentage },
+            { id: 'profit-bonus', percentage: bonusPercentage },
+            { id: 'profit-penalty', percentage: penaltyPercentage },
+            { id: 'profit-interest', percentage: interestPercentage },
+            { id: 'profit-fees', percentage: feesPercentage }
+        ];
+        
+        updates.forEach(({ id, percentage }, index) => {
+            const percentageEl = document.getElementById(`${id}-percentage`);
+            const progressEl = document.getElementById(`${id}-progress`);
+            
+            if (percentageEl) {
+                percentageEl.textContent = `${percentage.toFixed(0)}%`;
+            }
+            
+            if (progressEl) {
+                progressEl.style.width = '0%';
+                setTimeout(() => {
+                    progressEl.style.width = `${percentage}%`;
+                }, 100 + (index * 50));
+            }
+        });
+    }
+}
+
+// Marketing Rewards Breakdown Calculation
+function updateMarketingRewardsBreakdown() {
+    if (!csvData || csvData.length === 0) {
+        // Set all values to zero
+        setStatValueWithZeroClass('marketing-rewards-breakdown-total', 0);
+        setStatValueWithZeroClass('marketing-extraordinary', 0);
+        setStatValueWithZeroClass('marketing-reward', 0);
+        
+        // Reset progress bars and percentages
+        const elements = ['marketing-extraordinary', 'marketing-reward'];
+        elements.forEach(element => {
+            const progressEl = document.getElementById(`${element}-progress`);
+            const percentageEl = document.getElementById(`${element}-percentage`);
+            
+            if (progressEl) progressEl.style.width = '0%';
+            if (percentageEl) percentageEl.textContent = '0%';
+        });
+        
+        return;
+    }
+    
+    // Calculate marketing rewards breakdown
+    const extraordinaryIncome = csvData.filter(row => row.typ === 'Mimořádný příjem');
+    const rewards = csvData.filter(row => row.typ === 'Odměna');
+    
+    const extraordinaryTotal = extraordinaryIncome.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const rewardsTotal = rewards.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const totalRewards = extraordinaryTotal + rewardsTotal;
+    
+    // Update total
+    setStatValueWithZeroClass('marketing-rewards-breakdown-total', totalRewards);
+    
+    // Update individual amounts
+    setStatValueWithZeroClass('marketing-extraordinary', extraordinaryTotal);
+    setStatValueWithZeroClass('marketing-reward', rewardsTotal);
+    
+    // Calculate percentages for display
+    const extraordinaryPercentage = totalRewards > 0 ? (extraordinaryTotal / totalRewards) * 100 : 0;
+    const rewardsPercentage = totalRewards > 0 ? (rewardsTotal / totalRewards) * 100 : 0;
+    
+    // Update percentage displays and progress bars
+    const updates = [
+        { id: 'marketing-extraordinary', percentage: extraordinaryPercentage },
+        { id: 'marketing-reward', percentage: rewardsPercentage }
+    ];
+    
+    updates.forEach(({ id, percentage }, index) => {
+        const percentageEl = document.getElementById(`${id}-percentage`);
+        const progressEl = document.getElementById(`${id}-progress`);
+        
+        if (percentageEl) {
+            percentageEl.textContent = `${percentage.toFixed(0)}%`;
+        }
+        
+        if (progressEl) {
+            progressEl.style.width = '0%';
+            setTimeout(() => {
+                progressEl.style.width = `${percentage}%`;
+            }, 100 + (index * 100));
+        }
+    });
 }
 
 // Statistics Calculation (for filtered data)
