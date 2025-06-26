@@ -136,6 +136,18 @@
             </div>
         </header>
 
+        <!-- Welcome Message -->
+        <section class="welcome-section">
+            <div class="container">
+                <div class="welcome-message" id="welcome-message" style="display: none;">
+                    <div class="welcome-content">
+                        <i class="fas fa-trophy welcome-icon"></i>
+                        <h3 class="welcome-text" id="welcome-text">Gratulujeme k investování na platformě</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Statistics Cards -->
         <section class="stats-section">
             <div class="container">
@@ -179,6 +191,21 @@
                             </p>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="transaction-count-stat">0</h3>
+                            <p class="stat-label">
+                                Počet transakcí
+                                <span class="info-tooltip">
+                                    <i class="fas fa-info-circle info-icon"></i>
+                                    <span class="tooltip-content">Celkový počet všech transakcí v portfoliu.</span>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
 
                     <div class="stat-card">
                         <div class="stat-icon">
@@ -210,6 +237,21 @@
                             </p>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-value" id="portfolio-stages">0</h3>
+                            <p class="stat-label">
+                                Počet etap v portfoliu
+                                <span class="info-tooltip">
+                                    <i class="fas fa-info-circle info-icon"></i>
+                                    <span class="tooltip-content">Aktivní etapy / Celkové etapy. Aktivní etapa je projekt, kde Splaceno (Splacení jistiny + Částečné splacení jistiny) < Investováno (Investice + Autoinvestice - Odstoupení - Vrácení peněz).</span>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
 
                     <div class="stat-card">
                         <div class="stat-icon">
@@ -222,21 +264,6 @@
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
                                     <span class="tooltip-content">Nejvyšší jednotlivá částka investovaná v jedné transakci.</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-list"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="transaction-count-stat">0</h3>
-                            <p class="stat-label">
-                                Počet transakcí
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Celkový počet všech transakcí v portfoliu.</span>
                                 </span>
                             </p>
                         </div>
@@ -258,15 +285,15 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-project-diagram"></i>
+                            <i class="fas fa-wallet"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 class="stat-value" id="portfolio-stages">0</h3>
+                            <h3 class="stat-value" id="wallet-balance">0 Kč</h3>
                             <p class="stat-label">
-                                Počet etap v portfoliu
+                                Stav peněženky
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Aktivní etapy / Celkové etapy. Aktivní etapa je projekt, kde Splaceno (Splacení jistiny + Částečné splacení jistiny) < Investováno (Investice + Autoinvestice - Odstoupení - Vrácení peněz).</span>
+                                    <span class="tooltip-content">Teoretický stav peněženky na platformě vypočítaný jako: Celkové vklady - Aktuální velikost portfolia + Celkový čistý výnos investic - Celkové výběry - Nabídka ke koupi + Vrácení nabídky. Hodnota je zobrazena v absolutní hodnotě.</span>
                                 </span>
                             </p>
                         </div>
@@ -304,21 +331,6 @@
                         </div>
                     </div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-wallet"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="wallet-balance">0 Kč</h3>
-                            <p class="stat-label">
-                                Stav peněženky
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Teoretický stav peněženky na platformě vypočítaný jako: Celkové vklady - Aktuální velikost portfolia + Celkový čistý výnos investic - Celkové výběry - Nabídka ke koupi + Vrácení nabídky. Hodnota je zobrazena v absolutní hodnotě.</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-chart-line"></i>

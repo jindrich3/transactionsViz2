@@ -707,6 +707,62 @@ function calculateOverviewStatistics() {
     
     // Calculate and display autoinvest statistics
     calculateAutoinvestStatistics();
+    
+    // Update welcome message
+    updateWelcomeMessage();
+}
+
+// Update welcome message based on investment duration
+function updateWelcomeMessage() {
+    const welcomeMessageElement = document.getElementById('welcome-message');
+    const welcomeTextElement = document.getElementById('welcome-text');
+    
+    if (!overviewStats.oldestDate || !welcomeMessageElement || !welcomeTextElement) {
+        return;
+    }
+    
+    // Calculate duration from oldest transaction to now
+    const currentDate = new Date();
+    const oldestDate = overviewStats.oldestDate;
+    const timeDiff = currentDate - oldestDate;
+    const totalDays = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    
+    let durationText = '';
+    
+    if (totalDays < 90) {
+        // Less than 90 days: show in days
+        durationText = `${totalDays} ${getDayPlural(totalDays)}`;
+    } else if (totalDays < (24 * 30)) {
+        // Less than 24 months: show in months
+        const months = Math.floor(totalDays / 30);
+        durationText = `${months} ${getMonthPlural(months)}`;
+    } else {
+        // 24+ months: show in years
+        const years = Math.floor(totalDays / 365);
+        durationText = `${years} ${getYearPlural(years)}`;
+    }
+    
+            welcomeTextElement.textContent = `Na platformě Investown jste již ${durationText}. 💪`;
+    welcomeMessageElement.style.display = 'block';
+}
+
+// Helper functions for Czech pluralization
+function getDayPlural(count) {
+    if (count === 1) return 'den';
+    if (count >= 2 && count <= 4) return 'dny';
+    return 'dní';
+}
+
+function getMonthPlural(count) {
+    if (count === 1) return 'měsíc';
+    if (count >= 2 && count <= 4) return 'měsíce';
+    return 'měsíců';
+}
+
+function getYearPlural(count) {
+    if (count === 1) return 'rok';
+    if (count >= 2 && count <= 4) return 'roky';
+    return 'let';
 }
 
 function calculate12MonthTWRR() {
