@@ -1860,7 +1860,6 @@ canvas {
 
 .amount-zero {
     color: var(--gray-500);
-    font-style: italic;
 }
 
 .amount-investment {
@@ -3251,6 +3250,17 @@ select:focus {
         min-width: 160px;
         max-width: 200px;
     }
+}
+
+/* Transaction tooltip styling */
+.transaction-tooltip {
+    cursor: help;
+    position: relative;
+    transition: opacity 0.2s ease;
+}
+
+.transaction-tooltip:hover {
+    opacity: 0.8;
 }
 
 /* Breakdown Section */

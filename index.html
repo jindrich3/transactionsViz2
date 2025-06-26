@@ -258,7 +258,7 @@
                             <i class="fas fa-crown"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 class="stat-value" id="largest-investment">0 Kč</h3>
+                            <h3 class="stat-value transaction-tooltip" id="largest-investment" data-transaction-type="largest-investment">0 Kč</h3>
                             <p class="stat-label">
                                 Historicky nejvyšší investice
                                 <span class="info-tooltip">
@@ -303,7 +303,7 @@
                             <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 class="stat-value" id="date-range-start">--</h3>
+                            <h3 class="stat-value transaction-tooltip" id="date-range-start" data-transaction-type="oldest">--</h3>
                             <h4 class="stat-subvalue" id="oldest-transaction-amount">0 Kč</h4>
                             <p class="stat-label">
                                 Nejstarší transakce
@@ -319,7 +319,7 @@
                             <i class="fas fa-calendar-check"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 class="stat-value" id="date-range-end">--</h3>
+                            <h3 class="stat-value transaction-tooltip" id="date-range-end" data-transaction-type="newest">--</h3>
                             <h4 class="stat-subvalue" id="newest-transaction-amount">0 Kč</h4>
                             <p class="stat-label">
                                 Nejnovější transakce
@@ -337,11 +337,12 @@
                         </div>
                         <div class="stat-content">
                             <h3 class="stat-value" id="twrr-12-months">0%</h3>
+                            <h4 class="stat-subvalue" id="twrr-no-marketing-row">Bez market. odměn: <span id="twrr-12-months-no-marketing">0%</span></h4>
                             <p class="stat-label">
                                 TWRR (12 měsíců)
                                 <span class="info-tooltip">
                                     <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Časově vážená míra návratnosti (Time-Weighted Rate of Return) za posledních 12 měsíců. Měří výkonnost portfolia nezávisle na vkladech a výběrech. Výpočet: geometrické spojení měsíčních výnosů za posledních 12 měsíců.</span>
+                                    <span class="tooltip-content">Časově vážená míra návratnosti (Time-Weighted Rate of Return) za posledních 12 měsíců. Měří výkonnost portfolia nezávisle na vkladech a výběrech. "Bez market. odměn" excluduje Odměna a Mimořádný příjem z výpočtu výkonnosti.</span>
                                 </span>
                             </p>
                         </div>
@@ -423,7 +424,7 @@
                                 <i class="fas fa-play"></i>
                             </div>
                             <div class="stat-content">
-                                <h3 class="stat-value" id="autoinvest-first-date">--</h3>
+                                <h3 class="stat-value transaction-tooltip" id="autoinvest-first-date" data-transaction-type="first-autoinvest">--</h3>
                                 <h4 class="stat-subvalue" id="autoinvest-first-amount">0 Kč</h4>
                                 <p class="stat-label">
                                     První autoinvestice
@@ -439,7 +440,7 @@
                                 <i class="fas fa-clock"></i>
                             </div>
                             <div class="stat-content">
-                                <h3 class="stat-value" id="autoinvest-last-date">--</h3>
+                                <h3 class="stat-value transaction-tooltip" id="autoinvest-last-date" data-transaction-type="last-autoinvest">--</h3>
                                 <h4 class="stat-subvalue" id="autoinvest-last-amount">0 Kč</h4>
                                 <p class="stat-label">
                                     Poslední autoinvestice
@@ -537,7 +538,7 @@
                                 <div class="breakdown-row">
                                     <div class="breakdown-row-header">
                                         <span class="breakdown-row-label">
-                                            Smluvní pokuta
+                                            Smluvní pokuty
                                             <span class="info-tooltip">
                                                 <i class="fas fa-info-circle info-icon"></i>
                                                 <span class="tooltip-content">Smluvní pokuty</span>

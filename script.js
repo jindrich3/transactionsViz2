@@ -616,6 +616,10 @@ function calculateOverviewStatistics() {
         overviewStats.newestDate = newestTransaction.datum;
         overviewStats.oldestAmount = Math.abs(oldestTransaction.castka);
         overviewStats.newestAmount = Math.abs(newestTransaction.castka);
+        
+        // Store full transaction objects for tooltips
+        overviewStats.oldestTransaction = oldestTransaction;
+        overviewStats.newestTransaction = newestTransaction;
     } else {
         // Handle case when no data is available
         overviewStats.oldestDate = null;
@@ -684,6 +688,34 @@ function calculateOverviewStatistics() {
         }
     }
     
+    // Check if there are any marketing reward transactions
+    const hasMarketingRewards = csvData && csvData.some(row => 
+        row.typ === 'Odměna' || row.typ === 'Mimořádný příjem'
+    );
+    
+    // Show/hide the "Bez market. odměn:" row based on presence of marketing rewards
+    const twrrNoMarketingSubvalue = document.getElementById('twrr-no-marketing-row');
+    if (twrrNoMarketingSubvalue) {
+        if (hasMarketingRewards) {
+            twrrNoMarketingSubvalue.style.display = 'block';
+            
+            // Calculate and display 12-month TWRR without marketing rewards
+            const twrr12MonthsNoMarketing = calculate12MonthTWRRNoMarketing();
+            const twrrNoMarketingElement = document.getElementById('twrr-12-months-no-marketing');
+            if (twrrNoMarketingElement) {
+                if (twrr12MonthsNoMarketing === 0) {
+                    twrrNoMarketingElement.textContent = '0%';
+                    twrrNoMarketingElement.classList.add('amount-zero');
+                } else {
+                    twrrNoMarketingElement.textContent = `${twrr12MonthsNoMarketing.toFixed(2)}%`;
+                    twrrNoMarketingElement.classList.remove('amount-zero');
+                }
+            }
+        } else {
+            twrrNoMarketingSubvalue.style.display = 'none';
+        }
+    }
+    
     // These don't need zero styling (counts/dates) - add null checks
     const transactionCountElement = document.getElementById('transaction-count-stat');
     if (transactionCountElement) {
@@ -710,6 +742,9 @@ function calculateOverviewStatistics() {
     
     // Update welcome message
     updateWelcomeMessage();
+    
+    // Setup transaction tooltips
+    setupTransactionTooltips();
 }
 
 // Update welcome message based on investment duration
@@ -744,6 +779,45 @@ function updateWelcomeMessage() {
     
             welcomeTextElement.textContent = `Na platformě Investown jste již ${durationText}. 💪`;
     welcomeMessageElement.style.display = 'block';
+}
+
+// Setup tooltips for transaction stat boxes
+function setupTransactionTooltips() {
+    // Remove existing event listeners to avoid duplicates
+    const transactionElements = document.querySelectorAll('.transaction-tooltip');
+    
+    transactionElements.forEach(element => {
+        // Clone element to remove all event listeners
+        const newElement = element.cloneNode(true);
+        element.parentNode.replaceChild(newElement, element);
+    });
+    
+    // Setup tooltips for oldest and newest transactions
+    const oldestElement = document.getElementById('date-range-start');
+    const newestElement = document.getElementById('date-range-end');
+    const largestInvestmentElement = document.getElementById('largest-investment');
+    const firstAutoinvestElement = document.getElementById('autoinvest-first-date');
+    const lastAutoinvestElement = document.getElementById('autoinvest-last-date');
+    
+    if (oldestElement && overviewStats.oldestTransaction) {
+        addTransactionStatTooltip(oldestElement, overviewStats.oldestTransaction);
+    }
+    
+    if (newestElement && overviewStats.newestTransaction) {
+        addTransactionStatTooltip(newestElement, overviewStats.newestTransaction);
+    }
+    
+    if (largestInvestmentElement && overviewStats.largestInvestmentTransaction) {
+        addTransactionStatTooltip(largestInvestmentElement, overviewStats.largestInvestmentTransaction);
+    }
+    
+    if (firstAutoinvestElement && overviewStats.firstAutoinvestTransaction) {
+        addTransactionStatTooltip(firstAutoinvestElement, overviewStats.firstAutoinvestTransaction);
+    }
+    
+    if (lastAutoinvestElement && overviewStats.lastAutoinvestTransaction) {
+        addTransactionStatTooltip(lastAutoinvestElement, overviewStats.lastAutoinvestTransaction);
+    }
 }
 
 // Helper functions for Czech pluralization
@@ -941,6 +1015,177 @@ function calculate12MonthTWRR() {
     return annualizedReturn;
 }
 
+function calculate12MonthTWRRNoMarketing() {
+    console.log('=== TWRR WITHOUT MARKETING REWARDS CALCULATION START ===');
+    
+    if (!csvData || csvData.length === 0) {
+        console.log('❌ No CSV data available');
+        return 0;
+    }
+    
+    // Get current date and 12 months ago
+    const currentDate = new Date();
+    const twelveMonthsAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 12, 1);
+    
+    console.log(`📅 Date range: ${twelveMonthsAgo.toLocaleDateString('cs-CZ')} to ${currentDate.toLocaleDateString('cs-CZ')}`);
+    console.log(`📊 Total transactions to analyze: ${csvData.length}`);
+    
+    // Group data by month for the last 12 months
+    const monthlyData = {};
+    const monthlyProfit = {};
+    
+    console.log('\n🔍 STEP 1: Processing transactions for last 12 months (excluding marketing rewards)...');
+    
+    csvData.forEach((row, index) => {
+        if (row.datum >= twelveMonthsAgo) {
+            const monthKey = `${row.datum.getFullYear()}-${String(row.datum.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = 0;
+            }
+            if (!monthlyProfit[monthKey]) {
+                monthlyProfit[monthKey] = 0;
+            }
+            
+            const amount = Math.abs(row.castka);
+            
+            console.log(`  Transaction ${index + 1}: ${row.datum.toLocaleDateString('cs-CZ')} | ${row.typ} | ${amount} Kč`);
+            
+            // Calculate net investment (capital movements) - SAME AS REGULAR TWRR
+            switch (row.typ) {
+                case 'Autoinvestice':
+                case 'Investice':
+                    monthlyData[monthKey] += amount;
+                    console.log(`    ➕ Added to investments: ${amount} Kč (total for ${monthKey}: ${monthlyData[monthKey]} Kč)`);
+                    break;
+                case 'Prodej':
+                case 'Vrácení peněz':
+                case 'Odstoupení':
+                case 'Splacení jistiny':
+                case 'Částečné splacení jistiny':
+                    monthlyData[monthKey] -= amount;
+                    console.log(`    ➖ Subtracted from investments: ${amount} Kč (total for ${monthKey}: ${monthlyData[monthKey]} Kč)`);
+                    break;
+            }
+            
+            // Calculate profit (performance) - EXCLUDING MARKETING REWARDS
+            switch (row.typ) {
+                case 'Výnos':
+                case 'Bonusový výnos':
+                case 'Smluvní pokuta':
+                case 'Zákonné úroky z prodlení':
+                    monthlyProfit[monthKey] += amount;
+                    console.log(`    💰 Added to profits: ${amount} Kč (total for ${monthKey}: ${monthlyProfit[monthKey]} Kč)`);
+                    break;
+                case 'Poplatek za předčasný prodej':
+                case 'Poplatek za výběr':
+                    monthlyProfit[monthKey] -= amount;
+                    console.log(`    💸 Subtracted from profits: ${amount} Kč (total for ${monthKey}: ${monthlyProfit[monthKey]} Kč)`);
+                    break;
+                case 'Odměna':
+                case 'Mimořádný příjem':
+                    console.log(`    🚫 Marketing reward EXCLUDED: ${amount} Kč (${row.typ})`);
+                    break;
+                default:
+                    console.log(`    ⚪ No impact on TWRR calculation`);
+            }
+        }
+    });
+    
+    // Get months in chronological order
+    const allMonths = [...new Set([...Object.keys(monthlyData), ...Object.keys(monthlyProfit)])].sort();
+    
+    console.log(`\n📋 STEP 2: Monthly summaries for last 12 months (without marketing rewards):`);
+    allMonths.forEach(month => {
+        console.log(`  ${month}: Investment=${monthlyData[month] || 0} Kč, Profit=${monthlyProfit[month] || 0} Kč`);
+    });
+    
+    // Calculate CAPITAL BASE (investments only) at the start of 12-month period - SAME AS REGULAR TWRR
+    let capitalBaseAtStart = 0;
+    let transactionsBeforeStart = 0;
+    
+    csvData.forEach(row => {
+        if (row.datum < twelveMonthsAgo) {
+            transactionsBeforeStart++;
+            const amount = Math.abs(row.castka);
+            
+            // Calculate net capital investment before the 12-month period (NO PROFITS)
+            switch (row.typ) {
+                case 'Autoinvestice':
+                case 'Investice':
+                    capitalBaseAtStart += amount;
+                    break;
+                case 'Prodej':
+                case 'Vrácení peněz':
+                case 'Odstoupení':
+                case 'Splacení jistiny':
+                case 'Částečné splacení jistiny':
+                    capitalBaseAtStart -= amount;
+                    break;
+            }
+            // NOTE: We DO NOT include profits in the capital base calculation
+            // Profits are performance results, not capital movements
+        }
+    });
+    
+    console.log(`  📈 Transactions before start date: ${transactionsBeforeStart}`);
+    console.log(`  💼 Capital base at start: ${capitalBaseAtStart.toFixed(2)} Kč`);
+    
+    // Track running capital base (investments only, no profits)
+    let runningCapitalBase = capitalBaseAtStart;
+    let compoundedReturn = 1; // Start with 1 for geometric compounding
+    
+    console.log(`  🏁 Capital base at start of 12-month period: ${runningCapitalBase.toFixed(2)} Kč`);
+    console.log(`  🎲 Starting compounded return: ${compoundedReturn}`);
+    
+    allMonths.forEach((month, index) => {
+        const investment = monthlyData[month] || 0;
+        const profit = monthlyProfit[month] || 0;
+        
+        // Beginning value = capital base at START of this month (before cash flows)
+        const beginningCapitalBase = runningCapitalBase;
+        
+        // Ending value = capital base at END of this month (after cash flows, but still no profits)
+        const endingCapitalBase = beginningCapitalBase + investment;
+        
+        // Update running capital base for next month
+        runningCapitalBase = endingCapitalBase;
+        
+        console.log(`\n  📅 Month ${index + 1}: ${month}`);
+        console.log(`    💰 Beginning capital base: ${beginningCapitalBase.toFixed(2)} Kč`);
+        console.log(`    💵 Investment (cash flow): ${investment.toFixed(2)} Kč`);
+        console.log(`    💼 Ending capital base: ${endingCapitalBase.toFixed(2)} Kč`);
+        console.log(`    📈 Profit/Loss (performance, NO marketing): ${profit.toFixed(2)} Kč`);
+        
+        // TWRR calculation: profit divided by beginning capital base
+        if (beginningCapitalBase > 0) {
+            const monthlyReturn = profit / beginningCapitalBase;
+            
+            const previousCompounded = compoundedReturn;
+            compoundedReturn *= (1 + monthlyReturn);
+            
+            console.log(`    🎯 TWRR calculation: ${profit.toFixed(2)} / ${beginningCapitalBase.toFixed(2)}`);
+            console.log(`    📊 Monthly return: ${monthlyReturn.toFixed(6)} (${(monthlyReturn * 100).toFixed(4)}%)`);
+            console.log(`    🔢 Compounded return: ${previousCompounded.toFixed(6)} × (1 + ${monthlyReturn.toFixed(6)}) = ${compoundedReturn.toFixed(6)}`);
+        } else if (beginningCapitalBase === 0 && investment > 0) {
+            // Special case: first investment in the period
+            console.log(`    ⚠️  First investment of the period - no baseline for return calculation`);
+            console.log(`    ℹ️  Cannot calculate return when starting from zero capital base`);
+        } else {
+            console.log(`    ⚠️  No capital base - cannot calculate return`);
+        }
+    });
+    
+    const annualizedReturn = (compoundedReturn - 1) * 100;
+    
+    console.log(`\n✅ FINAL: 12-month TWRR without marketing rewards`);
+    console.log(`  🔢 Final compounded return: ${compoundedReturn.toFixed(6)}`);
+    console.log(`  📊 12-month TWRR (no marketing): (${compoundedReturn.toFixed(6)} - 1) × 100 = ${annualizedReturn.toFixed(4)}%`);
+    console.log(`=== TWRR WITHOUT MARKETING REWARDS CALCULATION END ===\n`);
+    
+    return annualizedReturn;
+}
+
 function calculateAutoinvestStatistics() {
     // Filter autoinvest transactions
     const autoinvestTransactions = csvData.filter(row => 
@@ -954,6 +1199,10 @@ function calculateAutoinvestStatistics() {
         // Show empty state
         autoinvestEmpty.style.display = 'block';
         autoinvestStats.style.display = 'none';
+        
+        // Clear transaction objects for tooltips
+        overviewStats.firstAutoinvestTransaction = null;
+        overviewStats.lastAutoinvestTransaction = null;
     } else {
         // Show statistics
         autoinvestEmpty.style.display = 'none';
@@ -968,6 +1217,10 @@ function calculateAutoinvestStatistics() {
         const sortedTransactions = autoinvestTransactions.sort((a, b) => a.datum - b.datum);
         const firstTransaction = sortedTransactions[0];
         const lastTransaction = sortedTransactions[sortedTransactions.length - 1];
+        
+        // Store transaction objects for tooltips
+        overviewStats.firstAutoinvestTransaction = firstTransaction;
+        overviewStats.lastAutoinvestTransaction = lastTransaction;
         
         // Update display with zero value styling
         document.getElementById('autoinvest-count').textContent = count;
@@ -1004,9 +1257,11 @@ function updateFeeBreakdown() {
         }
         if (earlySalePercentageEl) {
             earlySalePercentageEl.textContent = '0%';
+            earlySalePercentageEl.classList.add('amount-zero');
         }
         if (withdrawalPercentageEl) {
             withdrawalPercentageEl.textContent = '0%';
+            withdrawalPercentageEl.classList.add('amount-zero');
         }
         
         return;
@@ -1023,7 +1278,7 @@ function updateFeeBreakdown() {
     // Update total
     setStatValueWithZeroClass('fee-breakdown-total', totalFees);
     
-    // Update individual fee amounts
+    // Update individual fee amounts with zero styling
     setStatValueWithZeroClass('early-sale-fee', earlySaleTotal);
     setStatValueWithZeroClass('withdrawal-fee', withdrawalTotal);
     
@@ -1037,13 +1292,23 @@ function updateFeeBreakdown() {
     const earlySalePercentageEl = document.getElementById('early-sale-percentage');
     const withdrawalPercentageEl = document.getElementById('withdrawal-percentage');
     
-    // Update percentage displays
+    // Update percentage displays with zero styling
     if (earlySalePercentageEl) {
         earlySalePercentageEl.textContent = `${earlySalePercentage.toFixed(0)}%`;
+        if (earlySalePercentage === 0) {
+            earlySalePercentageEl.classList.add('amount-zero');
+        } else {
+            earlySalePercentageEl.classList.remove('amount-zero');
+        }
     }
     
     if (withdrawalPercentageEl) {
         withdrawalPercentageEl.textContent = `${withdrawalPercentage.toFixed(0)}%`;
+        if (withdrawalPercentage === 0) {
+            withdrawalPercentageEl.classList.add('amount-zero');
+        } else {
+            withdrawalPercentageEl.classList.remove('amount-zero');
+        }
     }
     
     // Animate progress bars
@@ -1080,7 +1345,10 @@ function updateNetProfitBreakdown() {
             const percentageEl = document.getElementById(`${element}-percentage`);
             
             if (progressEl) progressEl.style.width = '0%';
-            if (percentageEl) percentageEl.textContent = '0%';
+            if (percentageEl) {
+                percentageEl.textContent = '0%';
+                percentageEl.classList.add('amount-zero');
+            }
         });
         
         return;
@@ -1108,7 +1376,7 @@ function updateNetProfitBreakdown() {
     // Update total
     setStatValueWithZeroClass('net-profit-breakdown-total', netProfit);
     
-    // Update individual amounts
+    // Update individual amounts with zero styling
     setStatValueWithZeroClass('profit-returns', returnsTotal);
     setStatValueWithZeroClass('profit-bonus', bonusTotal);
     setStatValueWithZeroClass('profit-penalty', penaltyTotal);
@@ -1140,6 +1408,11 @@ function updateNetProfitBreakdown() {
             
             if (percentageEl) {
                 percentageEl.textContent = `${percentage.toFixed(0)}%`;
+                if (percentage === 0) {
+                    percentageEl.classList.add('amount-zero');
+                } else {
+                    percentageEl.classList.remove('amount-zero');
+                }
             }
             
             if (progressEl) {
@@ -1167,7 +1440,10 @@ function updateMarketingRewardsBreakdown() {
             const percentageEl = document.getElementById(`${element}-percentage`);
             
             if (progressEl) progressEl.style.width = '0%';
-            if (percentageEl) percentageEl.textContent = '0%';
+            if (percentageEl) {
+                percentageEl.textContent = '0%';
+                percentageEl.classList.add('amount-zero');
+            }
         });
         
         return;
@@ -1184,7 +1460,7 @@ function updateMarketingRewardsBreakdown() {
     // Update total
     setStatValueWithZeroClass('marketing-rewards-breakdown-total', totalRewards);
     
-    // Update individual amounts
+    // Update individual amounts with zero styling
     setStatValueWithZeroClass('marketing-extraordinary', extraordinaryTotal);
     setStatValueWithZeroClass('marketing-reward', rewardsTotal);
     
@@ -1204,6 +1480,11 @@ function updateMarketingRewardsBreakdown() {
         
         if (percentageEl) {
             percentageEl.textContent = `${percentage.toFixed(0)}%`;
+            if (percentage === 0) {
+                percentageEl.classList.add('amount-zero');
+            } else {
+                percentageEl.classList.remove('amount-zero');
+            }
         }
         
         if (progressEl) {
@@ -1285,6 +1566,10 @@ function calculateStatistics(data) {
     // Největší investice = highest amount from investments
     const largestInvestment = investments.length > 0 ? 
         Math.max(...investments.map(row => Math.abs(row.castka))) : 0;
+    
+    // Find the largest investment transaction for tooltip
+    const largestInvestmentTransaction = investments.length > 0 ? 
+        investments.find(row => Math.abs(row.castka) === largestInvestment) : null;
     
     // Průměrná výše investice = mean of all investments
     const averageInvestment = investments.length > 0 ? 
@@ -1404,6 +1689,7 @@ function calculateStatistics(data) {
         averageInvestment,
         portfolioStages,
         largestInvestment,
+        largestInvestmentTransaction,
         totalFees,
         totalProfits,
         totalMarketingRewards,
@@ -4030,9 +4316,9 @@ function setStatValueWithZeroClass(elementId, value) {
         element.textContent = formatAmountWithOptionalDecimals(value).formattedAmount;
         // Add or remove zero class
         if (Math.abs(value) < 0.01) {
-            element.classList.add('zero');
+            element.classList.add('amount-zero');
         } else {
-            element.classList.remove('zero');
+            element.classList.remove('amount-zero');
         }
     }
 }
@@ -4409,6 +4695,81 @@ function calculatePortfolioSizeAtDate(targetDate) {
     });
     
     return portfolioSize;
+}
+
+function addTransactionStatTooltip(element, transaction) {
+    let tooltip = null;
+    
+    element.addEventListener('mouseenter', (e) => {
+        // Get type information for the transaction
+        const typeInfo = getTransactionTypeInfo(transaction.typ);
+        
+        // Create tooltip
+        tooltip = document.createElement('div');
+        tooltip.className = 'timeline-tooltip-horizontal';
+        
+        // Calculate portfolio size at the date of this transaction
+        const portfolioSize = calculatePortfolioSizeAtDate(transaction.datum);
+        
+        let tooltipContent = `
+            <div class="tooltip-header"><i class="${typeInfo.icon}"></i> ${transaction.typ}</div>
+            <div class="tooltip-row"><strong>Datum:</strong> ${locale.formatDate(transaction.datum)}</div>
+            <div class="tooltip-row"><strong>Částka:</strong> ${formatAmountWithOptionalDecimals(Math.abs(transaction.castka)).formattedAmount}</div>
+            <div class="tooltip-row"><strong>Velikost portfolia:</strong> ${formatAmountWithOptionalDecimals(portfolioSize).formattedAmount}</div>
+        `;
+        
+        if (transaction.projekt && transaction.projekt.trim()) {
+            tooltipContent += `<div class="tooltip-row"><strong>Projekt:</strong> ${transaction.projekt}</div>`;
+        }
+        
+        tooltip.innerHTML = tooltipContent;
+        tooltip.style.position = 'fixed';
+        tooltip.style.zIndex = '10000';
+        tooltip.style.pointerEvents = 'none';
+        
+        document.body.appendChild(tooltip);
+        
+        // Position tooltip
+        const rect = element.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        
+        // Position above the element by default
+        let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+        let top = rect.top - tooltipRect.height - 15;
+        
+        // Adjust if tooltip goes off screen horizontally
+        if (left < 10) {
+            left = 10;
+        } else if (left + tooltipRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - tooltipRect.width - 10;
+        }
+        
+        // If tooltip would go above viewport, show below instead
+        if (top < 10) {
+            top = rect.bottom + 15;
+            tooltip.classList.add('tooltip-below');
+        } else {
+            tooltip.classList.remove('tooltip-below');
+        }
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        tooltip.style.visibility = 'visible';
+        tooltip.style.opacity = '1';
+    });
+    
+    element.addEventListener('mouseleave', () => {
+        if (tooltip && tooltip.parentNode) {
+            tooltip.style.opacity = '0';
+            tooltip.style.visibility = 'hidden';
+            setTimeout(() => {
+                if (tooltip && tooltip.parentNode) {
+                    tooltip.parentNode.removeChild(tooltip);
+                }
+                tooltip = null;
+            }, 200);
+        }
+    });
 }
 
 function addHorizontalTimelineTooltip(element, transaction) {
