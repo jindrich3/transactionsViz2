@@ -2770,7 +2770,7 @@ select:focus {
 
 .chart-card-enhanced-time .chart-container {
     overflow: visible !important;
-    padding: 40px;
+    padding: 20px;
     margin: -20px;
 }
 
@@ -2778,7 +2778,7 @@ select:focus {
 .chart-card-enhanced .chart-container,
 .chart-card-enhanced-portfolio .chart-container {
     overflow: visible !important;
-    padding: 40px;
+    padding: 20px;
     margin: -20px;
     height: 400px;
     border-radius: 0 0 16px 16px;
@@ -2787,7 +2787,7 @@ select:focus {
 .chart-card-enhanced-time .chart-container {
     height: 400px;
     overflow: visible !important;
-    padding: 40px;
+    padding: 20px;
     margin: -20px;
     border-radius: 0 0 16px 16px;
 }
