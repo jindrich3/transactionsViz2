@@ -3269,28 +3269,19 @@ select:focus {
     background: var(--bg-secondary);
 }
 
-/* Override stats-grid for breakdown section to create asymmetric layout */
+/* Remove container padding for breakdown section to achieve full width */
+.breakdown-section .container {
+    padding: 0;
+    max-width: none;
+}
+
+/* Override stats-grid for breakdown section to create asymmetric layout with equal heights */
 .breakdown-section .stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 1fr;
     gap: var(--spacing-6);
-    grid-template-areas: 
-        "profit marketing"
-        "profit fees";
-}
-
-/* Assign grid areas to specific breakdown cards */
-.breakdown-section .stat-card:nth-child(1) {
-    grid-area: profit;
-}
-
-.breakdown-section .stat-card:nth-child(2) {
-    grid-area: marketing;
-}
-
-.breakdown-section .stat-card:nth-child(3) {
-    grid-area: fees;
+    align-items: stretch;
 }
 
 /* Breakdown Card Styling */
@@ -4191,3 +4182,4 @@ select:focus {
 .monthly-performance-section .section-title {
     margin-bottom: var(--spacing-6);
 }
+

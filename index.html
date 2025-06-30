@@ -281,7 +281,7 @@
         <section class="stats-section">
             <div class="container">
                 <h2 class="section-title">
-                    Základní statistiky
+                    Základní statistiky portfolia
                     <span class="info-tooltip">
                         <i class="fas fa-info-circle info-icon"></i>
                         <span class="tooltip-content">Přehled základních statistik portfolia včetně velikosti, výnosů, vkladů a dalších klíčových metrik.</span>
@@ -590,6 +590,164 @@
                     </div>
                 </div>
                 
+                <!-- Breakdown Components Section -->
+                <section class="breakdown-section">
+                    <div class="container">
+                        <h2 class="section-title">
+                            Detailní rozbory
+                            <span class="info-tooltip">
+                                <i class="fas fa-info-circle info-icon"></i>
+                                <span class="tooltip-content">Detailní rozbor klíčových finančních ukazatelů podle jednotlivých složek.</span>
+                            </span>
+                        </h2>
+                        
+                        <div class="stats-grid">
+
+                            <!-- Marketing Rewards Breakdown Card -->
+                            <div class="stat-card breakdown-card">
+                                <div class="stat-content">
+                                    <div class="breakdown-header">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-gift"></i>
+                                        </div>
+                                        <div class="breakdown-header-left">
+                                            <h3 class="stat-value" id="marketing-rewards-breakdown-total">
+                                                0 Kč
+                                                <span class="info-tooltip">
+                                                    <i class="fas fa-info-circle info-icon"></i>
+                                                    <span class="tooltip-content">Celkové marketingové odměny: Mimořádný příjem + Odměna</span>
+                                                </span>
+                                            </h3>
+                                            <p class="breakdown-title">
+                                                Marketingové odměny
+                                                <span class="info-tooltip">
+                                                    <i class="fas fa-info-circle info-icon"></i>
+                                                    <span class="tooltip-content">Detailní rozbor všech marketingových odměn a mimořádných příjmů.</span>
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-list">
+                                        <div class="breakdown-row">
+                                            <div class="breakdown-row-header">
+                                                <span class="breakdown-row-label">
+                                                    Mimořádný příjem
+                                                    <span class="info-tooltip">
+                                                        <i class="fas fa-info-circle info-icon"></i>
+                                                        <span class="tooltip-content">Mimořádné příjmy z platformy</span>
+                                                    </span>
+                                                </span>
+                                                <span class="breakdown-row-value">
+                                                    <span class="breakdown-percentage" id="marketing-extraordinary-percentage">0%</span>
+                                                    <span id="marketing-extraordinary">0 Kč</span>
+                                                </span>
+                                            </div>
+                                            <div class="breakdown-progress-wrapper">
+                                                <div class="breakdown-progress-track">
+                                                    <div class="breakdown-progress-fill marketing-extraordinary" id="marketing-extraordinary-progress" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="breakdown-row">
+                                            <div class="breakdown-row-header">
+                                                <span class="breakdown-row-label">
+                                                    Odměna
+                                                    <span class="info-tooltip">
+                                                        <i class="fas fa-info-circle info-icon"></i>
+                                                        <span class="tooltip-content">Marketingové a referral odměny</span>
+                                                    </span>
+                                                </span>
+                                                <span class="breakdown-row-value">
+                                                    <span class="breakdown-percentage" id="marketing-reward-percentage">0%</span>
+                                                    <span id="marketing-reward">0 Kč</span>
+                                                </span>
+                                            </div>
+                                            <div class="breakdown-progress-wrapper">
+                                                <div class="breakdown-progress-track">
+                                                    <div class="breakdown-progress-fill marketing-reward" id="marketing-reward-progress" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Fee Breakdown Card -->
+                            <div class="stat-card breakdown-card">
+                                <div class="stat-content">
+                                    <div class="breakdown-header">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-receipt"></i>
+                                        </div>
+                                        <div class="breakdown-header-left">
+                                            <h3 class="stat-value" id="fee-breakdown-total">
+                                                0 Kč
+                                                <span class="info-tooltip">
+                                                    <i class="fas fa-info-circle info-icon"></i>
+                                                    <span class="tooltip-content">Součet všech poplatků: Poplatek za předčasný prodej + Poplatek za výběr</span>
+                                                </span>
+                                            </h3>
+                                            <p class="breakdown-title">
+                                                Detailní rozbor poplatků
+                                                <span class="info-tooltip">
+                                                    <i class="fas fa-info-circle info-icon"></i>
+                                                    <span class="tooltip-content">Detailní rozbor všech poplatků účtovaných platformou podle typu.</span>
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-list">
+                                        <div class="breakdown-row">
+                                            <div class="breakdown-row-header">
+                                                <span class="breakdown-row-label">
+                                                    Předčasný prodej
+                                                    <span class="info-tooltip">
+                                                        <i class="fas fa-info-circle info-icon"></i>
+                                                        <span class="tooltip-content">Poplatek za předčasný prodej - účtovaný při předčasném prodeji investice</span>
+                                                    </span>
+                                                </span>
+                                                <span class="breakdown-row-value">
+                                                    <span class="breakdown-percentage" id="early-sale-percentage">0%</span>
+                                                    <span id="early-sale-fee">0 Kč</span>
+                                                </span>
+                                            </div>
+                                            <div class="breakdown-progress-wrapper">
+                                                <div class="breakdown-progress-track">
+                                                    <div class="breakdown-progress-fill early-sale" id="early-sale-progress" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="breakdown-row">
+                                            <div class="breakdown-row-header">
+                                                <span class="breakdown-row-label">
+                                                    Výběr
+                                                    <span class="info-tooltip">
+                                                        <i class="fas fa-info-circle info-icon"></i>
+                                                        <span class="tooltip-content">Poplatek za výběr - účtovaný při výběru peněz z platformy</span>
+                                                    </span>
+                                                </span>
+                                                <span class="breakdown-row-value">
+                                                    <span class="breakdown-percentage" id="withdrawal-percentage">0%</span>
+                                                    <span id="withdrawal-fee">0 Kč</span>
+                                                </span>
+                                            </div>
+                                            <div class="breakdown-progress-wrapper">
+                                                <div class="breakdown-progress-track">
+                                                    <div class="breakdown-progress-fill withdrawal" id="withdrawal-progress" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+
+                        </div>
+                    </div>
+                </section>
+                
                 <div class="stats-grid">
 
 
@@ -769,163 +927,7 @@
             </div>
         </section>
 
-        <!-- Breakdown Components Section -->
-        <section class="breakdown-section">
-            <div class="container">
-                <h2 class="section-title">
-                    Detailní rozbory
-                    <span class="info-tooltip">
-                        <i class="fas fa-info-circle info-icon"></i>
-                        <span class="tooltip-content">Detailní rozbor klíčových finančních ukazatelů podle jednotlivých složek.</span>
-                    </span>
-                </h2>
-                
-                <div class="stats-grid">
 
-                    <!-- Marketing Rewards Breakdown Card -->
-                    <div class="stat-card breakdown-card">
-                        <div class="stat-content">
-                            <div class="breakdown-header">
-                                <div class="stat-icon">
-                                    <i class="fas fa-gift"></i>
-                                </div>
-                                <div class="breakdown-header-left">
-                                    <h3 class="stat-value" id="marketing-rewards-breakdown-total">
-                                        0 Kč
-                                        <span class="info-tooltip">
-                                            <i class="fas fa-info-circle info-icon"></i>
-                                            <span class="tooltip-content">Celkové marketingové odměny: Mimořádný příjem + Odměna</span>
-                                        </span>
-                                    </h3>
-                                    <p class="breakdown-title">
-                                        Marketingové odměny
-                                        <span class="info-tooltip">
-                                            <i class="fas fa-info-circle info-icon"></i>
-                                            <span class="tooltip-content">Detailní rozbor všech marketingových odměn a mimořádných příjmů.</span>
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="breakdown-list">
-                                <div class="breakdown-row">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Mimořádný příjem
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Mimořádné příjmy z platformy</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="marketing-extraordinary-percentage">0%</span>
-                                            <span id="marketing-extraordinary">0 Kč</span>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill marketing-extraordinary" id="marketing-extraordinary-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="breakdown-row">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Odměna
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Marketingové a referral odměny</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="marketing-reward-percentage">0%</span>
-                                            <span id="marketing-reward">0 Kč</span>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill marketing-reward" id="marketing-reward-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Fee Breakdown Card -->
-                    <div class="stat-card breakdown-card">
-                        <div class="stat-content">
-                            <div class="breakdown-header">
-                                <div class="stat-icon">
-                                    <i class="fas fa-receipt"></i>
-                                </div>
-                                <div class="breakdown-header-left">
-                                    <h3 class="stat-value" id="fee-breakdown-total">
-                                        0 Kč
-                                        <span class="info-tooltip">
-                                            <i class="fas fa-info-circle info-icon"></i>
-                                            <span class="tooltip-content">Součet všech poplatků: Poplatek za předčasný prodej + Poplatek za výběr</span>
-                                        </span>
-                                    </h3>
-                                    <p class="breakdown-title">
-                                        Detailní rozbor poplatků
-                                        <span class="info-tooltip">
-                                            <i class="fas fa-info-circle info-icon"></i>
-                                            <span class="tooltip-content">Detailní rozbor všech poplatků účtovaných platformou podle typu.</span>
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="breakdown-list">
-                                <div class="breakdown-row">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Předčasný prodej
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Poplatek za předčasný prodej - účtovaný při předčasném prodeji investice</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="early-sale-percentage">0%</span>
-                                            <span id="early-sale-fee">0 Kč</span>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill early-sale" id="early-sale-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="breakdown-row">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Výběr
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Poplatek za výběr - účtovaný při výběru peněz z platformy</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="withdrawal-percentage">0%</span>
-                                            <span id="withdrawal-fee">0 Kč</span>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill withdrawal" id="withdrawal-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-
-                </div>
-            </div>
-        </section>
 
         <!-- Data Table -->
         <section class="table-section">
