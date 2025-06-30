@@ -7,7 +7,7 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAVlJREFUWEftml0uBEEQhb8RG2E7gZOwE7ARO4EdwUY4CRvhJGzERtiInfgRG+EkbISNcBLvmXeaMZmpmq6Z6XnJk0n6p+qre6uqE/xwkR/ufyEBHgAvwBPwdijwAryzFwIPAG4P/gPwBOAVwCP+ZKsB3Br8CuDW4FcAtwZ/q0HXgQd4BR7gFXiAV+ABXoEHGH8OHgGXgCdYBQ7ABnAD3LdqWQCHwCFwCBwCh8AhcAgcAofAIXAIHAKHwCFwCBwCh8AhcAocgk7gEHQCh6ATOASdwCHoBA5BJ3AIXoFD8AocAofAJW8B7AF7wB6wB+wBe8AesAfAC4AF4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+AC/+MCPgA2VJxD3bKxAAAAAElFTkSuQmCC">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAVlJREFUWEftml0uBEEQhb8RG2E7gZOwE7ARO4EdwUY4CRvhJGzERtiInfgRG+EkbISNcBLvmXeaMZmpmq6Z6XnJk0n6p+qre6uqE/xwkR/ufyEBHgAvwBPwdijwAryzFwIPAG4P/gPwBOAVwCP+ZKsB3Br8CuDW4FcAtwZ/q0HXgQd4BR7gFXiAV+ABXoEHGH8OHgGXgCdYBQ7ABnAD3LdqWQCHwCFwCBwCh8AhcAocgk7gEHQCh6ATOASdwCHoBA5BJ3AIXoFD8AocAofAJW8B7AF7wB6wB+wBe8AesAfAC4AF4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+ACuAAugAvgArgALoAL4AK4AC6AC+AC/+MCPgA2VJxD3bKxAAAAAElFTkSuQmCC">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -148,6 +148,135 @@
             </div>
         </section>
 
+        <!-- Monthly Performance Section -->
+        <section class="monthly-performance-section">
+            <div class="container">
+                <h2 class="section-title">
+                    Jak se vám daří tento měsíc?
+                    <span class="info-tooltip">
+                        <i class="fas fa-info-circle info-icon"></i>
+                        <span class="tooltip-content">Přehled všech výnosů a zisků za aktuální měsíc investování.</span>
+                    </span>
+                </h2>
+                
+                <!-- Current Month Payouts Breakdown Card -->
+                <div class="stat-card breakdown-card current-month-breakdown">
+                    <div class="stat-content">
+                        <div class="breakdown-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="breakdown-header-left">
+                                <h3 class="stat-value" id="current-month-payouts-total">
+                                    0 Kč
+                                    <span class="info-tooltip">
+                                        <i class="fas fa-info-circle info-icon"></i>
+                                        <span class="tooltip-content">Celkové zisky za aktuální měsíc: Výnosy + Bonusový výnos + Smluvní pokuty + Zákonné úroky z prodlení</span>
+                                    </span>
+                                </h3>
+                                <p class="breakdown-title">
+                                    Vyplaceno za aktuální měsíc
+                                    <span class="info-tooltip">
+                                        <i class="fas fa-info-circle info-icon"></i>
+                                        <span class="tooltip-content">Detailní rozbor všech zisků za poslední měsíc. Aktuální měsíc je definován jako poslední měsíc, ve kterém proběhly transakce. Poplatky nejsou započítávány.</span>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="breakdown-list">
+                            <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Výnos">
+                                <div class="breakdown-row-header">
+                                    <span class="breakdown-row-label">
+                                        Výnosy
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Standardní výnosy z investic za aktuální měsíc</span>
+                                        </span>
+                                    </span>
+                                    <span class="breakdown-row-value">
+                                        <span class="breakdown-percentage" id="current-month-returns-percentage">0%</span>
+                                        <span id="current-month-returns">0 Kč</span>
+                                        <i class="fas fa-external-link-alt breakdown-row-icon"></i>
+                                    </span>
+                                </div>
+                                <div class="breakdown-progress-wrapper">
+                                    <div class="breakdown-progress-track">
+                                        <div class="breakdown-progress-fill current-month-returns" id="current-month-returns-progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Bonusový výnos">
+                                <div class="breakdown-row-header">
+                                    <span class="breakdown-row-label">
+                                        Bonusové výnosy
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Bonusové výnosy dle Premium levelu z investic za aktuální měsíc</span>
+                                        </span>
+                                    </span>
+                                    <span class="breakdown-row-value">
+                                        <span class="breakdown-percentage" id="current-month-bonus-percentage">0%</span>
+                                        <span id="current-month-bonus">0 Kč</span>
+                                        <i class="fas fa-external-link-alt breakdown-row-icon"></i>
+                                    </span>
+                                </div>
+                                <div class="breakdown-progress-wrapper">
+                                    <div class="breakdown-progress-track">
+                                        <div class="breakdown-progress-fill current-month-bonus" id="current-month-bonus-progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Smluvní pokuta">
+                                <div class="breakdown-row-header">
+                                    <span class="breakdown-row-label">
+                                        Smluvní pokuty
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Smluvní pokuty za opožděné splátky závazků za aktuální měsíc</span>
+                                        </span>
+                                    </span>
+                                    <span class="breakdown-row-value">
+                                        <span class="breakdown-percentage" id="current-month-penalty-percentage">0%</span>
+                                        <span id="current-month-penalty">0 Kč</span>
+                                        <i class="fas fa-external-link-alt breakdown-row-icon"></i>
+                                    </span>
+                                </div>
+                                <div class="breakdown-progress-wrapper">
+                                    <div class="breakdown-progress-track">
+                                        <div class="breakdown-progress-fill current-month-penalty" id="current-month-penalty-progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Zákonné úroky z prodlení">
+                                <div class="breakdown-row-header">
+                                    <span class="breakdown-row-label">
+                                        Zákonné úroky z prodlení
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Zákonné úroky z prodlení splátek závazků za aktuální měsíc</span>
+                                        </span>
+                                    </span>
+                                    <span class="breakdown-row-value">
+                                        <span class="breakdown-percentage" id="current-month-interest-percentage">0%</span>
+                                        <span id="current-month-interest">0 Kč</span>
+                                        <i class="fas fa-external-link-alt breakdown-row-icon"></i>
+                                    </span>
+                                </div>
+                                <div class="breakdown-progress-wrapper">
+                                    <div class="breakdown-progress-track">
+                                        <div class="breakdown-progress-fill current-month-interest" id="current-month-interest-progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Statistics Cards -->
         <section class="stats-section">
             <div class="container">
@@ -159,99 +288,313 @@
                     </span>
                 </h2>
                 
+                <!-- Portfolio Overview Section -->
+                <div class="portfolio-overview-section">
+                    <div class="portfolio-overview-grid">
+                        <!-- Chart on the left -->
+                        <div class="chart-container-overview">
+                            <div class="chart-card chart-card-enhanced-time">
+                                <div class="chart-header">
+                                    <h3>
+                                        Vývoj velikosti portfolia
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Kumulativní čistá investice v čase. Počítá se jako: Autoinvestice + Investice - Prodej - Vrácení peněz - Odstoupení - Splacení jistiny - Částečné splacení jistiny.</span>
+                                        </span>
+                                    </h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="time-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats on the right -->
+                        <div class="stats-container-overview">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-value" id="total-investment">0 Kč</h3>
+                                    <h4 class="stat-subvalue" id="blocked-on-market" style="display: none;">Z toho blok. na tržišti: 0,00 Kč</h4>
+                                    <p class="stat-label">
+                                        Aktuální velikost portfolia
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Investice + Autoinvestice - Prodej - Vrácení peněz - Odstoupení - Částečné splacení jistiny - Splacení jistiny.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-value" id="twrr-12-months">0%</h3>
+                                    <h4 class="stat-subvalue" id="twrr-no-marketing-row">Bez market. odměn: <span id="twrr-12-months-no-marketing">0%</span></h4>
+                                    <p class="stat-label">
+                                        TWRR (12 měsíců)
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Časově vážená míra návratnosti (Time-Weighted Rate of Return) za posledních 12 měsíců. Měří výkonnost portfolia nezávisle na vkladech a výběrech. "Bez market. odměn" excluduje Odměna a Mimořádný příjem z výpočtu výkonnosti.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-value" id="gross-current-yield">0%</h3>
+                                    <p class="stat-label">
+                                        Hrubý aktuální výnos
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Nejedná se o roční úrokovou sazbu, ale o celkový procentuální výnos za dobu investování na Investownu bez poplatků a marketingových odměn. Počítá se jako (Výnosy celkem / Investice celkem) × 100%. Nezohledňuje potenciální úroky z neukončených projektů.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-project-diagram"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-value" id="portfolio-stages">0</h3>
+                                    <p class="stat-label">
+                                        Počet etap v portfoliu
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Aktivní etapy / Celkové etapy. Aktivní etapa je projekt, kde Splaceno (Splacení jistiny + Částečné splacení jistiny) < Investováno (Investice + Autoinvestice - Odstoupení - Vrácení peněz).</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Net Profit Overview Section -->
+                <div class="net-profit-overview-section">
+                    <div class="net-profit-overview-grid">
+                        <!-- Stats on the left -->
+                        <div class="stats-container-net-profit">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-value" id="wallet-balance">0 Kč</h3>
+                                    <p class="stat-label">
+                                        Stav peněženky
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Teoretický stav peněženky na platformě vypočítaný jako: Celkové vklady - Aktuální velikost portfolia + Celkový čistý výnos investic - Celkové výběry - Nabídka ke koupi + Vrácení nabídky. Hodnota je zobrazena v absolutní hodnotě.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-value" id="total-deposits">0 Kč</h3>
+                                    <p class="stat-label">
+                                        Celkové vklady
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Součet všech vkladů peněz na platformu.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-arrow-down"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-value" id="total-withdrawals">0 Kč</h3>
+                                    <p class="stat-label">
+                                        Celkové výběry
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Součet všech výběrů peněz z platformy.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-value" id="transaction-count-stat">0</h3>
+                                    <p class="stat-label">
+                                        Počet transakcí
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Celkový počet všech transakcí v portfoliu.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Net Profit Breakdown on the right -->
+                        <div class="breakdown-container-overview">
+                            <div class="stat-card breakdown-card">
+                                <div class="stat-content">
+                                    <div class="breakdown-header">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <div class="breakdown-header-left">
+                                            <h3 class="stat-value" id="net-profit-breakdown-total">
+                                                0 Kč
+                                                <span class="info-tooltip">
+                                                    <i class="fas fa-info-circle info-icon"></i>
+                                                    <span class="tooltip-content">Celkový čistý výnos: (Výnosy + Bonusový výnos + Smluvní pokuta + Zákonné úroky z prodlení) - (Poplatek za předčasný prodej + Poplatek za výběr)</span>
+                                                </span>
+                                            </h3>
+                                            <p class="breakdown-title">
+                                                Celkový čistý výnos investic
+                                                <span class="info-tooltip">
+                                                    <i class="fas fa-info-circle info-icon"></i>
+                                                    <span class="tooltip-content">Detailní rozbor čistého výnosu z investic po odečtení všech poplatků.</span>
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-list">
+                                        <div class="breakdown-row">
+                                            <div class="breakdown-row-header">
+                                                <span class="breakdown-row-label">
+                                                    Výnosy
+                                                    <span class="info-tooltip">
+                                                        <i class="fas fa-info-circle info-icon"></i>
+                                                        <span class="tooltip-content">Standardní výnosy z investic</span>
+                                                    </span>
+                                                </span>
+                                                <span class="breakdown-row-value">
+                                                    <span class="breakdown-percentage" id="profit-returns-percentage">0%</span>
+                                                    <span id="profit-returns">0 Kč</span>
+                                                </span>
+                                            </div>
+                                            <div class="breakdown-progress-wrapper">
+                                                <div class="breakdown-progress-track">
+                                                    <div class="breakdown-progress-fill profit-returns" id="profit-returns-progress" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="breakdown-row">
+                                            <div class="breakdown-row-header">
+                                                <span class="breakdown-row-label">
+                                                    Bonusový výnos
+                                                    <span class="info-tooltip">
+                                                        <i class="fas fa-info-circle info-icon"></i>
+                                                        <span class="tooltip-content">Bonusové výnosy z investic</span>
+                                                    </span>
+                                                </span>
+                                                <span class="breakdown-row-value">
+                                                    <span class="breakdown-percentage" id="profit-bonus-percentage">0%</span>
+                                                    <span id="profit-bonus">0 Kč</span>
+                                                </span>
+                                            </div>
+                                            <div class="breakdown-progress-wrapper">
+                                                <div class="breakdown-progress-track">
+                                                    <div class="breakdown-progress-fill profit-bonus" id="profit-bonus-progress" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="breakdown-row">
+                                            <div class="breakdown-row-header">
+                                                <span class="breakdown-row-label">
+                                                    Smluvní pokuty
+                                                    <span class="info-tooltip">
+                                                        <i class="fas fa-info-circle info-icon"></i>
+                                                        <span class="tooltip-content">Smluvní pokuty</span>
+                                                    </span>
+                                                </span>
+                                                <span class="breakdown-row-value">
+                                                    <span class="breakdown-percentage" id="profit-penalty-percentage">0%</span>
+                                                    <span id="profit-penalty">0 Kč</span>
+                                                </span>
+                                            </div>
+                                            <div class="breakdown-progress-wrapper">
+                                                <div class="breakdown-progress-track">
+                                                    <div class="breakdown-progress-fill profit-penalty" id="profit-penalty-progress" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="breakdown-row">
+                                            <div class="breakdown-row-header">
+                                                <span class="breakdown-row-label">
+                                                    Zákonné úroky z prodlení
+                                                    <span class="info-tooltip">
+                                                        <i class="fas fa-info-circle info-icon"></i>
+                                                        <span class="tooltip-content">Zákonné úroky z prodlení</span>
+                                                    </span>
+                                                </span>
+                                                <span class="breakdown-row-value">
+                                                    <span class="breakdown-percentage" id="profit-interest-percentage">0%</span>
+                                                    <span id="profit-interest">0 Kč</span>
+                                                </span>
+                                            </div>
+                                            <div class="breakdown-progress-wrapper">
+                                                <div class="breakdown-progress-track">
+                                                    <div class="breakdown-progress-fill profit-interest" id="profit-interest-progress" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="breakdown-row">
+                                            <div class="breakdown-row-header">
+                                                <span class="breakdown-row-label">
+                                                    Poplatky (odečteno)
+                                                    <span class="info-tooltip">
+                                                        <i class="fas fa-info-circle info-icon"></i>
+                                                        <span class="tooltip-content">Poplatky za předčasný prodej a výběr (odečteno od celkového výnosu)</span>
+                                                    </span>
+                                                </span>
+                                                <span class="breakdown-row-value">
+                                                    <span class="breakdown-percentage" id="profit-fees-percentage">0%</span>
+                                                    <span id="profit-fees">0 Kč</span>
+                                                </span>
+                                            </div>
+                                            <div class="breakdown-progress-wrapper">
+                                                <div class="breakdown-progress-track">
+                                                    <div class="breakdown-progress-fill profit-fees" id="profit-fees-progress" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="total-investment">0 Kč</h3>
-                            <h4 class="stat-subvalue" id="blocked-on-market" style="display: none;">Z toho blok. na tržišti: 0,00 Kč</h4>
-                            <p class="stat-label">
-                                Aktuální velikost portfolia
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Investice + Autoinvestice - Prodej - Vrácení peněz - Odstoupení - Částečné splacení jistiny - Splacení jistiny.</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-percentage"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="gross-current-yield">0%</h3>
-                            <p class="stat-label">
-                                Hrubý aktuální výnos
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Nejedná se o roční úrokovou sazbu, ale o celkový procentuální výnos za dobu investování na Investownu bez poplatků a marketingových odměn. Počítá se jako (Výnosy celkem / Investice celkem) × 100%. Nezohledňuje potenciální úroky z neukončených projektů.</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-list"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="transaction-count-stat">0</h3>
-                            <p class="stat-label">
-                                Počet transakcí
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Celkový počet všech transakcí v portfoliu.</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-arrow-up"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="total-deposits">0 Kč</h3>
-                            <p class="stat-label">
-                                Celkové vklady
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Součet všech vkladů peněz na platformu.</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-arrow-down"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="total-withdrawals">0 Kč</h3>
-                            <p class="stat-label">
-                                Celkové výběry
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Součet všech výběrů peněz z platformy.</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-project-diagram"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="portfolio-stages">0</h3>
-                            <p class="stat-label">
-                                Počet etap v portfoliu
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Aktivní etapy / Celkové etapy. Aktivní etapa je projekt, kde Splaceno (Splacení jistiny + Částečné splacení jistiny) < Investováno (Investice + Autoinvestice - Odstoupení - Vrácení peněz).</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
+
+
+
 
                     <div class="stat-card">
                         <div class="stat-icon">
@@ -283,21 +626,7 @@
                             </p>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-wallet"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="wallet-balance">0 Kč</h3>
-                            <p class="stat-label">
-                                Stav peněženky
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Teoretický stav peněženky na platformě vypočítaný jako: Celkové vklady - Aktuální velikost portfolia + Celkový čistý výnos investic - Celkové výběry - Nabídka ke koupi + Vrácení nabídky. Hodnota je zobrazena v absolutní hodnotě.</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
+
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-calendar-alt"></i>
@@ -331,22 +660,6 @@
                         </div>
                     </div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 class="stat-value" id="twrr-12-months">0%</h3>
-                            <h4 class="stat-subvalue" id="twrr-no-marketing-row">Bez market. odměn: <span id="twrr-12-months-no-marketing">0%</span></h4>
-                            <p class="stat-label">
-                                TWRR (12 měsíců)
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Časově vážená míra návratnosti (Time-Weighted Rate of Return) za posledních 12 měsíců. Měří výkonnost portfolia nezávisle na vkladech a výběrech. "Bez market. odměn" excluduje Odměna a Mimořádný příjem z výpočtu výkonnosti.</span>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
@@ -468,139 +781,7 @@
                 </h2>
                 
                 <div class="stats-grid">
-                    <!-- Net Investment Profit Breakdown Card -->
-                    <div class="stat-card breakdown-card">
-                        <div class="stat-content">
-                            <div class="breakdown-header">
-                                <div class="stat-icon">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                                <div class="breakdown-header-left">
-                                    <h3 class="stat-value" id="net-profit-breakdown-total">
-                                        0 Kč
-                                        <span class="info-tooltip">
-                                            <i class="fas fa-info-circle info-icon"></i>
-                                            <span class="tooltip-content">Celkový čistý výnos: (Výnosy + Bonusový výnos + Smluvní pokuta + Zákonné úroky z prodlení) - (Poplatek za předčasný prodej + Poplatek za výběr)</span>
-                                        </span>
-                                    </h3>
-                                    <p class="breakdown-title">
-                                        Celkový čistý výnos investic
-                                        <span class="info-tooltip">
-                                            <i class="fas fa-info-circle info-icon"></i>
-                                            <span class="tooltip-content">Detailní rozbor čistého výnosu z investic po odečtení všech poplatků.</span>
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="breakdown-list">
-                                <div class="breakdown-row">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Výnosy
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Standardní výnosy z investic</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="profit-returns-percentage">0%</span>
-                                            <span id="profit-returns">0 Kč</span>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill profit-returns" id="profit-returns-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="breakdown-row">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Bonusový výnos
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Bonusové výnosy z investic</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="profit-bonus-percentage">0%</span>
-                                            <span id="profit-bonus">0 Kč</span>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill profit-bonus" id="profit-bonus-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="breakdown-row">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Smluvní pokuty
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Smluvní pokuty</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="profit-penalty-percentage">0%</span>
-                                            <span id="profit-penalty">0 Kč</span>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill profit-penalty" id="profit-penalty-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="breakdown-row">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Zákonné úroky z prodlení
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Zákonné úroky z prodlení</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="profit-interest-percentage">0%</span>
-                                            <span id="profit-interest">0 Kč</span>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill profit-interest" id="profit-interest-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="breakdown-row">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Poplatky (odečteno)
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Poplatky za předčasný prodej a výběr (odečteno od celkového výnosu)</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="profit-fees-percentage">0%</span>
-                                            <span id="profit-fees">0 Kč</span>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill profit-fees" id="profit-fees-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
+
                     <!-- Marketing Rewards Breakdown Card -->
                     <div class="stat-card breakdown-card">
                         <div class="stat-content">
@@ -741,121 +922,7 @@
                         </div>
                     </div>
                     
-                    <!-- Current Month Payouts Breakdown Card -->
-                    <div class="stat-card breakdown-card current-month-breakdown">
-                        <div class="stat-content">
-                            <div class="breakdown-header">
-                                <div class="stat-icon">
-                                    <i class="fas fa-calendar-check"></i>
-                                </div>
-                                <div class="breakdown-header-left">
-                                    <h3 class="stat-value" id="current-month-payouts-total">
-                                        0 Kč
-                                        <span class="info-tooltip">
-                                            <i class="fas fa-info-circle info-icon"></i>
-                                            <span class="tooltip-content">Celkové zisky za aktuální měsíc: Výnosy + Bonusový výnos + Smluvní pokuty + Zákonné úroky z prodlení</span>
-                                        </span>
-                                    </h3>
-                                    <p class="breakdown-title">
-                                        Vyplaceno za aktuální měsíc
-                                        <span class="info-tooltip">
-                                            <i class="fas fa-info-circle info-icon"></i>
-                                            <span class="tooltip-content">Detailní rozbor všech zisků za poslední měsíc. Aktuální měsíc je definován jako poslední měsíc, ve kterém proběhly transakce. Poplatky nejsou započítávány.</span>
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="breakdown-list">
-                                <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Výnos">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Výnosy
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Standardní výnosy z investic za aktuální měsíc</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="current-month-returns-percentage">0%</span>
-                                            <span id="current-month-returns">0 Kč</span>
-                                            <i class="fas fa-external-link-alt breakdown-row-icon"></i>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill current-month-returns" id="current-month-returns-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Bonusový výnos">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Bonusové výnosy
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Bonusové výnosy dle Premium levelu z investic za aktuální měsíc</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="current-month-bonus-percentage">0%</span>
-                                            <span id="current-month-bonus">0 Kč</span>
-                                            <i class="fas fa-external-link-alt breakdown-row-icon"></i>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill current-month-bonus" id="current-month-bonus-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Smluvní pokuta">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Smluvní pokuty
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Smluvní pokuty za opožděné splátky závazků za aktuální měsíc</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="current-month-penalty-percentage">0%</span>
-                                            <span id="current-month-penalty">0 Kč</span>
-                                            <i class="fas fa-external-link-alt breakdown-row-icon"></i>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill current-month-penalty" id="current-month-penalty-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Zákonné úroky z prodlení">
-                                    <div class="breakdown-row-header">
-                                        <span class="breakdown-row-label">
-                                            Zákonné úroky z prodlení
-                                            <span class="info-tooltip">
-                                                <i class="fas fa-info-circle info-icon"></i>
-                                                <span class="tooltip-content">Zákonné úroky z prodlení splátek závazků za aktuální měsíc</span>
-                                            </span>
-                                        </span>
-                                        <span class="breakdown-row-value">
-                                            <span class="breakdown-percentage" id="current-month-interest-percentage">0%</span>
-                                            <span id="current-month-interest">0 Kč</span>
-                                            <i class="fas fa-external-link-alt breakdown-row-icon"></i>
-                                        </span>
-                                    </div>
-                                    <div class="breakdown-progress-wrapper">
-                                        <div class="breakdown-progress-track">
-                                            <div class="breakdown-progress-fill current-month-interest" id="current-month-interest-progress" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </section>
@@ -1069,21 +1136,7 @@
                         </div>
                     </div>
 
-                    <!-- Time Series Chart -->
-                    <div class="chart-card chart-card-enhanced-time">
-                        <div class="chart-header">
-                            <h3>
-                                Vývoj velikosti portfolia
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Kumulativní čistá investice v čase. Počítá se jako: Autoinvestice + Investice - Prodej - Vrácení peněz - Odstoupení - Splacení jistiny - Částečné splacení jistiny.</span>
-                                </span>
-                            </h3>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="time-chart"></canvas>
-                        </div>
-                    </div>
+
 
                     <!-- Project Distribution -->
                     <div class="chart-card chart-card-enhanced-time">
