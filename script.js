@@ -844,10 +844,7 @@ function getYearPlural(count) {
 }
 
 function calculate12MonthTWRR() {
-    console.log('=== TWRR CALCULATION START ===');
-    
     if (!csvData || csvData.length === 0) {
-        console.log('❌ No CSV data available');
         return 0;
     }
     
@@ -855,14 +852,9 @@ function calculate12MonthTWRR() {
     const currentDate = new Date();
     const twelveMonthsAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 12, 1);
     
-    console.log(`📅 Date range: ${twelveMonthsAgo.toLocaleDateString('cs-CZ')} to ${currentDate.toLocaleDateString('cs-CZ')}`);
-    console.log(`📊 Total transactions to analyze: ${csvData.length}`);
-    
     // Group data by month for the last 12 months
     const monthlyData = {};
     const monthlyProfit = {};
-    
-    console.log('\n🔍 STEP 1: Processing transactions for last 12 months...');
     
     csvData.forEach((row, index) => {
         if (row.datum >= twelveMonthsAgo) {
@@ -877,14 +869,11 @@ function calculate12MonthTWRR() {
             
             const amount = Math.abs(row.castka);
             
-            console.log(`  Transaction ${index + 1}: ${row.datum.toLocaleDateString('cs-CZ')} | ${row.typ} | ${amount} Kč`);
-            
             // Calculate net investment (capital movements)
             switch (row.typ) {
                 case 'Autoinvestice':
                 case 'Investice':
                     monthlyData[monthKey] += amount;
-                    console.log(`    ➕ Added to investments: ${amount} Kč (total for ${monthKey}: ${monthlyData[monthKey]} Kč)`);
                     break;
                 case 'Prodej':
                 case 'Vrácení peněz':
@@ -892,7 +881,6 @@ function calculate12MonthTWRR() {
                 case 'Splacení jistiny':
                 case 'Částečné splacení jistiny':
                     monthlyData[monthKey] -= amount;
-                    console.log(`    ➖ Subtracted from investments: ${amount} Kč (total for ${monthKey}: ${monthlyData[monthKey]} Kč)`);
                     break;
             }
             
@@ -905,15 +893,11 @@ function calculate12MonthTWRR() {
                 case 'Odměna':
                 case 'Mimořádný příjem':
                     monthlyProfit[monthKey] += amount;
-                    console.log(`    💰 Added to profits: ${amount} Kč (total for ${monthKey}: ${monthlyProfit[monthKey]} Kč)`);
                     break;
                 case 'Poplatek za předčasný prodej':
                 case 'Poplatek za výběr':
                     monthlyProfit[monthKey] -= amount;
-                    console.log(`    💸 Subtracted from profits: ${amount} Kč (total for ${monthKey}: ${monthlyProfit[monthKey]} Kč)`);
                     break;
-                default:
-                    console.log(`    ⚪ No impact on TWRR calculation`);
             }
         }
     });
@@ -921,20 +905,11 @@ function calculate12MonthTWRR() {
     // Get months in chronological order
     const allMonths = [...new Set([...Object.keys(monthlyData), ...Object.keys(monthlyProfit)])].sort();
     
-    console.log(`\n📋 STEP 2: Monthly summaries for last 12 months:`);
-    allMonths.forEach(month => {
-        console.log(`  ${month}: Investment=${monthlyData[month] || 0} Kč, Profit=${monthlyProfit[month] || 0} Kč`);
-    });
-    
-    console.log(`\n🎯 STEP 3: Calculating capital base at start of 12-month period...`);
-    
     // Calculate CAPITAL BASE (investments only) at the start of 12-month period
     let capitalBaseAtStart = 0;
-    let transactionsBeforeStart = 0;
     
     csvData.forEach(row => {
         if (row.datum < twelveMonthsAgo) {
-            transactionsBeforeStart++;
             const amount = Math.abs(row.castka);
             
             // Calculate net capital investment before the 12-month period (NO PROFITS)
@@ -956,20 +931,9 @@ function calculate12MonthTWRR() {
         }
     });
     
-    console.log(`  📈 Transactions before start date: ${transactionsBeforeStart}`);
-    console.log(`  💼 Capital base at start: ${capitalBaseAtStart.toFixed(2)} Kč`);
-    
-    console.log(`\n🧮 STEP 4: Calculating monthly TWRR rates...`);
-    console.log(`  ⚠️  IMPORTANT: Beginning value = CAPITAL BASE at start of month (investments only)`);
-    console.log(`  ⚠️  IMPORTANT: Ending value = CAPITAL BASE at end of month (after cash flows)`);
-    console.log(`  ⚠️  IMPORTANT: TWRR = Monthly Profit / Beginning Capital Base`);
-    
     // Track running capital base (investments only, no profits)
     let runningCapitalBase = capitalBaseAtStart;
     let compoundedReturn = 1; // Start with 1 for geometric compounding
-    
-    console.log(`  🏁 Capital base at start of 12-month period: ${runningCapitalBase.toFixed(2)} Kč`);
-    console.log(`  🎲 Starting compounded return: ${compoundedReturn}`);
     
     allMonths.forEach((month, index) => {
         const investment = monthlyData[month] || 0;
@@ -984,46 +948,20 @@ function calculate12MonthTWRR() {
         // Update running capital base for next month
         runningCapitalBase = endingCapitalBase;
         
-        console.log(`\n  📅 Month ${index + 1}: ${month}`);
-        console.log(`    💰 Beginning capital base: ${beginningCapitalBase.toFixed(2)} Kč`);
-        console.log(`    💵 Investment (cash flow): ${investment.toFixed(2)} Kč`);
-        console.log(`    💼 Ending capital base: ${endingCapitalBase.toFixed(2)} Kč`);
-        console.log(`    📈 Profit/Loss (performance): ${profit.toFixed(2)} Kč`);
-        
         // TWRR calculation: profit divided by beginning capital base
         if (beginningCapitalBase > 0) {
             const monthlyReturn = profit / beginningCapitalBase;
-            
-            const previousCompounded = compoundedReturn;
             compoundedReturn *= (1 + monthlyReturn);
-            
-            console.log(`    🎯 TWRR calculation: ${profit.toFixed(2)} / ${beginningCapitalBase.toFixed(2)}`);
-            console.log(`    📊 Monthly return: ${monthlyReturn.toFixed(6)} (${(monthlyReturn * 100).toFixed(4)}%)`);
-            console.log(`    🔢 Compounded return: ${previousCompounded.toFixed(6)} × (1 + ${monthlyReturn.toFixed(6)}) = ${compoundedReturn.toFixed(6)}`);
-        } else if (beginningCapitalBase === 0 && investment > 0) {
-            // Special case: first investment in the period
-            console.log(`    ⚠️  First investment of the period - no baseline for return calculation`);
-            console.log(`    ℹ️  Cannot calculate return when starting from zero capital base`);
-        } else {
-            console.log(`    ⚠️  No capital base - cannot calculate return`);
         }
     });
     
     const annualizedReturn = (compoundedReturn - 1) * 100;
     
-    console.log(`\n✅ STEP 5: Final calculation`);
-    console.log(`  🔢 Final compounded return: ${compoundedReturn.toFixed(6)}`);
-    console.log(`  📊 12-month TWRR: (${compoundedReturn.toFixed(6)} - 1) × 100 = ${annualizedReturn.toFixed(4)}%`);
-    console.log(`=== TWRR CALCULATION END ===\n`);
-    
     return annualizedReturn;
 }
 
 function calculate12MonthTWRRNoMarketing() {
-    console.log('=== TWRR WITHOUT MARKETING REWARDS CALCULATION START ===');
-    
     if (!csvData || csvData.length === 0) {
-        console.log('❌ No CSV data available');
         return 0;
     }
     
@@ -1031,14 +969,9 @@ function calculate12MonthTWRRNoMarketing() {
     const currentDate = new Date();
     const twelveMonthsAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 12, 1);
     
-    console.log(`📅 Date range: ${twelveMonthsAgo.toLocaleDateString('cs-CZ')} to ${currentDate.toLocaleDateString('cs-CZ')}`);
-    console.log(`📊 Total transactions to analyze: ${csvData.length}`);
-    
     // Group data by month for the last 12 months
     const monthlyData = {};
     const monthlyProfit = {};
-    
-    console.log('\n🔍 STEP 1: Processing transactions for last 12 months (excluding marketing rewards)...');
     
     csvData.forEach((row, index) => {
         if (row.datum >= twelveMonthsAgo) {
@@ -1053,14 +986,11 @@ function calculate12MonthTWRRNoMarketing() {
             
             const amount = Math.abs(row.castka);
             
-            console.log(`  Transaction ${index + 1}: ${row.datum.toLocaleDateString('cs-CZ')} | ${row.typ} | ${amount} Kč`);
-            
             // Calculate net investment (capital movements) - SAME AS REGULAR TWRR
             switch (row.typ) {
                 case 'Autoinvestice':
                 case 'Investice':
                     monthlyData[monthKey] += amount;
-                    console.log(`    ➕ Added to investments: ${amount} Kč (total for ${monthKey}: ${monthlyData[monthKey]} Kč)`);
                     break;
                 case 'Prodej':
                 case 'Vrácení peněz':
@@ -1068,7 +998,6 @@ function calculate12MonthTWRRNoMarketing() {
                 case 'Splacení jistiny':
                 case 'Částečné splacení jistiny':
                     monthlyData[monthKey] -= amount;
-                    console.log(`    ➖ Subtracted from investments: ${amount} Kč (total for ${monthKey}: ${monthlyData[monthKey]} Kč)`);
                     break;
             }
             
@@ -1079,19 +1008,15 @@ function calculate12MonthTWRRNoMarketing() {
                 case 'Smluvní pokuta':
                 case 'Zákonné úroky z prodlení':
                     monthlyProfit[monthKey] += amount;
-                    console.log(`    💰 Added to profits: ${amount} Kč (total for ${monthKey}: ${monthlyProfit[monthKey]} Kč)`);
                     break;
                 case 'Poplatek za předčasný prodej':
                 case 'Poplatek za výběr':
                     monthlyProfit[monthKey] -= amount;
-                    console.log(`    💸 Subtracted from profits: ${amount} Kč (total for ${monthKey}: ${monthlyProfit[monthKey]} Kč)`);
                     break;
                 case 'Odměna':
                 case 'Mimořádný příjem':
-                    console.log(`    🚫 Marketing reward EXCLUDED: ${amount} Kč (${row.typ})`);
+                    // Explicitly exclude marketing rewards from profit calculation
                     break;
-                default:
-                    console.log(`    ⚪ No impact on TWRR calculation`);
             }
         }
     });
@@ -1099,18 +1024,11 @@ function calculate12MonthTWRRNoMarketing() {
     // Get months in chronological order
     const allMonths = [...new Set([...Object.keys(monthlyData), ...Object.keys(monthlyProfit)])].sort();
     
-    console.log(`\n📋 STEP 2: Monthly summaries for last 12 months (without marketing rewards):`);
-    allMonths.forEach(month => {
-        console.log(`  ${month}: Investment=${monthlyData[month] || 0} Kč, Profit=${monthlyProfit[month] || 0} Kč`);
-    });
-    
     // Calculate CAPITAL BASE (investments only) at the start of 12-month period - SAME AS REGULAR TWRR
     let capitalBaseAtStart = 0;
-    let transactionsBeforeStart = 0;
     
     csvData.forEach(row => {
         if (row.datum < twelveMonthsAgo) {
-            transactionsBeforeStart++;
             const amount = Math.abs(row.castka);
             
             // Calculate net capital investment before the 12-month period (NO PROFITS)
@@ -1132,15 +1050,9 @@ function calculate12MonthTWRRNoMarketing() {
         }
     });
     
-    console.log(`  📈 Transactions before start date: ${transactionsBeforeStart}`);
-    console.log(`  💼 Capital base at start: ${capitalBaseAtStart.toFixed(2)} Kč`);
-    
     // Track running capital base (investments only, no profits)
     let runningCapitalBase = capitalBaseAtStart;
     let compoundedReturn = 1; // Start with 1 for geometric compounding
-    
-    console.log(`  🏁 Capital base at start of 12-month period: ${runningCapitalBase.toFixed(2)} Kč`);
-    console.log(`  🎲 Starting compounded return: ${compoundedReturn}`);
     
     allMonths.forEach((month, index) => {
         const investment = monthlyData[month] || 0;
@@ -1155,37 +1067,14 @@ function calculate12MonthTWRRNoMarketing() {
         // Update running capital base for next month
         runningCapitalBase = endingCapitalBase;
         
-        console.log(`\n  📅 Month ${index + 1}: ${month}`);
-        console.log(`    💰 Beginning capital base: ${beginningCapitalBase.toFixed(2)} Kč`);
-        console.log(`    💵 Investment (cash flow): ${investment.toFixed(2)} Kč`);
-        console.log(`    💼 Ending capital base: ${endingCapitalBase.toFixed(2)} Kč`);
-        console.log(`    📈 Profit/Loss (performance, NO marketing): ${profit.toFixed(2)} Kč`);
-        
         // TWRR calculation: profit divided by beginning capital base
         if (beginningCapitalBase > 0) {
             const monthlyReturn = profit / beginningCapitalBase;
-            
-            const previousCompounded = compoundedReturn;
             compoundedReturn *= (1 + monthlyReturn);
-            
-            console.log(`    🎯 TWRR calculation: ${profit.toFixed(2)} / ${beginningCapitalBase.toFixed(2)}`);
-            console.log(`    📊 Monthly return: ${monthlyReturn.toFixed(6)} (${(monthlyReturn * 100).toFixed(4)}%)`);
-            console.log(`    🔢 Compounded return: ${previousCompounded.toFixed(6)} × (1 + ${monthlyReturn.toFixed(6)}) = ${compoundedReturn.toFixed(6)}`);
-        } else if (beginningCapitalBase === 0 && investment > 0) {
-            // Special case: first investment in the period
-            console.log(`    ⚠️  First investment of the period - no baseline for return calculation`);
-            console.log(`    ℹ️  Cannot calculate return when starting from zero capital base`);
-        } else {
-            console.log(`    ⚠️  No capital base - cannot calculate return`);
         }
     });
     
     const annualizedReturn = (compoundedReturn - 1) * 100;
-    
-    console.log(`\n✅ FINAL: 12-month TWRR without marketing rewards`);
-    console.log(`  🔢 Final compounded return: ${compoundedReturn.toFixed(6)}`);
-    console.log(`  📊 12-month TWRR (no marketing): (${compoundedReturn.toFixed(6)} - 1) × 100 = ${annualizedReturn.toFixed(4)}%`);
-    console.log(`=== TWRR WITHOUT MARKETING REWARDS CALCULATION END ===\n`);
     
     return annualizedReturn;
 }
