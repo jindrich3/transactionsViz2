@@ -822,6 +822,45 @@
             </div>
         </section>
 
+        <!-- Charts Section - Portfolio Exposure -->
+        <section class="charts-section">
+            <div class="container">
+                <div class="charts-grid">
+                    <!-- Portfolio Exposure -->
+                    <div class="chart-card chart-card-enhanced-time">
+                        <div class="chart-header">
+                            <h3>
+                                Aktuální expozice portfolia
+                                <span class="info-tooltip">
+                                    <i class="fas fa-info-circle info-icon"></i>
+                                    <span class="tooltip-content">Koláčový graf současné expozice podle projektů. Počítá se jako: (Investice - Odstoupení) - Splaceno - Prodeje.</span>
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="portfolio-exposure-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Top Projects -->
+                    <div class="chart-card chart-card-enhanced-time">
+                        <div class="chart-header">
+                            <h3>
+                                Největší aktuální expozice
+                                <span class="info-tooltip">
+                                    <i class="fas fa-info-circle info-icon"></i>
+                                    <span class="tooltip-content">Horizontální sloupcový graf zobrazující 8 projektů s nejvyšší čistou investicí. Výpočet: Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Vrácení peněz - Odstoupení.</span>
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="top-projects-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Autoinvest Section -->
         <section class="autoinvest-section">
             <div class="container">
@@ -935,7 +974,7 @@
                 <div class="table-card">
                     <div class="table-header">
                         <h3>
-                            Transakce
+                            Zdrojové transakce
                             <span class="info-tooltip">
                                 <i class="fas fa-info-circle info-icon"></i>
                                 <span class="tooltip-content">Tabulka všech transakcí s možností filtrování podle data, typu transakce a projektu. Typ projektu: CF = Crowdfunding, LC = Legacy.</span>
@@ -1002,62 +1041,6 @@
         <section class="charts-section">
             <div class="container">
                 <div class="charts-grid">
-                    <!-- Project Summary Table -->
-                    <div class="table-card chart-main">
-                        <div class="table-header">
-                            <h3>
-                                Transakce dle projektu
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Souhrnná tabulka všech transakcí seskupených podle projektů s výpočty:<br/><br/>
-<strong>Investice:</strong> Autoinvestice + Investice + Investice do příležitosti - Odstoupení<br/><br/>
-<strong>Výnosy:</strong> Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta<br/><br/>
-<strong>Splaceno:</strong> Částečné splacení jistiny + Splacení jistiny<br/><br/>
-<strong>Prodeje:</strong> Prodej<br/><br/>
-<strong>Zbývá splatit:</strong> Investice - Splaceno - Prodeje<br/><br/>
-<strong>Aktuální výnos:</strong> (Výnosy / Investice) × 100% (pokud Investice > 0, jinak prázdné)</span>
-                                </span>
-                            </h3>
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table" id="project-table">
-                                <thead>
-                                    <tr>
-                                        <th data-sort="projekt">Projekt <i class="fas fa-sort"></i></th>
-                                        <th data-sort="investice">Investice <i class="fas fa-sort"></i></th>
-                                        <th data-sort="vynosy">Výnosy <i class="fas fa-sort"></i></th>
-                                        <th data-sort="splaceno">Splaceno <i class="fas fa-sort"></i></th>
-                                        <th data-sort="prodeje">Prodeje <i class="fas fa-sort"></i></th>
-                                        <th data-sort="zbyva_splatit">Zbývá splatit <i class="fas fa-sort"></i></th>
-                                        <th data-sort="aktualni_vynos">Aktuální výnos <i class="fas fa-sort"></i></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="project-table-body">
-                                    <!-- Populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="table-pagination" id="project-table-pagination">
-                            <div class="pagination-info">
-                                <!-- Populated by JavaScript -->
-                            </div>
-                            <div class="pagination-controls-wrapper">
-                                                            <div class="rows-per-page">
-                                <label for="project-table-rows-select">Řádků na stránku:</label>
-                                <select id="project-table-rows-select" class="rows-select">
-                                    <option value="10" selected>10</option>
-                                    <option value="20">20</option>
-                                    <option value="50">50</option>
-                                    <option value="200">200</option>
-                                </select>
-                            </div>
-                                <div class="pagination-controls">
-                                    <!-- Populated by JavaScript -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Monthly Statistics Table -->
                     <div class="table-card chart-main">
                         <div class="table-header">
@@ -1138,7 +1121,61 @@
                         </div>
                     </div>
 
-
+                    <!-- Project Summary Table -->
+                    <div class="table-card chart-main">
+                        <div class="table-header">
+                            <h3>
+                                Transakce dle projektu
+                                <span class="info-tooltip">
+                                    <i class="fas fa-info-circle info-icon"></i>
+                                    <span class="tooltip-content">Souhrnná tabulka všech transakcí seskupených podle projektů s výpočty:<br/><br/>
+<strong>Investice:</strong> Autoinvestice + Investice + Investice do příležitosti - Odstoupení<br/><br/>
+<strong>Výnosy:</strong> Výnos + Bonusový výnos + Zákonné úroky z prodlení + Smluvní pokuta<br/><br/>
+<strong>Splaceno:</strong> Částečné splacení jistiny + Splacení jistiny<br/><br/>
+<strong>Prodeje:</strong> Prodej<br/><br/>
+<strong>Zbývá splatit:</strong> Investice - Splaceno - Prodeje<br/><br/>
+<strong>Aktuální výnos:</strong> (Výnosy / Investice) × 100% (pokud Investice > 0, jinak prázdné)</span>
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table" id="project-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="projekt">Projekt <i class="fas fa-sort"></i></th>
+                                        <th data-sort="investice">Investice <i class="fas fa-sort"></i></th>
+                                        <th data-sort="vynosy">Výnosy <i class="fas fa-sort"></i></th>
+                                        <th data-sort="splaceno">Splaceno <i class="fas fa-sort"></i></th>
+                                        <th data-sort="prodeje">Prodeje <i class="fas fa-sort"></i></th>
+                                        <th data-sort="zbyva_splatit">Zbývá splatit <i class="fas fa-sort"></i></th>
+                                        <th data-sort="aktualni_vynos">Aktuální výnos <i class="fas fa-sort"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="project-table-body">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-pagination" id="project-table-pagination">
+                            <div class="pagination-info">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                            <div class="pagination-controls-wrapper">
+                                                            <div class="rows-per-page">
+                                <label for="project-table-rows-select">Řádků na stránku:</label>
+                                <select id="project-table-rows-select" class="rows-select">
+                                    <option value="10" selected>10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                    <option value="200">200</option>
+                                </select>
+                            </div>
+                                <div class="pagination-controls">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Project Distribution -->
                     <div class="chart-card chart-card-enhanced-time">
@@ -1153,38 +1190,6 @@
                         </div>
                         <div class="chart-container">
                             <canvas id="project-type-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Portfolio Exposure -->
-                    <div class="chart-card chart-card-enhanced-time">
-                        <div class="chart-header">
-                            <h3>
-                                Aktuální expozice portfolia
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Koláčový graf současné expozice podle projektů. Počítá se jako: (Investice - Odstoupení) - Splaceno - Prodeje.</span>
-                                </span>
-                            </h3>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="portfolio-exposure-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Top Projects -->
-                    <div class="chart-card chart-card-enhanced-time">
-                        <div class="chart-header">
-                            <h3>
-                                Největší aktuální expozice
-                                <span class="info-tooltip">
-                                    <i class="fas fa-info-circle info-icon"></i>
-                                    <span class="tooltip-content">Horizontální sloupcový graf zobrazující 8 projektů s nejvyšší čistou investicí. Výpočet: Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Vrácení peněz - Odstoupení.</span>
-                                </span>
-                            </h3>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="top-projects-chart"></canvas>
                         </div>
                     </div>
                 </div>
