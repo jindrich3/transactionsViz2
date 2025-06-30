@@ -1394,7 +1394,7 @@ body {
     display: inline-block;
     margin-left: var(--spacing-2);
     cursor: help;
-    z-index: 9999999;
+    z-index: 50; /* Lower than header (100) but higher than content */
 }
 
 .info-icon {
@@ -1402,7 +1402,7 @@ body {
     font-size: var(--font-size-sm);
     transition: color var(--transition-normal);
     position: relative;
-    z-index: 9999999;
+    z-index: 50; /* Lower than header (100) but higher than content */
 }
 
 .info-icon:hover {
@@ -1425,7 +1425,7 @@ body {
     font-weight: normal;
     line-height: 1.4;
     white-space: nowrap;
-    z-index: 99999999;
+    z-index: 60; /* Lower than header (100) but higher than content */
     transition: opacity var(--transition-normal), visibility var(--transition-normal);
     max-width: 600px;
     min-width: 300px;
@@ -1444,7 +1444,7 @@ body {
     border-width: 5px;
     border-style: solid;
     border-color: var(--gray-900) transparent transparent transparent;
-    z-index: 99999999;
+    z-index: 60; /* Lower than header (100) but higher than content */
 }
 
 .info-tooltip:hover .tooltip-content {
@@ -2833,7 +2833,7 @@ select:focus {
 /* Ensure tooltips within stat-cards create a new stacking context above all cards */
 .stat-card .info-tooltip {
     position: relative;
-    z-index: 999999;
+    z-index: 50; /* Lower than header (100) but higher than content */
 }
 
 .stat-card .tooltip-content {
@@ -2841,13 +2841,13 @@ select:focus {
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%) translateY(-5px);
-    z-index: 999999;
+    z-index: 60; /* Lower than header (100) but higher than content */
 }
 
 /* Ensure table tooltips appear above everything */
 .table-header .info-tooltip {
     position: relative;
-    z-index: 999999;
+    z-index: 50; /* Lower than header (100) but higher than content */
 }
 
 .table-header .tooltip-content {
@@ -2855,7 +2855,7 @@ select:focus {
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%) translateY(-5px);
-    z-index: 999999;
+    z-index: 60; /* Lower than header (100) but higher than content */
     margin-bottom: 5px;
 }
 
@@ -3680,5 +3680,385 @@ select:focus {
     .welcome-text {
         font-size: 1rem;
         text-align: center;
+    }
+}
+
+/* Clickable Breakdown Rows */
+.breakdown-row-clickable {
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.breakdown-row-clickable:hover {
+    background-color: rgba(37, 99, 235, 0.1);
+    border-radius: var(--radius);
+}
+
+.breakdown-row-clickable:hover .breakdown-row-header {
+    transform: translateX(2px);
+}
+
+.breakdown-row-icon {
+    margin-left: var(--spacing-2);
+    color: var(--gray-400);
+    font-size: 0.75rem;
+    transition: var(--transition-fast);
+}
+
+.breakdown-row-clickable:hover .breakdown-row-icon {
+    color: var(--primary-color);
+    transform: translateX(2px);
+}
+
+/* Current Month Breakdown Customizations */
+/* Hide progress bars and percentages for current month component */
+.current-month-breakdown .breakdown-progress-wrapper {
+    display: none;
+}
+
+.current-month-breakdown .breakdown-percentage {
+    display: none !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+/* Current Month Component - Full Width with Header */
+.current-month-breakdown {
+    grid-column: 1 / -1; /* Span full width */
+    width: 100%;
+}
+
+/* Keep the header like other stat cards */
+.current-month-breakdown .breakdown-header {
+    /* Use default header styling */
+}
+
+.current-month-breakdown .stat-content {
+    /* Use default stat content styling */
+}
+
+/* Force horizontal layout - single row */
+.current-month-breakdown .breakdown-list {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: var(--spacing-3);
+    flex-wrap: nowrap !important;
+    justify-content: space-between;
+    margin-top: var(--spacing-4);
+    padding: 0 var(--spacing-2);
+    width: 100%;
+}
+
+/* Force inline horizontal items */
+.current-month-breakdown .breakdown-row {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center;
+    gap: var(--spacing-1);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: var(--spacing-3) var(--spacing-3);
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+    min-width: 0;
+    position: relative; /* For absolute positioning of icon */
+}
+
+.current-month-breakdown .breakdown-row-header {
+    display: flex !important;
+    align-items: center;
+    gap: var(--spacing-2);
+    width: 100%;
+    justify-content: center;
+    flex-direction: column !important;
+}
+
+.current-month-breakdown .breakdown-row-label {
+    font-size: var(--font-size-sm); /* Same as "Celkový čistý výnos investic" */
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    order: 2; /* Move label below value */
+}
+
+.current-month-breakdown .breakdown-row-value {
+    display: block;
+    text-align: center;
+    order: 1; /* Move value above label */
+    width: 100%;
+    position: relative;
+}
+
+.current-month-breakdown .breakdown-row-value span:not(.breakdown-row-icon) {
+    font-size: var(--font-size-lg); /* Bigger font for amounts */
+    font-weight: 700; /* Make it bolder */
+    color: rgba(255, 255, 255, 0.95);
+    text-align: center;
+    width: 100%;
+    display: block;
+}
+
+.current-month-breakdown .breakdown-row-icon {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 10px;
+    cursor: pointer;
+    position: absolute !important;
+    top: var(--spacing-2) !important;
+    right: var(--spacing-2) !important;
+    transform: none !important;
+    z-index: 1;
+}
+
+/* Subtle hover effects for inline items */
+.current-month-breakdown .breakdown-row-clickable:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: none; /* Prevent any transform that could shift elements */
+}
+
+.current-month-breakdown .breakdown-row-clickable:hover .breakdown-row-icon {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Remove all hover text changes - keep everything simple */
+
+/* Info tooltip styling for current month */
+.current-month-breakdown .info-tooltip .info-icon {
+    font-size: 11px; /* Same as "Celkový čistý výnos investic" */
+    opacity: 0.7; /* Same as reference component */
+}
+
+.current-month-breakdown .info-tooltip:hover .info-icon {
+    opacity: 1;
+    color: var(--primary-color); /* Same as reference component */
+}
+
+/* Responsive adjustments for wide layout */
+@media (max-width: 768px) {
+    .current-month-breakdown .breakdown-list {
+        gap: var(--spacing-3);
+    }
+    
+    .current-month-breakdown .breakdown-row {
+        padding: var(--spacing-2) var(--spacing-3);
+        gap: var(--spacing-2);
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .current-month-breakdown .breakdown-row-header {
+        flex-direction: column;
+        gap: var(--spacing-2);
+    }
+    
+    .current-month-breakdown .breakdown-row-label {
+        font-size: var(--font-size-sm); /* Keep same size as desktop for consistency */
+        order: 2; /* Keep label below value on mobile */
+    }
+    
+    .current-month-breakdown .breakdown-row-value {
+        order: 1; /* Keep value above label on mobile */
+        display: block;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .current-month-breakdown .breakdown-row-value span:not(.breakdown-row-icon) {
+        font-size: var(--font-size-base); /* Still bigger on mobile, but not too big */
+        font-weight: 700;
+    }
+}
+
+/* Current Month Progress Fill Colors (hidden but keeping for consistency) */
+.breakdown-progress-fill.current-month-returns {
+    background: linear-gradient(90deg, 
+        rgba(16, 185, 129, 0.8) 0%,
+        rgba(16, 185, 129, 1) 100%
+    );
+}
+
+.breakdown-progress-fill.current-month-bonus {
+    background: linear-gradient(90deg, 
+        rgba(245, 158, 11, 0.8) 0%,
+        rgba(245, 158, 11, 1) 100%
+    );
+}
+
+.breakdown-progress-fill.current-month-penalty {
+    background: linear-gradient(90deg, 
+        rgba(59, 130, 246, 0.8) 0%,
+        rgba(59, 130, 246, 1) 100%
+    );
+}
+
+.breakdown-progress-fill.current-month-interest {
+    background: linear-gradient(90deg, 
+        rgba(168, 85, 247, 0.8) 0%,
+        rgba(168, 85, 247, 1) 100%
+    );
+}
+
+/* Transaction Details Modal - Consistent with component styling */
+.modal-container {
+    background: rgba(31, 41, 55, 0.95);
+    backdrop-filter: blur(25px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.4),
+        0 10px 25px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.modal-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(59, 130, 246, 0.03) 0%, 
+        rgba(16, 185, 129, 0.02) 50%, 
+        rgba(236, 72, 153, 0.03) 100%);
+    border-radius: 24px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.modal-container > * {
+    position: relative;
+    z-index: 1;
+}
+
+.transaction-details-summary {
+    padding: var(--spacing-6);
+    background: rgba(37, 99, 235, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px 24px 0 0;
+    display: none; /* Hidden since we moved content to header */
+}
+
+.transaction-details-summary p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.modal-subtitle {
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: var(--spacing-1);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.modal-subtitle::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+#transaction-details-title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+}
+
+.modal-container .modal-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.modal-container .modal-content .table-container {
+    margin: 0;
+    border-radius: 0 0 24px 24px;
+    overflow: hidden;
+}
+
+#transaction-details-table {
+    font-size: var(--font-size-sm);
+    background: transparent;
+    border-radius: 0;
+}
+
+#transaction-details-table th {
+    background: rgba(55, 65, 81, 0.8);
+    backdrop-filter: blur(10px);
+    padding: var(--spacing-4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: var(--font-size-xs);
+}
+
+#transaction-details-table td {
+    padding: var(--spacing-4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(31, 41, 55, 0.3);
+}
+
+#transaction-details-table tr:hover td {
+    background: rgba(37, 99, 235, 0.1);
+    color: white;
+}
+
+#transaction-details-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.modal-amount-bold {
+    font-weight: 700 !important;
+    text-align: right;
+}
+
+#transaction-details-table th:last-child {
+    text-align: right;
+}
+
+#transaction-details-table th:first-child,
+#transaction-details-table td:first-child {
+    padding-left: var(--spacing-6);
+}
+
+#transaction-details-table th:last-child,
+#transaction-details-table td:last-child {
+    padding-right: var(--spacing-6);
+}
+
+@media (max-width: 768px) {
+    .modal-container {
+        width: 95%;
+        max-height: 85vh;
+    }
+    
+    .current-month-breakdown .breakdown-row-clickable:hover .breakdown-row-header {
+        transform: none;
+    }
+    
+    .current-month-breakdown .breakdown-row-clickable:hover .breakdown-row-icon {
+        color: rgba(255, 255, 255, 0.8);
     }
 }

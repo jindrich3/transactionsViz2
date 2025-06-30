@@ -740,6 +740,122 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Current Month Payouts Breakdown Card -->
+                    <div class="stat-card breakdown-card current-month-breakdown">
+                        <div class="stat-content">
+                            <div class="breakdown-header">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="breakdown-header-left">
+                                    <h3 class="stat-value" id="current-month-payouts-total">
+                                        0 Kč
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Celkové zisky za aktuální měsíc: Výnosy + Bonusový výnos + Smluvní pokuty + Zákonné úroky z prodlení</span>
+                                        </span>
+                                    </h3>
+                                    <p class="breakdown-title">
+                                        Vyplaceno za aktuální měsíc
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-info-circle info-icon"></i>
+                                            <span class="tooltip-content">Detailní rozbor všech zisků za poslední měsíc. Aktuální měsíc je definován jako poslední měsíc, ve kterém proběhly transakce. Poplatky nejsou započítávány.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="breakdown-list">
+                                <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Výnos">
+                                    <div class="breakdown-row-header">
+                                        <span class="breakdown-row-label">
+                                            Výnosy
+                                            <span class="info-tooltip">
+                                                <i class="fas fa-info-circle info-icon"></i>
+                                                <span class="tooltip-content">Standardní výnosy z investic za aktuální měsíc</span>
+                                            </span>
+                                        </span>
+                                        <span class="breakdown-row-value">
+                                            <span class="breakdown-percentage" id="current-month-returns-percentage">0%</span>
+                                            <span id="current-month-returns">0 Kč</span>
+                                            <i class="fas fa-external-link-alt breakdown-row-icon"></i>
+                                        </span>
+                                    </div>
+                                    <div class="breakdown-progress-wrapper">
+                                        <div class="breakdown-progress-track">
+                                            <div class="breakdown-progress-fill current-month-returns" id="current-month-returns-progress" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Bonusový výnos">
+                                    <div class="breakdown-row-header">
+                                        <span class="breakdown-row-label">
+                                            Bonusové výnosy
+                                            <span class="info-tooltip">
+                                                <i class="fas fa-info-circle info-icon"></i>
+                                                <span class="tooltip-content">Bonusové výnosy dle Premium levelu z investic za aktuální měsíc</span>
+                                            </span>
+                                        </span>
+                                        <span class="breakdown-row-value">
+                                            <span class="breakdown-percentage" id="current-month-bonus-percentage">0%</span>
+                                            <span id="current-month-bonus">0 Kč</span>
+                                            <i class="fas fa-external-link-alt breakdown-row-icon"></i>
+                                        </span>
+                                    </div>
+                                    <div class="breakdown-progress-wrapper">
+                                        <div class="breakdown-progress-track">
+                                            <div class="breakdown-progress-fill current-month-bonus" id="current-month-bonus-progress" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Smluvní pokuta">
+                                    <div class="breakdown-row-header">
+                                        <span class="breakdown-row-label">
+                                            Smluvní pokuty
+                                            <span class="info-tooltip">
+                                                <i class="fas fa-info-circle info-icon"></i>
+                                                <span class="tooltip-content">Smluvní pokuty za opožděné splátky závazků za aktuální měsíc</span>
+                                            </span>
+                                        </span>
+                                        <span class="breakdown-row-value">
+                                            <span class="breakdown-percentage" id="current-month-penalty-percentage">0%</span>
+                                            <span id="current-month-penalty">0 Kč</span>
+                                            <i class="fas fa-external-link-alt breakdown-row-icon"></i>
+                                        </span>
+                                    </div>
+                                    <div class="breakdown-progress-wrapper">
+                                        <div class="breakdown-progress-track">
+                                            <div class="breakdown-progress-fill current-month-penalty" id="current-month-penalty-progress" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="breakdown-row breakdown-row-clickable" data-transaction-type="Zákonné úroky z prodlení">
+                                    <div class="breakdown-row-header">
+                                        <span class="breakdown-row-label">
+                                            Zákonné úroky z prodlení
+                                            <span class="info-tooltip">
+                                                <i class="fas fa-info-circle info-icon"></i>
+                                                <span class="tooltip-content">Zákonné úroky z prodlení splátek závazků za aktuální měsíc</span>
+                                            </span>
+                                        </span>
+                                        <span class="breakdown-row-value">
+                                            <span class="breakdown-percentage" id="current-month-interest-percentage">0%</span>
+                                            <span id="current-month-interest">0 Kč</span>
+                                            <i class="fas fa-external-link-alt breakdown-row-icon"></i>
+                                        </span>
+                                    </div>
+                                    <div class="breakdown-progress-wrapper">
+                                        <div class="breakdown-progress-track">
+                                            <div class="breakdown-progress-fill current-month-interest" id="current-month-interest-progress" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1106,6 +1222,37 @@
     <!-- Chart.js - Load before our script -->
     <script src="https://unpkg.com/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script src="https://unpkg.com/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <!-- Transaction Details Modal -->
+    <div id="transaction-details-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="transaction-details-title">Detaily transakcí</h3>
+                <button class="modal-close" id="close-transaction-details-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="transaction-details-summary">
+                    <p id="transaction-details-summary"></p>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="transaction-details-table">
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Projekt</th>
+                                <th>Částka</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-details-table-body">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html> 

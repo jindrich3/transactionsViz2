@@ -541,6 +541,7 @@ function initializeDashboard() {
             updateFeeBreakdown();
         updateNetProfitBreakdown();
         updateMarketingRewardsBreakdown();
+        updateCurrentMonthPayoutsBreakdown();
     } catch (e) {
         console.error('Error in breakdown updates:', e);
     }
@@ -745,6 +746,9 @@ function calculateOverviewStatistics() {
     
     // Setup transaction tooltips
     setupTransactionTooltips();
+    
+    // Setup current month breakdown listeners
+    setupCurrentMonthBreakdownListeners();
 }
 
 // Update welcome message based on investment duration
@@ -1494,6 +1498,251 @@ function updateMarketingRewardsBreakdown() {
             }, 100 + (index * 100));
         }
     });
+}
+
+// Current Month Payouts Breakdown Calculation
+function updateCurrentMonthPayoutsBreakdown() {
+    if (!csvData || csvData.length === 0) {
+        // Set all values to zero
+        setStatValueWithZeroClass('current-month-payouts-total', 0);
+        setStatValueWithZeroClass('current-month-returns', 0);
+        setStatValueWithZeroClass('current-month-bonus', 0);
+        setStatValueWithZeroClass('current-month-penalty', 0);
+        setStatValueWithZeroClass('current-month-interest', 0);
+        
+        // Reset progress bars and percentages
+        const elements = ['current-month-returns', 'current-month-bonus', 'current-month-penalty', 'current-month-interest'];
+        elements.forEach(element => {
+            const progressEl = document.getElementById(`${element}-progress`);
+            const percentageEl = document.getElementById(`${element}-percentage`);
+            
+            if (progressEl) progressEl.style.width = '0%';
+            if (percentageEl) {
+                percentageEl.textContent = '0%';
+                percentageEl.classList.add('amount-zero');
+            }
+        });
+        
+        return;
+    }
+    
+    // Find the latest month from transactions
+    const sortedTransactions = csvData.slice().sort((a, b) => b.datum - a.datum);
+    if (sortedTransactions.length === 0) return;
+    
+    const latestDate = sortedTransactions[0].datum;
+    const latestYear = latestDate.getFullYear();
+    const latestMonth = latestDate.getMonth();
+    
+    // Filter transactions for the latest month
+    const currentMonthTransactions = csvData.filter(row => {
+        const transactionDate = row.datum;
+        return transactionDate.getFullYear() === latestYear && 
+               transactionDate.getMonth() === latestMonth;
+    });
+    
+    // Calculate individual components for current month
+    const returns = currentMonthTransactions.filter(row => row.typ === 'Výnos');
+    const bonusReturns = currentMonthTransactions.filter(row => row.typ === 'Bonusový výnos');
+    const penalties = currentMonthTransactions.filter(row => row.typ === 'Smluvní pokuta');
+    const legalInterest = currentMonthTransactions.filter(row => row.typ === 'Zákonné úroky z prodlení');
+    
+    const returnsTotal = returns.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const bonusTotal = bonusReturns.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const penaltyTotal = penalties.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    const interestTotal = legalInterest.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    
+    const totalPayouts = returnsTotal + bonusTotal + penaltyTotal + interestTotal;
+    
+    // Store transaction data for modal
+    window.currentMonthTransactionData = {
+        year: latestYear,
+        month: latestMonth,
+        returns: returns,
+        bonusReturns: bonusReturns,
+        penalties: penalties,
+        legalInterest: legalInterest
+    };
+    
+    // Update total
+    setStatValueWithZeroClass('current-month-payouts-total', totalPayouts);
+    
+    // Update individual amounts with zero styling
+    setStatValueWithZeroClass('current-month-returns', returnsTotal);
+    setStatValueWithZeroClass('current-month-bonus', bonusTotal);
+    setStatValueWithZeroClass('current-month-penalty', penaltyTotal);
+    setStatValueWithZeroClass('current-month-interest', interestTotal);
+    
+    // Calculate percentages for display
+    if (totalPayouts > 0) {
+        const returnsPercentage = (returnsTotal / totalPayouts) * 100;
+        const bonusPercentage = (bonusTotal / totalPayouts) * 100;
+        const penaltyPercentage = (penaltyTotal / totalPayouts) * 100;
+        const interestPercentage = (interestTotal / totalPayouts) * 100;
+        
+        // Update percentage displays and progress bars
+        const updates = [
+            { id: 'current-month-returns', percentage: returnsPercentage },
+            { id: 'current-month-bonus', percentage: bonusPercentage },
+            { id: 'current-month-penalty', percentage: penaltyPercentage },
+            { id: 'current-month-interest', percentage: interestPercentage }
+        ];
+        
+        updates.forEach(({ id, percentage }, index) => {
+            const percentageEl = document.getElementById(`${id}-percentage`);
+            const progressEl = document.getElementById(`${id}-progress`);
+            
+            if (percentageEl) {
+                percentageEl.textContent = `${percentage.toFixed(0)}%`;
+                if (percentage === 0) {
+                    percentageEl.classList.add('amount-zero');
+                } else {
+                    percentageEl.classList.remove('amount-zero');
+                }
+            }
+            
+            if (progressEl) {
+                progressEl.style.width = '0%';
+                setTimeout(() => {
+                    progressEl.style.width = `${percentage}%`;
+                }, 100 + (index * 100));
+            }
+        });
+    } else {
+        // All zero case
+        const elements = ['current-month-returns', 'current-month-bonus', 'current-month-penalty', 'current-month-interest'];
+        elements.forEach(element => {
+            const progressEl = document.getElementById(`${element}-progress`);
+            const percentageEl = document.getElementById(`${element}-percentage`);
+            
+            if (progressEl) progressEl.style.width = '0%';
+            if (percentageEl) {
+                percentageEl.textContent = '0%';
+                percentageEl.classList.add('amount-zero');
+            }
+        });
+    }
+}
+
+// Setup event listeners for clickable breakdown rows
+function setupCurrentMonthBreakdownListeners() {
+    const clickableRows = document.querySelectorAll('.breakdown-row-clickable');
+    
+    clickableRows.forEach(row => {
+        row.addEventListener('click', function() {
+            const transactionType = this.getAttribute('data-transaction-type');
+            showTransactionDetailsModal(transactionType);
+        });
+    });
+    
+    // Setup modal close listeners
+    const modal = document.getElementById('transaction-details-modal');
+    const closeBtn = document.getElementById('close-transaction-details-modal');
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeTransactionDetailsModal);
+    }
+    
+    if (modal) {
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeTransactionDetailsModal();
+            }
+        });
+    }
+    
+    // Escape key to close modal
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeTransactionDetailsModal();
+        }
+    });
+}
+
+// Show transaction details modal
+function showTransactionDetailsModal(transactionType) {
+    if (!window.currentMonthTransactionData) return;
+    
+    const data = window.currentMonthTransactionData;
+    let transactions = [];
+    let typeLabel = '';
+    
+    // Get transactions based on type
+    switch (transactionType) {
+        case 'Výnos':
+            transactions = data.returns;
+            typeLabel = 'Výnosy';
+            break;
+        case 'Bonusový výnos':
+            transactions = data.bonusReturns;
+            typeLabel = 'Bonusový výnos';
+            break;
+        case 'Smluvní pokuta':
+            transactions = data.penalties;
+            typeLabel = 'Smluvní pokuty';
+            break;
+        case 'Zákonné úroky z prodlení':
+            transactions = data.legalInterest;
+            typeLabel = 'Zákonné úroky z prodlení';
+            break;
+        default:
+            return;
+    }
+    
+    if (transactions.length === 0) return;
+    
+    // Update modal content
+    const monthNames = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
+                       'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
+    const monthLabel = `${monthNames[data.month]} ${data.year}`;
+    
+    const transactionCount = transactions.length;
+    const transactionLabel = transactionCount === 1 ? 'transakce' : 
+                            transactionCount < 5 ? 'transakce' : 'transakcí';
+    
+    document.getElementById('transaction-details-title').innerHTML = `
+        <div>
+            <i class="fas fa-calendar-check"></i> 
+            ${typeLabel} - ${monthLabel}
+        </div>
+        <div class="modal-subtitle">
+            ${transactionCount} ${transactionLabel}
+        </div>
+    `;
+    
+    document.getElementById('transaction-details-summary').textContent = '';
+    
+    // Populate table
+    const tableBody = document.getElementById('transaction-details-table-body');
+    tableBody.innerHTML = transactions.map(transaction => {
+        return `
+            <tr>
+                <td>${locale.formatDate(transaction.datum)}</td>
+                <td>${transaction.projekt || '-'}</td>
+                <td class="amount-positive modal-amount-bold">${formatAmountWithOptionalDecimals(Math.abs(transaction.castka)).formattedAmount}</td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Show modal
+    const modal = document.getElementById('transaction-details-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+    }
+}
+
+// Close transaction details modal
+function closeTransactionDetailsModal() {
+    const modal = document.getElementById('transaction-details-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 250);
+    }
 }
 
 // Statistics Calculation (for filtered data)
