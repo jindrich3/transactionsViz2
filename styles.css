@@ -7,6 +7,7 @@
 
 html, body {
     height: 100%;
+    overflow-x: hidden;
 }
 
 :root {
@@ -817,6 +818,19 @@ body {
     justify-content: space-between;
     align-items: center;
     gap: var(--spacing-4);
+}
+
+/* Header content responsive padding to match container */
+@media (min-width: 640px) {
+    .header-content {
+        padding: 0 var(--spacing-6);
+    }
+}
+
+@media (min-width: 1024px) {
+    .header-content {
+        padding: 0 var(--spacing-8);
+    }
 }
 
 .dashboard-title {
