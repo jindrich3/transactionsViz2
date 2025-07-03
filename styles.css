@@ -164,6 +164,7 @@ body {
     font-size: var(--font-size-4xl);
     font-weight: 800;
     margin-bottom: var(--spacing-4);
+    margin-top: var(--spacing-4);
     animation: fadeInUp 1s ease-out;
     background: linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%);
     -webkit-background-clip: text;
@@ -199,9 +200,22 @@ body {
     gap: var(--spacing-8);
     align-items: stretch;
     animation: fadeInUp 1s ease-out 0.6s both;
-    max-width: 1400px;
+    max-width: 1300px; /* Match dashboard container width */
     margin: 0 auto;
-    padding: 0 var(--spacing-6);
+    padding: 0 var(--spacing-2); /* Much smaller padding - reduce space to screen edges */
+}
+
+/* Much smaller responsive padding */
+@media (min-width: 640px) {
+    .main-content-section {
+        padding: 0 var(--spacing-3); /* Much smaller than dashboard */
+    }
+}
+
+@media (min-width: 1024px) {
+    .main-content-section {
+        padding: 0 var(--spacing-4); /* Much smaller than dashboard */
+    }
 }
 
 /* Help Section */
@@ -1984,11 +1998,11 @@ canvas {
     .main-content-section {
         grid-template-columns: 1fr;
         gap: var(--spacing-8);
-        padding: 0 var(--spacing-4);
     }
 
     .hero-title {
         font-size: var(--font-size-3xl);
+        margin-top: var(--spacing-8);
     }
 
     .hero-subtitle {
@@ -2128,13 +2142,11 @@ canvas {
 }
 
 @media (max-width: 480px) {
-    .landing-page {
-        padding: var(--spacing-4);
-    }
+
     
     .main-content-section {
         gap: var(--spacing-6);
-        padding: 0 var(--spacing-2);
+        max-width: none; /* Remove max-width constraint on mobile */
     }
 
     .help-card, .upload-area {
@@ -2187,6 +2199,7 @@ canvas {
 
     .hero-title {
         font-size: var(--font-size-2xl);
+        margin-top: var(--spacing-10);
     }
 
     .hero-subtitle {
@@ -3690,7 +3703,7 @@ select:focus {
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .welcome-section {
-        padding: var(--spacing-4) 0 var(--spacing-2) 0;
+        padding: calc(100px + var(--spacing-6)) 0 var(--spacing-2) 0; /* Header clearance + normal section spacing */
     }
     
     .welcome-message {
@@ -3716,7 +3729,7 @@ select:focus {
 
 @media (max-width: 480px) {
     .welcome-section {
-        padding: var(--spacing-3) 0 var(--spacing-2) 0;
+        padding: calc(70px + var(--spacing-4)) 0 var(--spacing-2) 0;
     }
     
     .welcome-message {
