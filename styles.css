@@ -1779,6 +1779,28 @@ canvas {
 
 .table-container {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    width: 100%;
+}
+
+/* Override chart-card overflow for tables */
+.chart-card .table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+.chart-card.table-card {
+    overflow: hidden;
+    padding: 0; /* Remove chart-card padding for tables */
+}
+
+/* Ensure tables inside charts-grid behave exactly like standalone tables on mobile */
+@media (max-width: 768px) {
+    .charts-grid .table-card.chart-main {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+    }
 }
 
 .data-table {
@@ -2063,6 +2085,30 @@ canvas {
         gap: var(--spacing-3);
     }
     
+    .table-actions {
+        flex-wrap: wrap;
+        gap: var(--spacing-2);
+        width: 100%;
+    }
+    
+    .table-actions .btn {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-2) var(--spacing-3);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    /* Ensure all tables scroll horizontally on mobile - only the table content, not headers/pagination */
+    .data-table {
+        min-width: 800px; /* Force horizontal scroll on mobile */
+    }
+    
+    .data-table th,
+    .data-table td {
+        white-space: nowrap;
+        padding: var(--spacing-2) var(--spacing-3);
+    }
+    
     .filter-row {
         grid-template-columns: 1fr;
         gap: var(--spacing-3);
@@ -2162,11 +2208,24 @@ canvas {
     
     .data-table {
         font-size: var(--font-size-xs);
+        min-width: 900px; /* Ensure horizontal scroll triggers on very small screens */
     }
     
     .data-table th,
     .data-table td {
         padding: var(--spacing-2);
+        white-space: nowrap; /* Prevent text wrapping to ensure horizontal scroll */
+    }
+    
+    .table-actions .btn {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-1) var(--spacing-2);
+        min-height: 32px;
+    }
+    
+    .table-actions .btn i {
+        margin-right: var(--spacing-1);
+        font-size: var(--font-size-xs);
     }
 }
 
@@ -3489,6 +3548,12 @@ select:focus {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    /* Stack breakdown cards vertically on mobile */
+    .breakdown-section .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-4);
+    }
+    
     .breakdown-row-header {
         flex-direction: column;
         align-items: flex-start;
@@ -3828,17 +3893,23 @@ select:focus {
     color: var(--primary-color); /* Same as reference component */
 }
 
-/* Responsive adjustments for wide layout */
+/* Responsive adjustments - Stack vertically on mobile */
 @media (max-width: 768px) {
     .current-month-breakdown .breakdown-list {
+        display: flex !important;
+        flex-direction: column !important;
         gap: var(--spacing-3);
+        align-items: stretch;
+        justify-content: flex-start;
     }
     
     .current-month-breakdown .breakdown-row {
-        padding: var(--spacing-2) var(--spacing-3);
+        padding: var(--spacing-3) var(--spacing-4);
         gap: var(--spacing-2);
         flex-direction: column;
         text-align: center;
+        width: 100%;
+        flex: none;
     }
     
     .current-month-breakdown .breakdown-row-header {
@@ -3861,6 +3932,22 @@ select:focus {
     .current-month-breakdown .breakdown-row-value span:not(.breakdown-row-icon) {
         font-size: var(--font-size-base); /* Still bigger on mobile, but not too big */
         font-weight: 700;
+    }
+}
+
+/* Additional mobile adjustments for very small screens */
+@media (max-width: 480px) {
+    .current-month-breakdown .breakdown-row {
+        padding: var(--spacing-2) var(--spacing-3);
+        gap: var(--spacing-1);
+    }
+    
+    .current-month-breakdown .breakdown-row-value span:not(.breakdown-row-icon) {
+        font-size: var(--font-size-sm);
+    }
+    
+    .current-month-breakdown .breakdown-row-label {
+        font-size: var(--font-size-xs);
     }
 }
 
@@ -4112,8 +4199,8 @@ select:focus {
 
 @media (max-width: 768px) {
     .stats-container-overview {
-        display: grid;
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
         gap: var(--spacing-3);
     }
 }
@@ -4168,8 +4255,8 @@ select:focus {
 
 @media (max-width: 768px) {
     .stats-container-net-profit {
-        display: grid;
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
         gap: var(--spacing-3);
     }
 }
