@@ -205,6 +205,16 @@ body {
     max-width: 1300px; /* Match dashboard container width */
     margin: 0 auto;
     padding: 0 var(--spacing-2); /* Much smaller padding - reduce space to screen edges */
+    min-height: 0;
+}
+
+.help-card,
+.upload-area {
+    height: 100%;
+}
+
+.upload-area {
+    /* min-height: 320px; */
 }
 
 /* Much smaller responsive padding */
@@ -404,10 +414,16 @@ body {
 
 /* Upload Section */
 .upload-section {
-    margin-bottom: var(--spacing-8);
+    margin-bottom: 0;
     animation: none;
     display: flex;
     flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    .upload-section {
+        margin-bottom: var(--spacing-8);
+    }
 }
 
 .upload-area {
@@ -421,8 +437,10 @@ body {
     transition: all var(--transition-normal);
     position: relative;
     overflow: hidden;
-    min-height: 320px;
+    /* height: 100%; */
+    /* min-height: 320px; */
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     box-shadow: 
@@ -476,6 +494,11 @@ body {
     position: relative;
     z-index: 2;
     width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .upload-icon {
@@ -641,8 +664,7 @@ body {
 
 /* Upload States */
 .upload-loading, .upload-success, .upload-error, .file-selected {
-    height: 350px;
-    min-height: unset;
+    min-height: 320px;
     padding: var(--spacing-8);
     display: flex;
     flex-direction: column;
@@ -2079,8 +2101,13 @@ canvas {
     }
 
     .upload-loading, .upload-success, .upload-error, .file-selected {
-        min-height: 300px;
+        height: 300px;
+        min-height: unset;
         padding: var(--spacing-10);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
     .upload-icon {
@@ -2229,8 +2256,13 @@ canvas {
     }
 
     .upload-loading, .upload-success, .upload-error, .file-selected {
-        min-height: 350px;
+        height: 350px;
+        min-height: unset;
         padding: var(--spacing-8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
     .upload-icon {
@@ -4003,7 +4035,7 @@ select:focus {
     }
     
     .current-month-breakdown .breakdown-row-value span:not(.breakdown-row-icon) {
-        font-size: var(--font-size-base); /* Still bigger on mobile, but not too big */
+        font-size: var(--font-size-lg); /* Bigger font for better mobile readability */
         font-weight: 700;
     }
     
@@ -4020,7 +4052,7 @@ select:focus {
     }
     
     .current-month-breakdown .breakdown-row-value span:not(.breakdown-row-icon) {
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-base);
     }
     
     .current-month-breakdown .breakdown-row-label {
@@ -4351,17 +4383,5 @@ select:focus {
     margin-bottom: var(--spacing-6);
 }
 
-.upload-area,
-.upload-loading,
-.upload-success,
-.upload-error,
-.file-selected {
-    height: 350px;
-    min-height: unset;
-    padding: var(--spacing-8);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
+
 
