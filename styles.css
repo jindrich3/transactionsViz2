@@ -3619,10 +3619,18 @@ select:focus {
         gap: var(--spacing-4);
     }
     
-    .breakdown-row-header {
+    .breakdown-section .breakdown-row-header {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--spacing-1);
+    }
+    
+    /* Keep all breakdown components as row layout for proper spacing */
+    .current-month-breakdown .breakdown-row-header,
+    .breakdown-card .breakdown-row-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
     }
     
     .breakdown-row-value {
@@ -3998,6 +4006,10 @@ select:focus {
         font-size: var(--font-size-base); /* Still bigger on mobile, but not too big */
         font-weight: 700;
     }
+    
+    .current-month-breakdown .breakdown-progress-wrapper {
+        margin-top: var(--spacing-2); /* Match the gap in breakdown-row-header */
+    }
 }
 
 /* Additional mobile adjustments for very small screens */
@@ -4013,6 +4025,10 @@ select:focus {
     
     .current-month-breakdown .breakdown-row-label {
         font-size: var(--font-size-xs);
+    }
+    
+    .current-month-breakdown .breakdown-progress-wrapper {
+        margin-top: var(--spacing-1); /* Match the gap in breakdown-row for small screens */
     }
 }
 
