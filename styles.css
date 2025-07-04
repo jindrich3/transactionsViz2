@@ -6,8 +6,10 @@
 }
 
 html, body {
-    height: 100%;
-    overflow-x: hidden;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
 }
 
 :root {
@@ -132,7 +134,6 @@ body {
         #1e40af 75%, 
         #1e3a8a 100%);
     position: relative;
-    overflow: hidden;
 }
 
 .landing-page::before {
@@ -403,7 +404,7 @@ body {
 
 /* Upload Section */
 .upload-section {
-    margin-bottom: 0;
+    margin-bottom: var(--spacing-8);
     animation: none;
     display: flex;
     flex-direction: column;
@@ -420,7 +421,7 @@ body {
     transition: all var(--transition-normal);
     position: relative;
     overflow: hidden;
-    height: 100%;
+    min-height: 320px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -640,8 +641,13 @@ body {
 
 /* Upload States */
 .upload-loading, .upload-success, .upload-error, .file-selected {
-    text-align: center;
+    height: 350px;
+    min-height: unset;
     padding: var(--spacing-8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .file-selected {
@@ -811,6 +817,9 @@ body {
 /* Add padding to body to account for fixed header */
 .dashboard {
     padding-top: 100px; /* Account for header height: padding (48px) + content (~52px) */
+    position: relative !important;
+    min-height: calc(100vh - 100px) !important;
+    overflow-y: visible !important;
 }
 
 .header-content {
@@ -831,6 +840,11 @@ body {
     .header-content {
         padding: 0 var(--spacing-8);
     }
+}
+
+/* Global scrolling fixes for all viewport sizes */
+* {
+    -webkit-overflow-scrolling: touch;
 }
 
 .dashboard-title {
@@ -2061,6 +2075,12 @@ canvas {
 
     .upload-area {
         padding: var(--spacing-10);
+        min-height: 300px;
+    }
+
+    .upload-loading, .upload-success, .upload-error, .file-selected {
+        min-height: 300px;
+        padding: var(--spacing-10);
     }
 
     .upload-icon {
@@ -2205,6 +2225,12 @@ canvas {
 
     .upload-area {
         padding: var(--spacing-8);
+        min-height: 350px;
+    }
+
+    .upload-loading, .upload-success, .upload-error, .file-selected {
+        min-height: 350px;
+        padding: var(--spacing-8);
     }
 
     .upload-icon {
@@ -2344,18 +2370,21 @@ select:focus {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 9999;
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition: all var(--transition-normal);
 }
 
 .modal-overlay.show {
+    display: flex;
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 .modal {
@@ -2719,6 +2748,7 @@ select:focus {
     overflow: hidden;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
+    margin-top: -1rem;
 }
 
 .chart-card-enhanced-portfolio::before {
@@ -2760,7 +2790,7 @@ select:focus {
     border-bottom: 1px solid rgba(16, 185, 129, 0.2);
     border-radius: 16px 16px 0 0;
     margin: calc(var(--spacing-6) * -1) calc(var(--spacing-6) * -1) var(--spacing-4);
-    padding: var(--spacing-5) var(--spacing-6);
+    padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
 }
 
 .chart-card-enhanced-portfolio .chart-header h3 {
@@ -3300,6 +3330,14 @@ select:focus {
         min-width: 180px;
         max-width: 250px;
         font-size: var(--font-size-xs);
+    }
+    
+    .chart-card-enhanced-portfolio {
+        margin-top: -0.5rem;
+    }
+    
+    .chart-card-enhanced-portfolio .chart-header {
+        padding: var(--spacing-5) var(--spacing-6) var(--spacing-6);
     }
 }
 
@@ -4295,5 +4333,19 @@ select:focus {
 
 .monthly-performance-section .section-title {
     margin-bottom: var(--spacing-6);
+}
+
+.upload-area,
+.upload-loading,
+.upload-success,
+.upload-error,
+.file-selected {
+    height: 350px;
+    min-height: unset;
+    padding: var(--spacing-8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
