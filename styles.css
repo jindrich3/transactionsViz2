@@ -558,6 +558,40 @@ body {
     gap: var(--spacing-2);
 }
 
+/* Button container for side-by-side layout on desktop */
+.upload-buttons-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-3);
+}
+
+@media (min-width: 769px) {
+    .upload-buttons-container {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: var(--spacing-4);
+    }
+    
+    .upload-btn,
+    .secondary-btn {
+        margin: 0;
+        height: 44px; /* Ensure both buttons have the same height */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        line-height: 1;
+        vertical-align: top;
+        padding: var(--spacing-3) var(--spacing-5);
+        border-radius: 10px;
+        font-size: var(--font-size-sm);
+        font-weight: 700;
+    }
+}
+
 .upload-btn::before {
     content: '';
     position: absolute;
@@ -602,7 +636,7 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    margin: 0 var(--spacing-2) var(--spacing-3);
+    margin: 0;
     position: relative;
     z-index: 2;
     backdrop-filter: blur(15px);
@@ -3855,10 +3889,6 @@ select:focus {
     border-radius: var(--radius);
 }
 
-.breakdown-row-clickable:hover .breakdown-row-header {
-    transform: translateX(2px);
-}
-
 .breakdown-row-icon {
     margin-left: var(--spacing-2);
     color: var(--gray-400);
@@ -3956,12 +3986,13 @@ select:focus {
 }
 
 .current-month-breakdown .breakdown-row-value span:not(.breakdown-row-icon) {
-    font-size: var(--font-size-lg); /* Bigger font for amounts */
+    font-size: var(--font-size-xl); /* Bigger font for amounts */
     font-weight: 700; /* Make it bolder */
     color: rgba(255, 255, 255, 0.95);
     text-align: center;
     width: 100%;
     display: block;
+    margin-bottom: -4px;
 }
 
 .current-month-breakdown .breakdown-row-icon {
@@ -4019,7 +4050,7 @@ select:focus {
     
     .current-month-breakdown .breakdown-row-header {
         flex-direction: column;
-        gap: var(--spacing-2);
+        gap: var(--spacing-4);
     }
     
     .current-month-breakdown .breakdown-row-label {
@@ -4035,7 +4066,7 @@ select:focus {
     }
     
     .current-month-breakdown .breakdown-row-value span:not(.breakdown-row-icon) {
-        font-size: var(--font-size-lg); /* Bigger font for better mobile readability */
+        font-size: var(--font-size-xl); /* Bigger font for better mobile readability */
         font-weight: 700;
     }
     
@@ -4052,7 +4083,7 @@ select:focus {
     }
     
     .current-month-breakdown .breakdown-row-value span:not(.breakdown-row-icon) {
-        font-size: var(--font-size-base);
+        font-size: var(--font-size-lg);
     }
     
     .current-month-breakdown .breakdown-row-label {
@@ -4245,9 +4276,9 @@ select:focus {
         max-height: 85vh;
     }
     
-    .current-month-breakdown .breakdown-row-clickable:hover .breakdown-row-header {
+ /*    .current-month-breakdown .breakdown-row-clickable:hover .breakdown-row-header {
         transform: none;
-    }
+    } */
     
     .current-month-breakdown .breakdown-row-clickable:hover .breakdown-row-icon {
         color: rgba(255, 255, 255, 0.8);

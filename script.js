@@ -479,6 +479,36 @@ function showError(message) {
 function showDashboard() {
     document.getElementById('landing-page').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
+    
+    // Force body overflow to be scrollable (fix for responsive mode scrolling)
+    document.body.style.overflow = 'auto !important';
+    document.body.style.overflowY = 'auto !important';
+    document.body.style.overflowX = 'hidden !important';
+    document.documentElement.style.overflow = 'auto !important';
+    document.documentElement.style.overflowY = 'auto !important';
+    document.documentElement.style.overflowX = 'hidden !important';
+    
+    // Remove any classes that might affect scrolling
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+    
+    // Reset scroll position to top
+    window.scrollTo(0, 0);
+    
+    // Force a reflow to ensure styles are applied
+    document.body.offsetHeight;
+    
+    // Force hide all modals to prevent wheel event blocking
+    const filterModal = document.getElementById('filter-modal-overlay');
+    const detailsModal = document.getElementById('transaction-details-modal');
+    if (filterModal) {
+        filterModal.style.display = 'none';
+        filterModal.classList.remove('show');
+    }
+    if (detailsModal) {
+        detailsModal.style.display = 'none';
+        detailsModal.classList.remove('show');
+    }
 }
 
 function resetToLanding() {
@@ -487,6 +517,14 @@ function resetToLanding() {
     
     // Reset scroll position to top
     window.scrollTo(0, 0);
+    
+    // Reset body overflow for landing page
+    document.body.style.overflow = '';
+    document.body.style.overflowY = '';
+    document.body.style.overflowX = '';
+    document.documentElement.style.overflow = '';
+    document.documentElement.style.overflowY = '';
+    document.documentElement.style.overflowX = '';
     
     // Force layout recalculation by temporarily hiding and showing the landing page
     const landingPage = document.getElementById('landing-page');
@@ -544,7 +582,7 @@ function initializeDashboard() {
         updateCurrentMonthPayoutsBreakdown();
     } catch (e) {
         console.error('Error in breakdown updates:', e);
-    }
+        }
         
         try {
     createFilterOptions();
@@ -609,14 +647,14 @@ function calculateOverviewStatistics() {
     
     // Calculate date range and find oldest/newest transactions
     if (csvData && csvData.length > 0) {
-        const sortedTransactions = csvData.slice().sort((a, b) => a.datum - b.datum);
-        const oldestTransaction = sortedTransactions[0];
-        const newestTransaction = sortedTransactions[sortedTransactions.length - 1];
-        
-        overviewStats.oldestDate = oldestTransaction.datum;
-        overviewStats.newestDate = newestTransaction.datum;
-        overviewStats.oldestAmount = Math.abs(oldestTransaction.castka);
-        overviewStats.newestAmount = Math.abs(newestTransaction.castka);
+    const sortedTransactions = csvData.slice().sort((a, b) => a.datum - b.datum);
+    const oldestTransaction = sortedTransactions[0];
+    const newestTransaction = sortedTransactions[sortedTransactions.length - 1];
+    
+    overviewStats.oldestDate = oldestTransaction.datum;
+    overviewStats.newestDate = newestTransaction.datum;
+    overviewStats.oldestAmount = Math.abs(oldestTransaction.castka);
+    overviewStats.newestAmount = Math.abs(newestTransaction.castka);
         
         // Store full transaction objects for tooltips
         overviewStats.oldestTransaction = oldestTransaction;
@@ -667,13 +705,13 @@ function calculateOverviewStatistics() {
     // Handle percentage display for gross current yield
     const grossYieldElement = document.getElementById('gross-current-yield');
     if (grossYieldElement) {
-        if (overviewStats.grossCurrentYield === 0) {
-            grossYieldElement.textContent = '0%';
-            grossYieldElement.classList.add('amount-zero');
-        } else {
-            grossYieldElement.textContent = `${overviewStats.grossCurrentYield.toFixed(2)}%`;
-            grossYieldElement.classList.remove('amount-zero');
-        }
+    if (overviewStats.grossCurrentYield === 0) {
+        grossYieldElement.textContent = '0%';
+        grossYieldElement.classList.add('amount-zero');
+    } else {
+        grossYieldElement.textContent = `${overviewStats.grossCurrentYield.toFixed(2)}%`;
+        grossYieldElement.classList.remove('amount-zero');
+    }
     }
     
     // Calculate and display 12-month TWRR
@@ -1815,9 +1853,12 @@ function calculateStatistics(data) {
     // Z toho blokováno na tržišti = Nabídka ke koupi - Vrácení nabídky
     const blockedOnMarket = totalPurchaseOffers - totalOfferReturns;
     
-    // Stav peněženky = Celkové vklady - Aktuální velikost portfolia + Celkový čistý výnos investic - Celkové výběry - Nabídka ke koupi + Vrácení nabídky
-    const walletBalance = totalDeposits - totalInvestment + totalProfits - totalWithdrawals - totalPurchaseOffers + totalOfferReturns;
+    // Stav peněženky = Celkové vklady - Aktuální velikost portfolia + Celkový čistý výnos investic - Celkové výběry - Nabídka ke koupi + Vrácení nabídky + Marketingové odměny
+    const walletBalance = totalDeposits - totalInvestment + totalProfits - totalWithdrawals - totalPurchaseOffers + totalOfferReturns + totalMarketingRewards;
     const walletBalanceAbs = Math.abs(walletBalance);
+    console.log("DEBUG: Wallet Balance Components:", { totalDeposits, totalInvestment, totalProfits, totalWithdrawals, totalPurchaseOffers, totalOfferReturns, totalMarketingRewards });
+    console.log("DEBUG: Wallet Balance Calculation:", totalDeposits, "-", totalInvestment, "+", totalProfits, "-", totalWithdrawals, "-", totalPurchaseOffers, "+", totalOfferReturns, "+", totalMarketingRewards, "=", walletBalance);
+    console.log("DEBUG: Final Wallet Balance:", walletBalanceAbs);
     
     return {
         totalTransactions: data.length,
@@ -2066,6 +2107,7 @@ function applyFilters() {
 // Modal Functions
 function openFilterModal() {
     const modalOverlay = document.getElementById('filter-modal-overlay');
+    modalOverlay.style.display = 'flex';
     modalOverlay.classList.add('show');
     
     // Update clear filters button state when modal opens
@@ -2078,6 +2120,7 @@ function openFilterModal() {
 function closeFilterModal() {
     const modalOverlay = document.getElementById('filter-modal-overlay');
     modalOverlay.classList.remove('show');
+    modalOverlay.style.display = 'none';
     
     // Remove focus trap
     document.removeEventListener('keydown', handleModalKeydown);
@@ -2472,7 +2515,7 @@ function createTimeSeriesChart() {
         return;
 }
 
-
+    
     
     // Group data by month and calculate net investment and profit
     const monthlyData = {};
@@ -2641,7 +2684,7 @@ function createTimeSeriesChart() {
                 pointHoverBackgroundColor: '#10B981',
                 pointBackgroundColor: 'transparent',
                 pointBorderColor: 'transparent',
-                                borderCapStyle: 'round',
+                borderCapStyle: 'round',
                 borderJoinStyle: 'round'
             }]
         },
@@ -2724,64 +2767,64 @@ function createTimeSeriesChart() {
                 }
             },
             scales: {
-                                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'month',
-                            displayFormats: {
-                                month: 'MM/yy'
-                            }
-                        },
-                        title: {
-                            display: false
-                        },
-                        ticks: {
-                            color: '#9CA3AF',
-                            font: {
-                                size: 11,
-                                family: 'Inter, system-ui, sans-serif'
-                            },
-                            maxTicksLimit: 8,
-                            padding: 8
-                        },
-                        grid: {
-                            color: 'rgba(156, 163, 175, 0.1)',
-                            lineWidth: 1
-                        },
-                        border: {
-                            color: 'rgba(156, 163, 175, 0.2)',
-                            width: 1
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'month',
+                        displayFormats: {
+                            month: 'MM/yy'
                         }
                     },
-                    y: {
-                        title: {
+                    title: {
                             display: false
+                    },
+                    ticks: {
+                        color: '#9CA3AF',
+                        font: {
+                            size: 11,
+                            family: 'Inter, system-ui, sans-serif'
                         },
-                        ticks: {
-                            color: '#9CA3AF',
-                            font: {
-                                size: 11,
-                                family: 'Inter, system-ui, sans-serif'
-                            },
-                            padding: 8,
-                            callback: function(value) {
-                                if (value === 0) return '0';
-                                const thousands = value / 1000;
-                                if (thousands >= 1000) {
-                                    return (thousands / 1000).toFixed(1).replace('.0', '') + ' mil.';
-                                }
-                                return Math.round(thousands) + ' tis.';
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(156, 163, 175, 0.1)',
-                            lineWidth: 1
-                        },
-                        border: {
-                            color: 'rgba(156, 163, 175, 0.2)',
-                            width: 1
-                        }
+                        maxTicksLimit: 8,
+                        padding: 8
+                    },
+                    grid: {
+                        color: 'rgba(156, 163, 175, 0.1)',
+                        lineWidth: 1
+                    },
+                    border: {
+                        color: 'rgba(156, 163, 175, 0.2)',
+                        width: 1
                     }
+                },
+                y: {
+                    title: {
+                            display: false
+                    },
+                    ticks: {
+                        color: '#9CA3AF',
+                        font: {
+                            size: 11,
+                            family: 'Inter, system-ui, sans-serif'
+                        },
+                        padding: 8,
+                        callback: function(value) {
+                            if (value === 0) return '0';
+                            const thousands = value / 1000;
+                            if (thousands >= 1000) {
+                                return (thousands / 1000).toFixed(1).replace('.0', '') + ' mil.';
+                            }
+                            return Math.round(thousands) + ' tis.';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(156, 163, 175, 0.1)',
+                        lineWidth: 1
+                    },
+                    border: {
+                        color: 'rgba(156, 163, 175, 0.2)',
+                        width: 1
+                    }
+                }
             },
             interaction: {
                 intersect: false,
@@ -3055,7 +3098,7 @@ function createTopProjectsChart() {
                 splacenoValue: 0,   // Částečné splacení jistiny + Splacení jistiny
                 netInvestment: 0    // Net investment for display
             };
-        }
+            }
         
         const amount = Math.abs(row.castka);
         const type = row.typ;
@@ -3902,7 +3945,7 @@ function calculateYearlyData() {
 
 function createMonthlyTable() {
     if (currentPeriodMode === 'monthly') {
-        allMonthlyData = calculateMonthlyData();
+    allMonthlyData = calculateMonthlyData();
     } else {
         allMonthlyData = calculateYearlyData();
     }
@@ -3951,6 +3994,9 @@ function updateMonthlyTable() {
         const ziskFormatted = formatAmountWithOptionalDecimals(month.zisk);
         const zmenaFormatted = formatPercentageChange(month.zmena_procenta);
         
+        // Set poplatky to red if not zero
+        const poplatkyClassName = Math.abs(month.poplatky) > 0.01 ? 'amount-negative' : poplatkyFormatted.className;
+        
         return `
             <tr>
                 <td>${month.mesic}</td>
@@ -3959,7 +4005,7 @@ function updateMonthlyTable() {
                 <td class="${splacenoFormatted.className}">${splacenoFormatted.formattedAmount}</td>
                 <td class="${prodejeFormatted.className}">${prodejeFormatted.formattedAmount}</td>
                 <td class="${marketingovyFormatted.className}">${marketingovyFormatted.formattedAmount}</td>
-                <td class="${poplatkyFormatted.className}">${poplatkyFormatted.formattedAmount}</td>
+                <td class="${poplatkyClassName}">${poplatkyFormatted.formattedAmount}</td>
                 <td class="${vkladyFormatted.className}">${vkladyFormatted.formattedAmount}</td>
                 <td class="${vyberyFormatted.className}">${vyberyFormatted.formattedAmount}</td>
                 <td class="${ziskFormatted.className}">${ziskFormatted.formattedAmount}</td>
@@ -4563,16 +4609,20 @@ function createTimelinePages() {
     const firstDate = timelineState.filteredTransactions[0].datum;
     const lastDate = timelineState.filteredTransactions[timelineState.filteredTransactions.length - 1].datum;
     
-    // Create 4-month periods
+    // Determine months per page based on screen size
+    const isMobile = window.innerWidth <= 768;
+    const monthsPerPage = isMobile ? 2 : 4;
+    
+    // Create month periods
     timelineState.pagesData = [];
     let currentDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
     const endDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
     
     while (currentDate <= endDate) {
         const pageStartDate = new Date(currentDate);
-        const pageEndDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 4, 0);
+        const pageEndDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthsPerPage, 0);
         
-        // Filter transactions for this 4-month period
+        // Filter transactions for this period
         const pageTransactions = timelineState.filteredTransactions.filter(transaction => {
             return transaction.datum >= pageStartDate && transaction.datum <= pageEndDate;
         });
@@ -4586,24 +4636,20 @@ function createTimelinePages() {
             });
         }
         
-        // Move to next 4-month period
-        currentDate.setMonth(currentDate.getMonth() + 4);
+        // Move to next period
+        currentDate.setMonth(currentDate.getMonth() + monthsPerPage);
     }
     
     console.log('Created', timelineState.pagesData.length, 'timeline pages');
 }
 
 function formatPageLabel(startDate, endDate) {
-    const startMonth = locale.months[startDate.getMonth()];
-    const startYear = startDate.getFullYear();
-    const endMonth = locale.months[endDate.getMonth()];
-    const endYear = endDate.getFullYear();
+    const startMonth = String(startDate.getMonth() + 1).padStart(2, '0');
+    const startYear = String(startDate.getFullYear()).slice(-2);
+    const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+    const endYear = String(endDate.getFullYear()).slice(-2);
     
-    if (startYear === endYear) {
-        return `${startMonth} - ${endMonth} ${startYear}`;
-    } else {
-        return `${startMonth} ${startYear} - ${endMonth} ${endYear}`;
-    }
+    return `${startMonth}/${startYear} - ${endMonth}/${endYear}`;
 }
 
 function renderTimelinePage() {
@@ -4661,7 +4707,7 @@ function renderTimelinePage() {
     const monthLabelsContainer = document.createElement('div');
     monthLabelsContainer.className = 'timeline-month-labels';
     
-    // Generate month labels for the 4-month period
+    // Generate month labels for the period
     const startDate = new Date(currentPageData.startDate);
     const endDate = new Date(currentPageData.endDate);
     
@@ -4672,7 +4718,7 @@ function renderTimelinePage() {
         const monthLabel = document.createElement('div');
         monthLabel.className = 'timeline-month-label';
         
-        // Calculate position of this month within the 4-month period
+        // Calculate position of this month within the period
         const monthPosition = ((currentMonth.getTime() - currentPageData.startDate.getTime()) / 
                              (currentPageData.endDate.getTime() - currentPageData.startDate.getTime())) * 100;
         
@@ -4723,7 +4769,7 @@ function createPagedTimelineEvent(transaction, index, pageData) {
     const eventElement = document.createElement('div');
     eventElement.className = 'timeline-event-horizontal';
     
-    // Calculate position based on date within the 4-month period
+    // Calculate position based on date within the period
     const pageStartTime = pageData.startDate.getTime();
     const pageEndTime = pageData.endDate.getTime();
     const transactionTime = transaction.datum.getTime();
