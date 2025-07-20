@@ -4016,7 +4016,6 @@ select:focus {
     color: rgba(255, 255, 255, 0.8);
 }
 
-/* Remove all hover text changes - keep everything simple */
 
 /* Info tooltip styling for current month */
 .current-month-breakdown .info-tooltip .info-icon {
