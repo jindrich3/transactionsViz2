@@ -4270,7 +4270,9 @@ select:focus {
 .modal-container .modal-content .table-container {
     margin: 0;
     border-radius: 0 0 24px 24px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 #transaction-details-table {
