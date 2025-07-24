@@ -4559,7 +4559,8 @@ function setupHeaderScrollBehavior() {
 let timelineState = {
     currentPage: 0,
     pagesData: [],
-    filteredTransactions: []
+    filteredTransactions: [],
+    monthsPerPage: 4 // Default zoom level (can be 1-12)
 };
 
 // Timeline functionality
@@ -4609,9 +4610,8 @@ function createTimelinePages() {
     const firstDate = timelineState.filteredTransactions[0].datum;
     const lastDate = timelineState.filteredTransactions[timelineState.filteredTransactions.length - 1].datum;
     
-    // Determine months per page based on screen size
-    const isMobile = window.innerWidth <= 768;
-    const monthsPerPage = isMobile ? 2 : 4;
+    // Use the zoom level from state
+    const monthsPerPage = timelineState.monthsPerPage;
     
     // Create month periods
     timelineState.pagesData = [];
@@ -4644,12 +4644,22 @@ function createTimelinePages() {
 }
 
 function formatPageLabel(startDate, endDate) {
-    const startMonth = String(startDate.getMonth() + 1).padStart(2, '0');
-    const startYear = String(startDate.getFullYear()).slice(-2);
-    const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
-    const endYear = String(endDate.getFullYear()).slice(-2);
+    const monthNames = [
+        'leden', 'únor', 'březen', 'duben', 'květen', 'červen',
+        'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'
+    ];
     
-    return `${startMonth}/${startYear} - ${endMonth}/${endYear}`;
+    const startMonthName = monthNames[startDate.getMonth()];
+    const startYear = startDate.getFullYear();
+    const endMonthName = monthNames[endDate.getMonth()];
+    const endYear = endDate.getFullYear();
+    
+    // If it's a single month (same month and year), show only one month
+    if (startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear()) {
+        return `${startMonthName} ${startYear}`;
+    }
+    
+    return `${startMonthName} ${startYear} - ${endMonthName} ${endYear}`;
 }
 
 function renderTimelinePage() {
@@ -4671,18 +4681,18 @@ function renderTimelinePage() {
     const timelineHeader = document.createElement('div');
     timelineHeader.className = 'timeline-header';
     
+    // Navigation controls (left side)
+    const navControls = document.createElement('div');
+    navControls.className = 'timeline-nav-controls';
+    
+    const navButtons = document.createElement('div');
+    navButtons.className = 'timeline-nav-buttons';
+    
     const prevButton = document.createElement('button');
     prevButton.className = 'timeline-nav-btn timeline-nav-prev';
     prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
     prevButton.disabled = timelineState.currentPage === 0;
     prevButton.addEventListener('click', () => navigateTimeline(-1));
-    
-    const pageInfo = document.createElement('div');
-    pageInfo.className = 'timeline-page-info';
-    pageInfo.innerHTML = `
-        <div class="timeline-period-label">${currentPageData.label}</div>
-        <div class="timeline-page-counter">${timelineState.currentPage + 1} / ${timelineState.pagesData.length}</div>
-    `;
     
     const nextButton = document.createElement('button');
     nextButton.className = 'timeline-nav-btn timeline-nav-next';
@@ -4690,9 +4700,56 @@ function renderTimelinePage() {
     nextButton.disabled = timelineState.currentPage === timelineState.pagesData.length - 1;
     nextButton.addEventListener('click', () => navigateTimeline(1));
     
-    timelineHeader.appendChild(prevButton);
+    navButtons.appendChild(prevButton);
+    navButtons.appendChild(nextButton);
+    
+    const pageCounter = document.createElement('div');
+    pageCounter.className = 'timeline-page-counter';
+    pageCounter.textContent = `${timelineState.currentPage + 1} / ${timelineState.pagesData.length}`;
+    
+    navControls.appendChild(navButtons);
+    navControls.appendChild(pageCounter);
+    
+    const pageInfo = document.createElement('div');
+    pageInfo.className = 'timeline-page-info';
+    pageInfo.innerHTML = `
+        <div class="timeline-period-label">${currentPageData.label}</div>
+    `;
+    
+    // Zoom controls (right side)
+    const zoomControls = document.createElement('div');
+    zoomControls.className = 'timeline-zoom-controls';
+    
+    const zoomButtons = document.createElement('div');
+    zoomButtons.className = 'timeline-zoom-buttons';
+    
+    const zoomOutButton = document.createElement('button');
+    zoomOutButton.className = 'timeline-nav-btn timeline-zoom-out';
+    zoomOutButton.innerHTML = '<i class="fas fa-minus"></i>';
+    zoomOutButton.title = 'Zobrazit více měsíců (zoom out)';
+    zoomOutButton.disabled = timelineState.monthsPerPage >= 12;
+    zoomOutButton.addEventListener('click', () => adjustTimelineZoom(1));
+    
+    const zoomInButton = document.createElement('button');
+    zoomInButton.className = 'timeline-nav-btn timeline-zoom-in';
+    zoomInButton.innerHTML = '<i class="fas fa-plus"></i>';
+    zoomInButton.title = 'Zobrazit méně měsíců (zoom in)';
+    zoomInButton.disabled = timelineState.monthsPerPage <= 1;
+    zoomInButton.addEventListener('click', () => adjustTimelineZoom(-1));
+    
+    zoomButtons.appendChild(zoomOutButton);
+    zoomButtons.appendChild(zoomInButton);
+    
+    const zoomInfo = document.createElement('div');
+    zoomInfo.className = 'timeline-zoom-info';
+    zoomInfo.textContent = `${timelineState.monthsPerPage} ${timelineState.monthsPerPage === 1 ? 'měsíc' : timelineState.monthsPerPage <= 4 ? 'měsíce' : 'měsíců'}`;
+    
+    zoomControls.appendChild(zoomButtons);
+    zoomControls.appendChild(zoomInfo);
+    
+    timelineHeader.appendChild(navControls);
     timelineHeader.appendChild(pageInfo);
-    timelineHeader.appendChild(nextButton);
+    timelineHeader.appendChild(zoomControls);
     
     // Create timeline track
     const timelineTrack = document.createElement('div');
@@ -4761,6 +4818,27 @@ function navigateTimeline(direction) {
     const newPage = timelineState.currentPage + direction;
     if (newPage >= 0 && newPage < timelineState.pagesData.length) {
         timelineState.currentPage = newPage;
+        renderTimelinePage();
+    }
+}
+
+function adjustTimelineZoom(direction) {
+    const newMonthsPerPage = timelineState.monthsPerPage + direction;
+    
+    // Constrain zoom level between 1 and 12
+    if (newMonthsPerPage >= 1 && newMonthsPerPage <= 12) {
+        timelineState.monthsPerPage = newMonthsPerPage;
+        
+        // Recreate timeline pages with new zoom level
+        createTimelinePages();
+        
+        // Try to stay on a similar time period by adjusting current page
+        if (timelineState.pagesData.length > 0) {
+            // Clamp current page to valid range
+            timelineState.currentPage = Math.min(timelineState.currentPage, timelineState.pagesData.length - 1);
+        }
+        
+        // Re-render timeline
         renderTimelinePage();
     }
 }
@@ -5052,6 +5130,8 @@ window.debugTimeline = function() {
     console.log('filteredData length:', filteredData.length);
     console.log('Timeline container exists:', !!document.getElementById('timeline-container'));
     console.log('Dashboard visible:', document.getElementById('dashboard').style.display !== 'none');
+    console.log('Current zoom level:', timelineState.monthsPerPage);
+    console.log('Timeline pages:', timelineState.pagesData.length);
     
     if (filteredData.length > 0) {
         console.log('Sample transaction:', filteredData[0]);
@@ -5060,4 +5140,12 @@ window.debugTimeline = function() {
     } else {
         console.log('No filtered data available');
     }
+};
+
+// Debug function for testing zoom
+window.debugTimelineZoom = function() {
+    console.log('=== TIMELINE ZOOM DEBUG ===');
+    console.log('Current zoom level:', timelineState.monthsPerPage);
+    console.log('Pages:', timelineState.pagesData.length);
+    console.log('Current page:', timelineState.currentPage);
 }; 
