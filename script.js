@@ -113,6 +113,12 @@ function setupEventListeners() {
     document.getElementById('clear-filters').addEventListener('click', clearAllFilters);
     document.getElementById('apply-filters').addEventListener('click', applyFiltersAndClose);
     
+    // Timeline filter event listeners
+    document.getElementById('close-timeline-filter-modal').addEventListener('click', closeTimelineFilterModal);
+    document.getElementById('timeline-filter-modal-overlay').addEventListener('click', handleTimelineModalOverlayClick);
+    document.getElementById('apply-timeline-filters').addEventListener('click', applyTimelineFilters);
+    document.getElementById('clear-timeline-filters').addEventListener('click', clearTimelineFilters);
+    
     // Date presets (works in modal)
     document.querySelectorAll('.preset-btn').forEach(btn => {
         btn.addEventListener('click', (e) => setDatePreset(e.target.dataset.days));
@@ -618,6 +624,9 @@ function initializeDashboard() {
         } catch (e) {
             console.error('Error in updateAdvancedStatistics:', e);
         }
+        
+        // Initialize timeline filters with defaults
+        initializeTimelineFiltersDefault();
         
         // FORCE timeline creation
         console.log('About to call createTimeline...');
@@ -2233,6 +2242,147 @@ function handleAboutModalOverlayClick(event) {
 function applyFiltersAndClose() {
     applyFilters();
     closeFilterModal();
+}
+
+// Timeline Filter Modal Functions
+function openTimelineFilterModal() {
+    const modalOverlay = document.getElementById('timeline-filter-modal-overlay');
+    lockBodyScroll();
+    modalOverlay.style.display = 'flex';
+    modalOverlay.classList.add('show');
+    
+    // Add wheel event listener to prevent background scrolling
+    modalOverlay.addEventListener('wheel', handleModalWheelEvent, { passive: false });
+    
+    // Populate filters with current data
+    populateTimelineFilters();
+    
+    // Trap focus in modal
+    document.addEventListener('keydown', handleTimelineModalKeydown);
+}
+
+function closeTimelineFilterModal() {
+    const modalOverlay = document.getElementById('timeline-filter-modal-overlay');
+    modalOverlay.classList.remove('show');
+    modalOverlay.style.display = 'none';
+    unlockBodyScroll();
+    
+    // Remove wheel event listener
+    modalOverlay.removeEventListener('wheel', handleModalWheelEvent);
+    
+    // Remove focus trap
+    document.removeEventListener('keydown', handleTimelineModalKeydown);
+}
+
+function handleTimelineModalOverlayClick(event) {
+    if (event.target.id === 'timeline-filter-modal-overlay') {
+        closeTimelineFilterModal();
+    }
+}
+
+function handleTimelineModalKeydown(event) {
+    if (event.key === 'Escape') {
+        closeTimelineFilterModal();
+    }
+}
+
+function populateTimelineFilters() {
+    // Populate projects dropdown - use the same data as main filters
+    const projectSelect = document.getElementById('timeline-project-filter-select');
+    projectSelect.innerHTML = '';
+    
+    // Add "Všechny projekty" option
+    const allProjectsOption = document.createElement('option');
+    allProjectsOption.value = '';
+    allProjectsOption.textContent = 'Všechny projekty';
+    projectSelect.appendChild(allProjectsOption);
+    
+    const projects = [...new Set(csvData.map(row => row.projekt))]
+        .filter(project => project && project.trim() !== '') // Filter out empty/null projects
+        .sort();
+    projects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project;
+        option.textContent = project;
+        projectSelect.appendChild(option);
+    });
+    
+    // Clean up any potential duplicate empty options that might have been created
+    const options = Array.from(projectSelect.options);
+    const emptyOptions = options.filter(option => option.value === '' && option.textContent !== 'Všechny projekty');
+    emptyOptions.forEach(option => option.remove());
+    
+    // Set the selected value - when selectedProject is empty, it will select the "Všechny projekty" option
+    if (timelineState.filters.selectedProject === '' || !timelineState.filters.selectedProject) {
+        projectSelect.selectedIndex = 0; // Select "Všechny projekty"
+    } else {
+        projectSelect.value = timelineState.filters.selectedProject;
+        // If the project doesn't exist anymore, fallback to "Všechny projekty"
+        if (projectSelect.selectedIndex === -1) {
+            projectSelect.selectedIndex = 0;
+        }
+    }
+    
+    // Populate transaction types checkboxes - only timeline relevant types
+    const checkboxContainer = document.getElementById('timeline-transaction-type-checkboxes');
+    checkboxContainer.innerHTML = '';
+    
+    const allowedTypes = ['Investice', 'Autoinvestice', 'Prodej', 'Odstoupení', 'Vklad peněz', 'Výběr peněz', 'Vrácení peněz'];
+    const availableTypes = [...new Set(csvData.map(row => row.typ))].filter(type => allowedTypes.includes(type)).sort();
+    
+    availableTypes.forEach(type => {
+        const checkboxItem = document.createElement('div');
+        checkboxItem.className = 'checkbox-item';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `timeline-type-${type}`;
+        checkbox.value = type;
+        checkbox.checked = timelineState.filters.selectedTransactionTypes.includes(type);
+        
+        const label = document.createElement('label');
+        label.htmlFor = `timeline-type-${type}`;
+        label.textContent = type;
+        
+        checkboxItem.appendChild(checkbox);
+        checkboxItem.appendChild(label);
+        checkboxContainer.appendChild(checkboxItem);
+    });
+}
+
+function applyTimelineFilters() {
+    // Get selected project
+    const projectSelect = document.getElementById('timeline-project-filter-select');
+    timelineState.filters.selectedProject = projectSelect.value;
+    
+    // Get selected transaction types
+    const checkboxes = document.querySelectorAll('#timeline-transaction-type-checkboxes input[type="checkbox"]:checked');
+    timelineState.filters.selectedTransactionTypes = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Recreate timeline with new filters
+    createTimeline();
+    
+    closeTimelineFilterModal();
+}
+
+function clearTimelineFilters() {
+    // Reset timeline filters to defaults
+    timelineState.filters.selectedProject = '';
+    initializeTimelineFiltersDefault();
+    
+    // Recreate timeline
+    createTimeline();
+    
+    closeTimelineFilterModal();
+}
+
+function initializeTimelineFiltersDefault() {
+    // Set all transaction types to be checked by default
+    if (csvData && csvData.length > 0) {
+        const allowedTypes = ['Investice', 'Autoinvestice', 'Prodej', 'Odstoupení', 'Vklad peněz', 'Výběr peněz', 'Vrácení peněz'];
+        const availableTypes = [...new Set(csvData.map(row => row.typ))].filter(type => allowedTypes.includes(type));
+        timelineState.filters.selectedTransactionTypes = availableTypes;
+    }
 }
 
 // Charts Creation
@@ -4652,7 +4802,11 @@ let timelineState = {
     currentPage: 0,
     pagesData: [],
     filteredTransactions: [],
-    monthsPerPage: 4 // Default zoom level (can be 1-12)
+    monthsPerPage: 4, // Default zoom level (can be 1-12)
+    filters: {
+        selectedProject: '',
+        selectedTransactionTypes: []
+    }
 };
 
 // Timeline functionality
@@ -4669,11 +4823,20 @@ function createTimeline() {
             return;
         }
         
-    // Filter only specific transaction types
+    // Filter using timeline filters
     const allowedTypes = ['Investice', 'Autoinvestice', 'Prodej', 'Odstoupení', 'Vklad peněz', 'Výběr peněz', 'Vrácení peněz'];
-    const timelineTransactions = filteredData.filter(transaction => 
-        allowedTypes.includes(transaction.typ)
-    );
+    const timelineTransactions = filteredData.filter(transaction => {
+        // Transaction type filter - if no types selected, show all allowed types
+        const typeFilter = timelineState.filters.selectedTransactionTypes.length > 0 
+            ? timelineState.filters.selectedTransactionTypes.includes(transaction.typ)
+            : allowedTypes.includes(transaction.typ);
+        
+        // Project filter
+        const projectFilter = timelineState.filters.selectedProject === '' || 
+            transaction.projekt === timelineState.filters.selectedProject;
+        
+        return typeFilter && projectFilter;
+    });
     
     console.log('Filtered timeline transactions:', timelineTransactions.length);
     
@@ -4795,6 +4958,14 @@ function renderTimelinePage() {
     navButtons.appendChild(prevButton);
     navButtons.appendChild(nextButton);
     
+    // Add filter button to navigation buttons
+    const filterButton = document.createElement('button');
+    filterButton.className = 'btn btn-secondary timeline-filter-btn';
+    filterButton.innerHTML = '<i class="fas fa-filter"></i> Filtrace';
+    filterButton.title = 'Filtrace časové osy';
+    filterButton.addEventListener('click', openTimelineFilterModal);
+    navButtons.appendChild(filterButton);
+    
     const pageCounter = document.createElement('div');
     pageCounter.className = 'timeline-page-counter';
     pageCounter.textContent = `${timelineState.currentPage + 1} / ${timelineState.pagesData.length}`;
@@ -4807,6 +4978,8 @@ function renderTimelinePage() {
     pageInfo.innerHTML = `
         <div class="timeline-period-label">${currentPageData.label}</div>
     `;
+    
+    // Filter controls moved to navigation buttons
     
     // Zoom controls (right side)
     const zoomControls = document.createElement('div');

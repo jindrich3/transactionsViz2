@@ -989,7 +989,7 @@
                         <div class="table-actions">
                             <button class="btn btn-secondary" id="filters-btn">
                                 <i class="fas fa-filter"></i>
-                                Filtry
+                                Filtrace
                             </button>
                             <button class="btn btn-secondary" id="clear-filters">
                                 <i class="fas fa-eraser"></i>
@@ -1209,7 +1209,7 @@
                     Časová osa akcí uživatele
                     <span class="info-tooltip">
                         <i class="fas fa-info-circle info-icon"></i>
-                        <span class="tooltip-content">Časová osa zobrazující chronologicky klíčové události v portfoliu uživatele. Zobrazuje všechny dostupné transakce ze zdrojového souboru a jejich metadata. Použijte + a - tlačítka pro změnu počtu zobrazených měsíců (1-12).</span>
+                        <span class="tooltip-content">Časová osa zobrazující chronologicky klíčové události v portfoliu uživatele, které uživatel provedl či mohl ovlivnit. Nejsou zde zobrazeny Výnosy, Poplatky či OdměnyPoužijte + a - tlačítka pro změnu počtu zobrazených měsíců (1-12).</span>
                     </span>
                 </h2>
                 
@@ -1230,7 +1230,7 @@
             <div class="modal-header">
                 <h3>
                     <i class="fas fa-filter"></i>
-                    Filtry transakcí
+                    Filtrace transakcí
                 </h3>
                 <button class="modal-close" id="close-filter-modal">
                     <i class="fas fa-times"></i>
@@ -1278,7 +1278,7 @@
             <div class="modal-footer">
                 <button class="btn btn-primary" id="apply-filters">
                     <i class="fas fa-check"></i>
-                    Použít filtry
+                    Filtrovat
                 </button>
             </div>
         </div>
@@ -1315,6 +1315,53 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline Filter Modal -->
+    <div class="modal-overlay" id="timeline-filter-modal-overlay">
+        <div class="modal" id="timeline-filter-modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-filter"></i>
+                    Filtrace časové osy
+                </h3>
+                <button class="modal-close" id="close-timeline-filter-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="filter-sections">
+                    <!-- Project Filter -->
+                    <div class="filter-section">
+                        <label class="filter-label">Projekt</label>
+                        <div class="dropdown-container">
+                            <select id="timeline-project-filter-select" class="filter-select">
+                                <option value="">Všechny projekty</option>
+                                <!-- Populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Transaction Type Filter -->
+                    <div class="filter-section">
+                        <label class="filter-label">Typ transakce</label>
+                        <div class="checkbox-container" id="timeline-transaction-type-checkboxes">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="apply-timeline-filters">
+                    <i class="fas fa-check"></i>
+                    Filtrovat
+                </button>
+                <button class="btn btn-secondary" id="clear-timeline-filters">
+                    <i class="fas fa-eraser"></i>
+                    Vymazat filtry
+                </button>
             </div>
         </div>
     </div>
