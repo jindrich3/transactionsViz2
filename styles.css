@@ -2952,8 +2952,7 @@ select:focus {
 
 .chart-card-enhanced-time .chart-container {
     overflow: visible !important;
-    padding: 20px;
-    margin: -20px;
+    margin-bottom: -30px;
 }
 
 /* Apply same overflow fix to all enhanced chart containers */
@@ -2969,8 +2968,7 @@ select:focus {
 .chart-card-enhanced-time .chart-container {
     height: 400px;
     overflow: visible !important;
-    padding: 20px;
-    margin: -20px;
+    margin-bottom: -30px;
     border-radius: 0 0 16px 16px;
 }
 
@@ -4375,7 +4373,6 @@ select:focus {
     flex: 1;
     height: 280px;
     padding-top: 0;
-    padding-bottom: var(--spacing-2);
     display: flex;
     align-items: center;
 }
