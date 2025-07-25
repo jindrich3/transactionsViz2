@@ -4194,7 +4194,6 @@ body.modal-open {
     
     .current-month-breakdown .breakdown-row-header {
         flex-direction: column;
-        gap: var(--spacing-4);
     }
     
     .current-month-breakdown .breakdown-row-label {
