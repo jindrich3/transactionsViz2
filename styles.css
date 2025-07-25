@@ -2997,6 +2997,7 @@ body.modal-open {
     height: 400px;
     overflow: visible !important;
     margin-bottom: -30px;
+    padding-bottom: 30px;
     border-radius: 0 0 16px 16px;
 }
 
