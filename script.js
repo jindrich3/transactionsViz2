@@ -1659,7 +1659,12 @@ function showTransactionDetailsModal(transactionType) {
     // Show modal
     const modal = document.getElementById('transaction-details-modal');
     if (modal) {
+        lockBodyScroll();
         modal.style.display = 'flex';
+        
+        // Add wheel event listener to prevent background scrolling
+        modal.addEventListener('wheel', handleModalWheelEvent, { passive: false });
+        
         setTimeout(() => {
             modal.classList.add('show');
         }, 10);
@@ -1671,6 +1676,11 @@ function closeTransactionDetailsModal() {
     const modal = document.getElementById('transaction-details-modal');
     if (modal) {
         modal.classList.remove('show');
+        unlockBodyScroll();
+        
+        // Remove wheel event listener
+        modal.removeEventListener('wheel', handleModalWheelEvent);
+        
         setTimeout(() => {
             modal.style.display = 'none';
         }, 250);
@@ -2109,11 +2119,41 @@ function applyFilters() {
     updateTimeline();
 }
 
+// Modal scroll management functions
+function lockBodyScroll() {
+    const scrollY = window.scrollY;
+    document.body.style.top = `-${scrollY}px`;
+    document.body.classList.add('modal-open');
+}
+
+function unlockBodyScroll() {
+    const scrollY = document.body.style.top;
+    document.body.classList.remove('modal-open');
+    document.body.style.top = '';
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+}
+
+// Prevent background scrolling on modal overlays
+function handleModalWheelEvent(event) {
+    const modalContainer = event.currentTarget.querySelector('.modal-container, .modal');
+    if (modalContainer && modalContainer.contains(event.target)) {
+        // Allow scrolling within modal content
+        return;
+    }
+    // Prevent scrolling on overlay background
+    event.preventDefault();
+    event.stopPropagation();
+}
+
 // Modal Functions
 function openFilterModal() {
     const modalOverlay = document.getElementById('filter-modal-overlay');
+    lockBodyScroll();
     modalOverlay.style.display = 'flex';
     modalOverlay.classList.add('show');
+    
+    // Add wheel event listener to prevent background scrolling
+    modalOverlay.addEventListener('wheel', handleModalWheelEvent, { passive: false });
     
     // Update clear filters button state when modal opens
     updateClearFiltersButton();
@@ -2126,6 +2166,10 @@ function closeFilterModal() {
     const modalOverlay = document.getElementById('filter-modal-overlay');
     modalOverlay.classList.remove('show');
     modalOverlay.style.display = 'none';
+    unlockBodyScroll();
+    
+    // Remove wheel event listener
+    modalOverlay.removeEventListener('wheel', handleModalWheelEvent);
     
     // Remove focus trap
     document.removeEventListener('keydown', handleModalKeydown);
@@ -2147,8 +2191,12 @@ function handleModalKeydown(event) {
 // About Project Modal Functions
 function openAboutProjectModal() {
     const modalOverlay = document.getElementById('about-project-modal');
+    lockBodyScroll();
     modalOverlay.style.display = 'flex';
     modalOverlay.classList.add('show');
+    
+    // Add wheel event listener to prevent background scrolling
+    modalOverlay.addEventListener('wheel', handleModalWheelEvent, { passive: false });
     
     // Trap focus in modal
     document.addEventListener('keydown', handleAboutModalKeydown);
@@ -2157,6 +2205,10 @@ function openAboutProjectModal() {
 function closeAboutProjectModal() {
     const modalOverlay = document.getElementById('about-project-modal');
     modalOverlay.classList.remove('show');
+    unlockBodyScroll();
+    
+    // Remove wheel event listener
+    modalOverlay.removeEventListener('wheel', handleModalWheelEvent);
     
     setTimeout(() => {
         modalOverlay.style.display = 'none';

@@ -2427,6 +2427,13 @@ select:focus {
     }
 }
 
+/* Body scroll lock for modals */
+body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
 /* Filter Modal Styles */
 .modal-overlay {
     position: fixed;
@@ -2444,6 +2451,8 @@ select:focus {
     visibility: hidden;
     pointer-events: none;
     transition: all var(--transition-normal);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal-overlay.show {
@@ -2451,6 +2460,11 @@ select:focus {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+}
+
+/* Prevent background scrolling when mouse is over modal overlay */
+.modal-overlay {
+    overscroll-behavior: contain;
 }
 
 .modal {
