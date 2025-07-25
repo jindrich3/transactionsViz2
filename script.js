@@ -101,6 +101,11 @@ function setupEventListeners() {
     document.getElementById('retry-btn').addEventListener('click', resetFileSelection);
     document.getElementById('new-upload-btn').addEventListener('click', resetToLanding);
     
+    // About project modal functionality
+    document.getElementById('about-project-btn').addEventListener('click', openAboutProjectModal);
+    document.getElementById('close-about-project-modal').addEventListener('click', closeAboutProjectModal);
+    document.getElementById('about-project-modal').addEventListener('click', handleAboutModalOverlayClick);
+    
     // Filter modal functionality  
     document.getElementById('filters-btn').addEventListener('click', openFilterModal);
     document.getElementById('close-filter-modal').addEventListener('click', closeFilterModal);
@@ -2135,6 +2140,41 @@ function handleModalOverlayClick(event) {
 function handleModalKeydown(event) {
     if (event.key === 'Escape') {
         closeFilterModal();
+        closeAboutProjectModal();
+    }
+}
+
+// About Project Modal Functions
+function openAboutProjectModal() {
+    const modalOverlay = document.getElementById('about-project-modal');
+    modalOverlay.style.display = 'flex';
+    modalOverlay.classList.add('show');
+    
+    // Trap focus in modal
+    document.addEventListener('keydown', handleAboutModalKeydown);
+}
+
+function closeAboutProjectModal() {
+    const modalOverlay = document.getElementById('about-project-modal');
+    modalOverlay.classList.remove('show');
+    
+    setTimeout(() => {
+        modalOverlay.style.display = 'none';
+    }, 200);
+    
+    // Remove keydown listener
+    document.removeEventListener('keydown', handleAboutModalKeydown);
+}
+
+function handleAboutModalKeydown(event) {
+    if (event.key === 'Escape') {
+        closeAboutProjectModal();
+    }
+}
+
+function handleAboutModalOverlayClick(event) {
+    if (event.target === event.currentTarget) {
+        closeAboutProjectModal();
     }
 }
 

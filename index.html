@@ -129,6 +129,10 @@
                         <p class="dashboard-subtitle" id="data-summary">Načteno <span id="transaction-count">0</span> transakcí</p>
                     </div>
                     <div class="header-right">
+                        <button class="btn btn-secondary" id="about-project-btn">
+                            <i class="fas fa-info-circle"></i>
+                            O projektu
+                        </button>
                         <button class="btn btn-secondary" id="new-upload-btn">
                             <i class="fas fa-upload"></i>
                             Nahrát nový soubor
@@ -1310,6 +1314,91 @@
                             <!-- Populated by JavaScript -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Project Modal -->
+    <div id="about-project-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container about-modal">
+            <div class="modal-header">
+                <h3 id="about-project-title">O projektu</h3>
+                <button class="modal-close" id="close-about-project-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="about-author-section">
+                    <div class="author-avatar">
+                        <img src="profile.png" alt="Jindřich Dědek" class="profile-image">
+                    </div>
+                    
+                    <div class="author-info">
+                        <div class="author-row">
+                            <span class="author-value name">Ing. Jindřich Dědek</span>
+                        </div>
+                        
+                        <div class="author-row">
+                            <span class="author-value">Head of Product at Investown</span>
+                        </div>
+                        
+                        <div class="author-row">
+                            <i class="fas fa-envelope author-icon"></i>
+                            <a href="mailto:jindrich.dedek@investown.cz" class="author-email">jindrich.dedek@investown.cz</a>
+                        </div>
+                        
+                        <div class="author-row">
+                            <i class="fab fa-linkedin author-icon"></i>
+                            <a href="https://linkedin.com/in/dedekcze" target="_blank" class="author-linkedin">linkedin.com/in/dedekcze</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about-section">
+                    <h4><i class="fas fa-info-circle"></i> O projektu</h4>
+                    <p>Tento nástroj pro analýzu transakcí investiční platformy Investown vznikl jako experimentální projekt produktového manažera společnosti, a to zejména ze zvědavosti ohledně možností AI a vibe-codingu při práci s investičními daty.</p>
+                    
+                    <p>Všechna zobrazená data a analýzy jsou vypočítána výhradně z CSV exportů nahraných do nástroje uživatelem. Web nemá žádnou přímou integraci se systémy společnosti Investown, ani jakoukoliv další vzdálenou integraci pro práci s daty. Žádná poskytnutá data se nesbírají, ani nikam nezasílají. Veškeré výpočty probíhají výhradně na zařízení uživatele.</p>
+                    
+                    <p>Nejedná se o oficiální produkt společnosti Investown. Některá data mají pouze informativní charakter a nástroj slouží jako podpora pro investorskou komunitu platformy.</p>
+                    
+                    <p>Projekt je v neustálém vývoji, vím, že má mezery a prostor pro další růst. Pokud máte nápady na vylepšení, objevíte chybu nebo byste rádi viděli nové funkce, budu vděčný za jakoukoliv zpětnou vazbu. Neváhejte mě kontaktovat emailem.</p>
+                </div>
+                
+                <div class="about-section">
+                    <h4><i class="fas fa-list-alt"></i> Changelog</h4>
+                    <div class="changelog-table">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Datum vydání</th>
+                                    <th>Změny</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>01.01.2024</td>
+                                    <td>
+                                        <ul>
+                                            <li>Bullet point 1</li>
+                                            <li>Bullet point 2</li>
+                                            <li>Bullet point 3</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>15.12.2023</td>
+                                    <td>
+                                        <ul>
+                                            <li>Bullet point 1</li>
+                                            <li>Bullet point 2</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
