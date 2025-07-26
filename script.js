@@ -1775,48 +1775,84 @@ function calculateStatistics(data) {
     const averageInvestment = investments.length > 0 ? 
         investments.reduce((sum, row) => sum + Math.abs(row.castka), 0) / investments.length : 0;
     
-    // Počet etap v portfoliu = "Aktivní etapy / Celkové etapy"
-    const uniqueInvestmentProjects = new Set(
-        investments.map(row => row.projekt).filter(p => p && p.trim() !== '')
-    );
-    const totalStages = uniqueInvestmentProjects.size;
+    // Počet etap v portfoliu = count of projects with positive exposure
+    // Exposure = (Investice do příležitosti + Autoinvestice + Investice) - (Odstoupení + Splacení jistiny + Vrácení peněz + Částečné splacení jistiny)
+    const projectExposures = {};
     
-    // Calculate active stages - projects where Splaceno - Investice ≠ 0
-    const activeStages = Array.from(uniqueInvestmentProjects).filter(project => {
-        // Calculate Net Investment for this project (Investice + Autoinvestice - Odstoupení - Vrácení peněz)
-        const projectInvestments = data.filter(row => 
-            row.projekt === project && (
-                row.typ === 'Investice' || 
-                row.typ === 'Autoinvestice'
-            )
-        );
-        const investmentAmount = projectInvestments.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+    // Calculate exposure for each project
+    data.forEach(row => {
+        if (!row.projekt || row.projekt.trim() === '') return;
         
-        const projectWithdrawals = data.filter(row => 
-            row.projekt === project && (
-                row.typ === 'Odstoupení' || 
-                row.typ === 'Vrácení peněz'
-            )
-        );
-        const withdrawalAmount = projectWithdrawals.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+        if (!projectExposures[row.projekt]) {
+            projectExposures[row.projekt] = 0;
+        }
         
-        const netInvestment = investmentAmount - withdrawalAmount;
+        const amount = Math.abs(row.castka);
+        const rawAmount = row.castka; // Original signed value
+        const type = row.typ;
         
-        // Calculate Total Returns for this project (Splacení jistiny + Částečné splacení jistiny)
-        const projectReturns = data.filter(row => 
-            row.projekt === project && (
-                row.typ === 'Splacení jistiny' || 
-                row.typ === 'Částečné splacení jistiny'
-            )
-        );
-        const totalReturns = projectReturns.reduce((sum, row) => sum + Math.abs(row.castka), 0);
+        // Debug: Log various transaction types to see raw values
+        if (Object.keys(projectExposures).length < 3) {
+            if (type === 'Investice do příležitosti' || type === 'Autoinvestice' || type === 'Investice' ||
+                type === 'Odstoupení' || type === 'Splacení jistiny' || type === 'Vrácení peněz' || 
+                type === 'Částečné splacení jistiny' || type === 'Prodej') {
+                console.log(`DEBUG: Raw transaction - Type: ${type}, Project: ${row.projekt}, Raw Amount: ${rawAmount}`);
+            }
+        }
         
-        // Calculate the difference: Splaceno - Investováno
-        const difference = totalReturns - netInvestment;
+        // Use raw signed values for proper exposure calculation
+        // Investments (negative values) should increase exposure when subtracted (double negative = positive)
+        // Returns (positive values) should decrease exposure when subtracted
+        if (type === 'Investice do příležitosti' || type === 'Autoinvestice' || type === 'Investice') {
+            projectExposures[row.projekt] -= rawAmount; // Subtract negative = add positive
+        }
+        // Subtract returns and withdrawals (positive values)
+        else if (type === 'Odstoupení' || type === 'Splacení jistiny' || 
+                 type === 'Vrácení peněz' || type === 'Částečné splacení jistiny' || type === 'Prodej') {
+            projectExposures[row.projekt] -= rawAmount; // Subtract positive values
+        }
+    });
+    
+    console.log("DEBUG: Chart - Project Exposures:", projectExposures);
+    
+    // Debug: Check for floating point precision issues and apply rounding
+    Object.entries(projectExposures).forEach(([project, exposure]) => {
+        // Round to cents to avoid floating point precision issues
+        const roundedExposure = Math.round(exposure * 100) / 100;
+        projectExposures[project] = roundedExposure;
         
-        // Project is active if Splaceno - Investice ≠ 0 (using small tolerance for floating point comparison)
-        return Math.abs(difference) >= 0.01;
-    }).length;
+        if (Math.abs(exposure - roundedExposure) > 0.0001) {
+            console.log(`DEBUG: Precision issue fixed - Project: ${project}, Original: ${exposure.toString()}, Rounded: ${roundedExposure.toString()}`);
+        }
+        if (roundedExposure > 0 && roundedExposure < 0.01) {
+            console.log(`DEBUG: Very small positive exposure - Project: ${project}, Exposure: ${roundedExposure.toString()}`);
+        }
+    });
+    
+    // Filter to show only projects with positive exposure
+    const validProjects = Object.entries(projectExposures)
+        .filter(([projectName, exposure]) => exposure > 0)
+        .map(([projectName, exposure]) => [projectName, exposure])
+        .sort(([,a], [,b]) => b - a);
+
+    console.log("DEBUG: Chart - Valid Projects:", validProjects);
+    console.log("DEBUG: Chart - Valid Projects Count:", validProjects.length);
+    
+    // Total stages = all projects that had any investment activity
+    const allInvestmentProjects = new Set();
+    data.forEach(row => {
+        if (row.projekt && row.projekt.trim() !== '' && 
+            (row.typ === 'Investice do příležitosti' || row.typ === 'Autoinvestice' || row.typ === 'Investice')) {
+            allInvestmentProjects.add(row.projekt);
+        }
+    });
+    
+    const activeStages = validProjects.length;
+    const totalStages = allInvestmentProjects.size;
+    
+    console.log("DEBUG: Statistics - Project Exposures:", projectExposures);
+    console.log("DEBUG: Statistics - Active Projects:", validProjects);
+    console.log("DEBUG: Statistics - activeStages:", activeStages, "totalStages:", totalStages);
     
     const portfolioStages = {
         active: activeStages,
@@ -3594,56 +3630,48 @@ function createPortfolioExposureChart(retryCount = 0) {
     
     const ctx = canvas.getContext('2d');
     
-    // Calculate portfolio exposure by project, showing only active projects
-    // Active project: Splaceno (Částečné splacení jistiny + Splacení jistiny) - Investice value (Autoinvestice + Investice - Odstoupení - Vrácení peněz) ≠ 0
-    const projectExposureData = {};
+    // Calculate portfolio exposure using the same logic as statistics
+    // Use raw signed values: investments (negative) - returns (positive) = exposure
+    const projectExposures = {};
     
-    // First, collect all transaction data by project
+    // Calculate exposure for each project using signed values
     csvData.forEach(row => {
-        if (!row.projekt) return;
+        if (!row.projekt || row.projekt.trim() === '') return;
         
-        if (!projectExposureData[row.projekt]) {
-            projectExposureData[row.projekt] = {
-                investiceValue: 0,  // Autoinvestice + Investice - Odstoupení - Vrácení peněz
-                splacenoValue: 0,   // Částečné splacení jistiny + Splacení jistiny
-                exposure: 0         // Current exposure calculation
-            };
+        if (!projectExposures[row.projekt]) {
+            projectExposures[row.projekt] = 0;
         }
         
-        const amount = Math.abs(row.castka);
+        const rawAmount = row.castka; // Original signed value
         const type = row.typ;
         
-        // Calculate Investice value (Autoinvestice + Investice - Odstoupení - Vrácení peněz)
-        if (type === 'Autoinvestice' || type === 'Investice') {
-            projectExposureData[row.projekt].investiceValue += amount;
-        } else if (type === 'Odstoupení' || type === 'Vrácení peněz') {
-            projectExposureData[row.projekt].investiceValue -= amount;
+        // Use raw signed values for proper exposure calculation
+        if (type === 'Investice do příležitosti' || type === 'Autoinvestice' || type === 'Investice') {
+            projectExposures[row.projekt] -= rawAmount; // Subtract negative = add positive
         }
-        
-        // Calculate Splaceno value (Částečné splacení jistiny + Splacení jistiny)
-        if (type === 'Částečné splacení jistiny' || type === 'Splacení jistiny') {
-            projectExposureData[row.projekt].splacenoValue += amount;
-        }
-        
-        // Calculate current exposure (for display purposes)
-        if (type === 'Autoinvestice' || type === 'Investice') {
-            projectExposureData[row.projekt].exposure += amount;
-        } else if (type === 'Prodej' || type === 'Částečné splacení jistiny' || 
-                   type === 'Vrácení peněz' || type === 'Odstoupení') {
-            projectExposureData[row.projekt].exposure -= amount;
+        // Subtract returns and withdrawals (positive values)
+        else if (type === 'Odstoupení' || type === 'Splacení jistiny' || 
+                 type === 'Vrácení peněz' || type === 'Částečné splacení jistiny' || type === 'Prodej') {
+            projectExposures[row.projekt] -= rawAmount; // Subtract positive values
         }
     });
     
-    // Filter to show only active projects where Splaceno - Investice ≠ 0 and exposure > 0
-    const validProjects = Object.entries(projectExposureData)
-        .filter(([projectName, data]) => {
-            const difference = data.splacenoValue - data.investiceValue;
-            const isActive = Math.abs(difference) >= 0.01; // Use small tolerance for floating point comparison
-            const hasPositiveExposure = data.exposure > 0;
-            return isActive && hasPositiveExposure;
-        })
-        .map(([projectName, data]) => [projectName, data.exposure])
+    // Apply rounding to avoid floating point precision issues
+    Object.entries(projectExposures).forEach(([project, exposure]) => {
+        const roundedExposure = Math.round(exposure * 100) / 100;
+        projectExposures[project] = roundedExposure;
+    });
+    
+    console.log("DEBUG: Chart - Project Exposures:", projectExposures);
+    
+    // Filter to show only projects with positive exposure (same logic as statistics)
+    const validProjects = Object.entries(projectExposures)
+        .filter(([projectName, exposure]) => exposure > 0)
+        .map(([projectName, exposure]) => [projectName, exposure])
         .sort(([,a], [,b]) => b - a);
+    
+    console.log("DEBUG: Chart - Valid Projects:", validProjects);
+    console.log("DEBUG: Chart - Valid Projects Count:", validProjects.length);
     
     if (validProjects.length === 0) {
         // Show empty state
