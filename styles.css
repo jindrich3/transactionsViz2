@@ -4859,3 +4859,27 @@ body.modal-open {
         transition: all 0.1s ease;
     }
 }
+
+/* Mobile font size consistency fixes */
+@media (max-width: 768px) {
+    /* Make modal table cell font size consistent with headers */
+    #transaction-details-table td {
+        font-size: var(--font-size-xs);
+    }
+    
+    /* Make changelog bullet points consistent with table headers */
+    .changelog-table ul,
+    .changelog-table li {
+        font-size: var(--font-size-xs);
+    }
+    
+    /* Also ensure table headers stay consistent on mobile */
+    #transaction-details-table th {
+        font-size: var(--font-size-xs);
+    }
+    
+    /* Ensure changelog table data cells use same font size */
+    .changelog-table .data-table td {
+        font-size: var(--font-size-xs);
+    }
+}
