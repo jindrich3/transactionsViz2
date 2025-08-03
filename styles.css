@@ -4832,3 +4832,30 @@ body.modal-open {
 
 
 
+
+/* Mobile tooltip support - add active state for touch devices */
+.info-tooltip.active .tooltip-content,
+.info-tooltip:active .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Mobile-specific tooltip adjustments */
+@media (max-width: 768px) {
+    .tooltip-content {
+        /* Make tooltips slightly larger and more touch-friendly on mobile */
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-4);
+        max-width: 90vw;
+        min-width: 250px;
+        /* Ensure tooltips don't go off screen on mobile */
+        box-sizing: border-box;
+    }
+    
+    /* Add visual feedback for touch */
+    .info-tooltip:active {
+        color: var(--primary-color);
+        transform: scale(1.1);
+        transition: all 0.1s ease;
+    }
+}

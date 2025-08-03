@@ -5442,3 +5442,75 @@ window.debugTimelineZoom = function() {
     console.log('Pages:', timelineState.pagesData.length);
     console.log('Current page:', timelineState.currentPage);
 }; 
+// Mobile tooltip support
+function initializeMobileTooltips() {
+    const tooltips = document.querySelectorAll('.info-tooltip');
+    let activeTooltip = null;
+    
+    tooltips.forEach(tooltip => {
+        // Handle touch events for mobile
+        tooltip.addEventListener('touchstart', function(e) {
+            e.preventDefault(); // Prevent default touch behavior
+            
+            // Close any currently active tooltip
+            if (activeTooltip && activeTooltip !== this) {
+                activeTooltip.classList.remove('active');
+            }
+            
+            // Toggle the clicked tooltip
+            if (this.classList.contains('active')) {
+                this.classList.remove('active');
+                activeTooltip = null;
+            } else {
+                this.classList.add('active');
+                activeTooltip = this;
+            }
+        });
+        
+        // Handle click events as fallback
+        tooltip.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Close any currently active tooltip
+            if (activeTooltip && activeTooltip !== this) {
+                activeTooltip.classList.remove('active');
+            }
+            
+            // Toggle the clicked tooltip
+            if (this.classList.contains('active')) {
+                this.classList.remove('active');
+                activeTooltip = null;
+            } else {
+                this.classList.add('active');
+                activeTooltip = this;
+            }
+        });
+    });
+    
+    // Close tooltip when clicking outside
+    document.addEventListener('touchstart', function(e) {
+        if (activeTooltip && !activeTooltip.contains(e.target)) {
+            activeTooltip.classList.remove('active');
+            activeTooltip = null;
+        }
+    });
+    
+    // Close tooltip when clicking outside (fallback)
+    document.addEventListener('click', function(e) {
+        if (activeTooltip && !activeTooltip.contains(e.target)) {
+            activeTooltip.classList.remove('active');
+            activeTooltip = null;
+        }
+    });
+}
+
+// Initialize mobile tooltips when DOM is ready
+document.addEventListener('DOMContentLoaded', initializeMobileTooltips);
+
+// Re-initialize tooltips when dashboard is updated
+const originalUpdateStatistics = updateStatistics;
+updateStatistics = function(data) {
+    originalUpdateStatistics(data);
+    // Re-initialize tooltips after updating statistics
+    setTimeout(initializeMobileTooltips, 100);
+};
