@@ -5514,3 +5514,48 @@ updateStatistics = function(data) {
     // Re-initialize tooltips after updating statistics
     setTimeout(initializeMobileTooltips, 100);
 };
+
+// Force mobile font sizes in modals - fix for iPhone Safari font size issues
+function forceMobileFontSizes() {
+    if (window.innerWidth <= 768) {
+        // Force font sizes in transaction details modal
+        const modalTds = document.querySelectorAll('#transaction-details-table td, #transaction-details-table th');
+        modalTds.forEach(cell => {
+            cell.style.fontSize = 'var(--font-size-xs)';
+            cell.style.lineHeight = '1.4';
+        });
+        
+        // Force font sizes in changelog
+        const changelogElements = document.querySelectorAll('.changelog-table ul, .changelog-table li, .changelog-table td, .changelog-table th');
+        changelogElements.forEach(element => {
+            element.style.fontSize = 'var(--font-size-xs)';
+            element.style.lineHeight = '1.4';
+        });
+    }
+}
+
+// Apply font fixes when modals are opened
+const originalShowTransactionDetailsModal = showTransactionDetailsModal;
+if (typeof showTransactionDetailsModal === 'function') {
+    showTransactionDetailsModal = function(transactions, title, subtitle) {
+        originalShowTransactionDetailsModal(transactions, title, subtitle);
+        // Apply font fixes after modal content is rendered
+        setTimeout(forceMobileFontSizes, 50);
+        setTimeout(forceMobileFontSizes, 200); // Double check after potential reflows
+    };
+}
+
+const originalOpenAboutProjectModal = openAboutProjectModal;
+if (typeof openAboutProjectModal === 'function') {
+    openAboutProjectModal = function() {
+        originalOpenAboutProjectModal();
+        // Apply font fixes after modal content is rendered
+        setTimeout(forceMobileFontSizes, 50);
+        setTimeout(forceMobileFontSizes, 200);
+    };
+}
+
+// Also apply on window resize in case orientation changes
+window.addEventListener('resize', () => {
+    setTimeout(forceMobileFontSizes, 100);
+});

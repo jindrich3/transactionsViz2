@@ -4860,26 +4860,63 @@ body.modal-open {
     }
 }
 
-/* Mobile font size consistency fixes */
-@media (max-width: 768px) {
-    /* Make modal table cell font size consistent with headers */
-    #transaction-details-table td {
-        font-size: var(--font-size-xs);
+
+/* Mobile font size consistency fixes - with stronger specificity for iPhone Safari */
+@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+    /* Force consistent font sizes in modal tables - iPhone Safari specific */
+    .modal-overlay #transaction-details-table td,
+    .modal-overlay #transaction-details-table td * {
+        font-size: var(--font-size-xs) !important;
+        line-height: 1.4 !important;
     }
     
-    /* Make changelog bullet points consistent with table headers */
+    .modal-overlay #transaction-details-table th,
+    .modal-overlay #transaction-details-table th * {
+        font-size: var(--font-size-xs) !important;
+        line-height: 1.4 !important;
+    }
+    
+    /* Force consistent font sizes in changelog */
+    .modal-overlay .changelog-table ul,
+    .modal-overlay .changelog-table ul *,
+    .modal-overlay .changelog-table li,
+    .modal-overlay .changelog-table li * {
+        font-size: var(--font-size-xs) !important;
+        line-height: 1.4 !important;
+    }
+    
+    .modal-overlay .changelog-table .data-table td,
+    .modal-overlay .changelog-table .data-table td * {
+        font-size: var(--font-size-xs) !important;
+        line-height: 1.4 !important;
+    }
+    
+    .modal-overlay .changelog-table .data-table th,
+    .modal-overlay .changelog-table .data-table th * {
+        font-size: var(--font-size-xs) !important;
+        line-height: 1.4 !important;
+    }
+}
+
+/* Fallback for all mobile devices */
+@media (max-width: 768px) {
+    /* Modal table consistency */
+    #transaction-details-table td {
+        font-size: var(--font-size-xs) !important;
+    }
+    
+    #transaction-details-table th {
+        font-size: var(--font-size-xs) !important;
+    }
+    
+    /* Changelog consistency */
     .changelog-table ul,
     .changelog-table li {
-        font-size: var(--font-size-xs);
+        font-size: var(--font-size-xs) !important;
     }
     
-    /* Also ensure table headers stay consistent on mobile */
-    #transaction-details-table th {
-        font-size: var(--font-size-xs);
-    }
-    
-    /* Ensure changelog table data cells use same font size */
-    .changelog-table .data-table td {
-        font-size: var(--font-size-xs);
+    .changelog-table .data-table td,
+    .changelog-table .data-table th {
+        font-size: var(--font-size-xs) !important;
     }
 }
