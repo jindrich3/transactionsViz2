@@ -5004,6 +5004,10 @@ function renderTimelinePage() {
     const timelineHeader = document.createElement('div');
     timelineHeader.className = 'timeline-header';
     
+    // Create mobile controls wrapper (for mobile layout)
+    const mobileControlsWrapper = document.createElement('div');
+    mobileControlsWrapper.className = 'timeline-mobile-controls';
+    
     // Navigation controls (left side)
     const navControls = document.createElement('div');
     navControls.className = 'timeline-nav-controls';
@@ -5041,14 +5045,6 @@ function renderTimelinePage() {
     navControls.appendChild(navButtons);
     navControls.appendChild(pageCounter);
     
-    const pageInfo = document.createElement('div');
-    pageInfo.className = 'timeline-page-info';
-    pageInfo.innerHTML = `
-        <div class="timeline-period-label">${currentPageData.label}</div>
-    `;
-    
-    // Filter controls moved to navigation buttons
-    
     // Zoom controls (right side)
     const zoomControls = document.createElement('div');
     zoomControls.className = 'timeline-zoom-controls';
@@ -5075,14 +5071,26 @@ function renderTimelinePage() {
     
     const zoomInfo = document.createElement('div');
     zoomInfo.className = 'timeline-zoom-info';
-    zoomInfo.textContent = `${timelineState.monthsPerPage} ${timelineState.monthsPerPage === 1 ? 'měsíc' : timelineState.monthsPerPage <= 4 ? 'měsíce' : 'měsíců'}`;
+    zoomInfo.textContent = `${timelineState.monthsPerPage} měsíc${timelineState.monthsPerPage === 1 ? '' : timelineState.monthsPerPage < 5 ? 'e' : 'ů'}`;
     
     zoomControls.appendChild(zoomButtons);
     zoomControls.appendChild(zoomInfo);
     
-    timelineHeader.appendChild(navControls);
+    // Add controls to mobile wrapper
+    mobileControlsWrapper.appendChild(navControls);
+    mobileControlsWrapper.appendChild(zoomControls);
+    
+    const pageInfo = document.createElement('div');
+    pageInfo.className = 'timeline-page-info';
+    pageInfo.innerHTML = `
+        <div class="timeline-period-label">${currentPageData.label}</div>
+    `;
+    
+    // Add both mobile controls and page info to header
+    timelineHeader.appendChild(mobileControlsWrapper);
     timelineHeader.appendChild(pageInfo);
-    timelineHeader.appendChild(zoomControls);
+    
+    timelineWrapper.appendChild(timelineHeader);
     
     // Create timeline track
     const timelineTrack = document.createElement('div');
@@ -5140,7 +5148,6 @@ function renderTimelinePage() {
     });
     
     timelineTrack.appendChild(eventsContainer);
-    timelineWrapper.appendChild(timelineHeader);
     timelineWrapper.appendChild(timelineTrack);
     timelineContainer.appendChild(timelineWrapper);
     
@@ -5473,7 +5480,7 @@ window.debugTimeline = function() {
     } else {
         console.log('No filtered data available');
     }
-};
+}; 
 
 // Debug function for testing zoom
 window.debugTimelineZoom = function() {
@@ -5613,7 +5620,7 @@ function forceMobileFontSizes() {
         // Force font sizes in changelog
         const changelogElements = document.querySelectorAll('.changelog-table ul, .changelog-table li, .changelog-table td, .changelog-table th');
         changelogElements.forEach(element => {
-            element.style.setProperty('font-size', '12px', 'important');
+            element.style.setProperty('font-size', '16px', 'important');
             element.style.setProperty('line-height', '16px', 'important');
             element.style.setProperty('-webkit-text-size-adjust', 'none', 'important');
             element.style.setProperty('text-size-adjust', 'none', 'important');

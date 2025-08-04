@@ -3524,27 +3524,65 @@ body.modal-open {
         font-size: var(--font-size-xs);
     }
     
+    /* Mobile timeline header restructure */
     .timeline-header {
-        flex-wrap: wrap;
-        gap: var(--spacing-2);
-        justify-content: center;
+        flex-direction: column;
+        gap: var(--spacing-3);
+        align-items: stretch;
     }
     
-    .timeline-nav-controls, 
+    /* First row: Navigation buttons */
+    .timeline-mobile-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    
+    /* Left side: nav arrows + filter */
+    .timeline-nav-controls {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--spacing-2);
+    }
+    
+    /* Right side: zoom controls */
     .timeline-zoom-controls {
-        flex-basis: auto;
+        flex-direction: row;
+        align-items: center;
         gap: var(--spacing-2);
     }
     
-    .timeline-nav-buttons,
-    .timeline-zoom-buttons {
-        gap: var(--spacing-2);
+    /* Make all buttons same size */
+    .timeline-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: var(--font-size-sm);
     }
     
     .timeline-filter-btn {
         font-size: var(--font-size-xs);
-        padding: var(--spacing-1) var(--spacing-2);
-        height: 36px;
+        padding: var(--spacing-2) var(--spacing-3);
+        height: 40px;
+        margin-left: 0;
+        min-width: auto;
+    }
+    
+    /* Second row: Date info centered */
+    .timeline-page-info {
+        text-align: center;
+        margin: 0;
+        order: 2;
+    }
+    
+    /* Hide page counter from nav controls on mobile */
+    .timeline-nav-controls .timeline-page-counter {
+        display: none;
+    }
+    
+    /* Hide zoom info on mobile */
+    .timeline-zoom-info {
+        display: none;
     }
     
     .chart-card-enhanced-portfolio {
@@ -4751,16 +4789,19 @@ body.modal-open {
 
 .changelog-table td {
     vertical-align: top;
+    font-size: var(--font-size-base);
 }
 
 .changelog-table ul {
     margin: 0;
     padding-left: var(--spacing-4);
     color: var(--text-secondary);
+    font-size: var(--font-size-base);
 }
 
 .changelog-table li {
     margin-bottom: var(--spacing-1);
+    font-size: var(--font-size-base);
 }
 
 .changelog-table li:last-child {
@@ -4779,6 +4820,10 @@ body.modal-open {
     table-layout: fixed;
     box-sizing: border-box;
     border-collapse: collapse;
+}
+
+.changelog-table .data-table th {
+    font-size: var(--font-size-base);
 }
 
 /* Column widths */
@@ -4921,19 +4966,19 @@ body.modal-open {
     .modal-overlay .changelog-table ul *,
     .modal-overlay .changelog-table li,
     .modal-overlay .changelog-table li * {
-        font-size: var(--font-size-xs) !important;
+        font-size: var(--font-size-base) !important;
         line-height: 1.4 !important;
     }
     
     .modal-overlay .changelog-table .data-table td,
     .modal-overlay .changelog-table .data-table td * {
-        font-size: var(--font-size-xs) !important;
+        font-size: var(--font-size-base) !important;
         line-height: 1.4 !important;
     }
     
     .modal-overlay .changelog-table .data-table th,
     .modal-overlay .changelog-table .data-table th * {
-        font-size: var(--font-size-xs) !important;
+        font-size: var(--font-size-base) !important;
         line-height: 1.4 !important;
     }
     
@@ -4967,12 +5012,12 @@ body.modal-open {
     /* Changelog consistency */
     .changelog-table ul,
     .changelog-table li {
-        font-size: var(--font-size-xs) !important;
+        font-size: var(--font-size-base) !important;
     }
     
     .changelog-table .data-table td,
     .changelog-table .data-table th {
-        font-size: var(--font-size-xs) !important;
+        font-size: var(--font-size-base) !important;
     }
 }
 
@@ -5000,7 +5045,7 @@ body.modal-open {
     .changelog-table ul *,
     .changelog-table li,
     .changelog-table li * {
-        font-size: 12px !important;
+        font-size: 16px !important;
         line-height: 16px !important;
         -webkit-text-size-adjust: none !important;
         text-size-adjust: none !important;
