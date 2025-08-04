@@ -4936,6 +4936,21 @@ body.modal-open {
         font-size: var(--font-size-xs) !important;
         line-height: 1.4 !important;
     }
+    
+    /* Specifically target project name cells (second column) */
+    .modal-overlay #transaction-details-table td:nth-child(2),
+    .modal-overlay #transaction-details-table td:nth-child(2) *,
+    #transaction-details-table td:nth-child(2),
+    #transaction-details-table td:nth-child(2) * {
+        font-size: 12px !important;
+        line-height: 16px !important;
+        -webkit-text-size-adjust: none !important;
+        text-size-adjust: none !important;
+        max-width: 200px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
 }
 
 /* Fallback for all mobile devices */
@@ -4958,5 +4973,39 @@ body.modal-open {
     .changelog-table .data-table td,
     .changelog-table .data-table th {
         font-size: var(--font-size-xs) !important;
+    }
+}
+
+/* AGGRESSIVE iPhone Safari font size fix - prevent auto-zoom on modal table cells */
+@media (max-width: 768px) {
+    /* Target modal table cells with maximum specificity and absolute pixel values */
+    .modal-overlay #transaction-details-table td,
+    .modal-overlay #transaction-details-table td *,
+    .modal-overlay table td,
+    .modal-overlay table td *,
+    #transaction-details-modal td,
+    #transaction-details-modal td *,
+    #transaction-details-table td,
+    #transaction-details-table td *,
+    /* CHANGELOG ELEMENTS - aggressive targeting for bullet points */
+    .modal-overlay .changelog-table ul,
+    .modal-overlay .changelog-table ul *,
+    .modal-overlay .changelog-table li,
+    .modal-overlay .changelog-table li *,
+    #about-project-modal .changelog-table ul,
+    #about-project-modal .changelog-table ul *,
+    #about-project-modal .changelog-table li,
+    #about-project-modal .changelog-table li *,
+    .changelog-table ul,
+    .changelog-table ul *,
+    .changelog-table li,
+    .changelog-table li * {
+        font-size: 12px !important;
+        line-height: 16px !important;
+        -webkit-text-size-adjust: none !important;
+        text-size-adjust: none !important;
+        -webkit-transform: scale(1) !important;
+        transform: scale(1) !important;
+        zoom: 1 !important;
     }
 }

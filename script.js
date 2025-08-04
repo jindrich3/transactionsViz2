@@ -5548,33 +5548,120 @@ updateStatistics = function(data) {
     setTimeout(initializeMobileTooltips, 100);
 };
 
-// Force mobile font sizes in modals - fix for iPhone Safari font size issues
+// Enhanced mobile font size fix with MutationObserver
 function forceMobileFontSizes() {
     if (window.innerWidth <= 768) {
-        // Force font sizes in transaction details modal
-        const modalTds = document.querySelectorAll('#transaction-details-table td, #transaction-details-table th');
-        modalTds.forEach(cell => {
-            cell.style.fontSize = 'var(--font-size-xs)';
-            cell.style.lineHeight = '1.4';
+        // Force font sizes with absolute pixel values
+        const modalCells = document.querySelectorAll('#transaction-details-table td, #transaction-details-table th');
+        modalCells.forEach(cell => {
+            cell.style.setProperty('font-size', '12px', 'important');
+            cell.style.setProperty('line-height', '16px', 'important');
+            cell.style.setProperty('-webkit-text-size-adjust', 'none', 'important');
+            cell.style.setProperty('text-size-adjust', 'none', 'important');
+            cell.style.setProperty('zoom', '1', 'important');
+            
+            // Also apply to any child elements
+            const children = cell.querySelectorAll('*');
+            children.forEach(child => {
+                child.style.setProperty('font-size', '12px', 'important');
+                child.style.setProperty('line-height', '16px', 'important');
+                child.style.setProperty('-webkit-text-size-adjust', 'none', 'important');
+                child.style.setProperty('text-size-adjust', 'none', 'important');
+            });
         });
         
         // Force font sizes in changelog
         const changelogElements = document.querySelectorAll('.changelog-table ul, .changelog-table li, .changelog-table td, .changelog-table th');
         changelogElements.forEach(element => {
-            element.style.fontSize = 'var(--font-size-xs)';
-            element.style.lineHeight = '1.4';
+            element.style.setProperty('font-size', '12px', 'important');
+            element.style.setProperty('line-height', '16px', 'important');
+            element.style.setProperty('-webkit-text-size-adjust', 'none', 'important');
+            element.style.setProperty('text-size-adjust', 'none', 'important');
         });
     }
 }
 
-// Apply font fixes when modals are opened
+// MutationObserver to catch any font size changes and immediately revert them
+let modalObserver = null;
+
+function startModalFontObserver() {
+    if (window.innerWidth <= 768) {
+        const transactionModal = document.getElementById('transaction-details-modal');
+        const aboutModal = document.getElementById('about-project-modal');
+        
+        // Observe transaction details modal
+        if (transactionModal && !modalObserver) {
+            modalObserver = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && 
+                        (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
+                        // Re-apply font size fix immediately
+                        setTimeout(forceMobileFontSizes, 0);
+                    }
+                });
+            });
+            
+            modalObserver.observe(transactionModal, {
+                attributes: true,
+                subtree: true,
+                attributeFilter: ['style', 'class']
+            });
+        }
+        
+        // Also observe about project modal if it's open
+        if (aboutModal && aboutModal.style.display !== 'none') {
+            if (!modalObserver) {
+                modalObserver = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && 
+                            (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
+                            setTimeout(forceMobileFontSizes, 0);
+                        }
+                    });
+                });
+            }
+            
+            modalObserver.observe(aboutModal, {
+                attributes: true,
+                subtree: true,
+                attributeFilter: ['style', 'class']
+            });
+        }
+    }
+}
+
+function stopModalFontObserver() {
+    if (modalObserver) {
+        modalObserver.disconnect();
+        modalObserver = null;
+    }
+}
+
+// Enhanced modal function overrides with aggressive font fixing
 const originalShowTransactionDetailsModal = showTransactionDetailsModal;
 if (typeof showTransactionDetailsModal === 'function') {
-    showTransactionDetailsModal = function(transactions, title, subtitle) {
-        originalShowTransactionDetailsModal(transactions, title, subtitle);
-        // Apply font fixes after modal content is rendered
-        setTimeout(forceMobileFontSizes, 50);
-        setTimeout(forceMobileFontSizes, 200); // Double check after potential reflows
+    showTransactionDetailsModal = function(transactionType) {
+        originalShowTransactionDetailsModal(transactionType);
+        
+        // Apply multiple rounds of font fixes with increasing delays
+        setTimeout(forceMobileFontSizes, 0);      // Immediate
+        setTimeout(forceMobileFontSizes, 10);     // Very quick
+        setTimeout(forceMobileFontSizes, 50);     // Quick
+        setTimeout(forceMobileFontSizes, 100);    // Normal
+        setTimeout(forceMobileFontSizes, 200);    // Delayed
+        setTimeout(forceMobileFontSizes, 500);    // Late
+        
+        // Start the mutation observer
+        setTimeout(startModalFontObserver, 100);
+    };
+}
+
+// Enhanced close function to stop the observer
+const originalCloseTransactionDetailsModal = closeTransactionDetailsModal;
+if (typeof closeTransactionDetailsModal === 'function') {
+    closeTransactionDetailsModal = function() {
+        stopModalFontObserver();
+        originalCloseTransactionDetailsModal();
     };
 }
 
@@ -5582,9 +5669,16 @@ const originalOpenAboutProjectModal = openAboutProjectModal;
 if (typeof openAboutProjectModal === 'function') {
     openAboutProjectModal = function() {
         originalOpenAboutProjectModal();
-        // Apply font fixes after modal content is rendered
-        setTimeout(forceMobileFontSizes, 50);
-        setTimeout(forceMobileFontSizes, 200);
+        // Apply multiple rounds of font fixes for changelog bullet points
+        setTimeout(forceMobileFontSizes, 0);      // Immediate
+        setTimeout(forceMobileFontSizes, 10);     // Very quick
+        setTimeout(forceMobileFontSizes, 50);     // Quick
+        setTimeout(forceMobileFontSizes, 100);    // Normal
+        setTimeout(forceMobileFontSizes, 200);    // Delayed
+        setTimeout(forceMobileFontSizes, 500);    // Late
+        
+        // Start the mutation observer for about modal
+        setTimeout(startModalFontObserver, 100);
     };
 }
 
