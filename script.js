@@ -4841,28 +4841,46 @@ function debounce(func, wait) {
     };
 }
 
-// Header scroll behavior
+// Header scroll behavior - Mobile optimized
 function setupHeaderScrollBehavior() {
     let lastScrollY = window.scrollY;
     const header = document.querySelector('.dashboard-header');
     
     if (!header) return;
     
+    // Check if we're on mobile
+    const isMobile = window.innerWidth <= 768;
+    
+    // Use longer debounce on mobile to avoid erratic behavior
+    const debounceTime = isMobile ? 100 : 16;
+    
+    // Higher threshold on mobile
+    const scrollThreshold = isMobile ? 200 : 100;
+    
     const throttledScroll = debounce(() => {
         const currentScrollY = window.scrollY;
         
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-            // Scrolling down & past threshold
-            header.style.transform = 'translateY(-100%)';
+        // On mobile, be less aggressive about hiding header
+        if (isMobile) {
+            // Only hide header if scrolling down significantly and past threshold
+            if (currentScrollY > lastScrollY + 20 && currentScrollY > scrollThreshold) {
+                header.style.transform = 'translateY(-100%)';
+            } else if (currentScrollY < lastScrollY - 10 || currentScrollY <= scrollThreshold) {
+                header.style.transform = 'translateY(0)';
+            }
         } else {
-            // Scrolling up or at top
-            header.style.transform = 'translateY(0)';
+            // Desktop behavior (original logic)
+            if (currentScrollY > lastScrollY && currentScrollY > scrollThreshold) {
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                header.style.transform = 'translateY(0)';
+            }
         }
         
         lastScrollY = currentScrollY;
-    }, 10);
+    }, debounceTime);
     
-    window.addEventListener('scroll', throttledScroll);
+    window.addEventListener('scroll', throttledScroll, { passive: true });
 }
 
 // Timeline state
