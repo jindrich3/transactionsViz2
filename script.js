@@ -5443,6 +5443,35 @@ window.debugTimelineZoom = function() {
     console.log('Current page:', timelineState.currentPage);
 }; 
 // Mobile tooltip support
+function adjustTooltipPosition(tooltipContainer) {
+    const tooltipContent = tooltipContainer.querySelector('.tooltip-content');
+    if (!tooltipContent) return;
+    
+    // Get the container's position relative to the viewport
+    const containerRect = tooltipContainer.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    
+    // Reset any previous positioning classes
+    tooltipContent.classList.remove('tooltip-left', 'tooltip-right', 'tooltip-center');
+    
+    // Calculate where the tooltip would appear if centered
+    const tooltipWidth = 250; // min-width from CSS
+    const centeredLeft = containerRect.left + containerRect.width / 2 - tooltipWidth / 2;
+    const centeredRight = centeredLeft + tooltipWidth;
+    
+    // Check if tooltip would go off screen and adjust positioning
+    if (centeredLeft < 10) {
+        // Tooltip would go off left edge - align to left
+        tooltipContent.classList.add('tooltip-left');
+    } else if (centeredRight > viewportWidth - 10) {
+        // Tooltip would go off right edge - align to right
+        tooltipContent.classList.add('tooltip-right');
+    } else {
+        // Safe to center
+        tooltipContent.classList.add('tooltip-center');
+    }
+}
+
 function initializeMobileTooltips() {
     const tooltips = document.querySelectorAll('.info-tooltip');
     let activeTooltip = null;
@@ -5462,6 +5491,8 @@ function initializeMobileTooltips() {
                 this.classList.remove('active');
                 activeTooltip = null;
             } else {
+                // Adjust positioning before showing
+                adjustTooltipPosition(this);
                 this.classList.add('active');
                 activeTooltip = this;
             }
@@ -5481,6 +5512,8 @@ function initializeMobileTooltips() {
                 this.classList.remove('active');
                 activeTooltip = null;
             } else {
+                // Adjust positioning before showing
+                adjustTooltipPosition(this);
                 this.classList.add('active');
                 activeTooltip = this;
             }

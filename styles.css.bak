@@ -4852,46 +4852,6 @@ body.modal-open {
         box-sizing: border-box;
     }
     
-    /* Smart positioning to prevent off-screen tooltips */
-    .info-tooltip {
-        position: relative;
-    }
-    
-    /* For tooltips that would go off left edge - align to left */
-    .tooltip-content.tooltip-left {
-        left: 0;
-        transform: translateY(-5px);
-    }
-    
-    .tooltip-content.tooltip-left::after {
-        left: 20px;
-        margin-left: 0;
-    }
-    
-    /* For tooltips that would go off right edge - align to right */
-    .tooltip-content.tooltip-right {
-        right: 0;
-        left: auto;
-        transform: translateY(-5px);
-    }
-    
-    .tooltip-content.tooltip-right::after {
-        right: 20px;
-        left: auto;
-        margin-left: 0;
-    }
-    
-    /* For tooltips that can be safely centered */
-    .tooltip-content.tooltip-center {
-        left: 50%;
-        transform: translateX(-50%) translateY(-5px);
-    }
-    
-    .tooltip-content.tooltip-center::after {
-        left: 50%;
-        margin-left: -5px;
-    }
-    
     /* Add visual feedback for touch */
     .info-tooltip:active {
         color: var(--primary-color);
@@ -4900,63 +4860,26 @@ body.modal-open {
     }
 }
 
-
-/* Mobile font size consistency fixes - with stronger specificity for iPhone Safari */
-@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-    /* Force consistent font sizes in modal tables - iPhone Safari specific */
-    .modal-overlay #transaction-details-table td,
-    .modal-overlay #transaction-details-table td * {
-        font-size: var(--font-size-xs) !important;
-        line-height: 1.4 !important;
-    }
-    
-    .modal-overlay #transaction-details-table th,
-    .modal-overlay #transaction-details-table th * {
-        font-size: var(--font-size-xs) !important;
-        line-height: 1.4 !important;
-    }
-    
-    /* Force consistent font sizes in changelog */
-    .modal-overlay .changelog-table ul,
-    .modal-overlay .changelog-table ul *,
-    .modal-overlay .changelog-table li,
-    .modal-overlay .changelog-table li * {
-        font-size: var(--font-size-xs) !important;
-        line-height: 1.4 !important;
-    }
-    
-    .modal-overlay .changelog-table .data-table td,
-    .modal-overlay .changelog-table .data-table td * {
-        font-size: var(--font-size-xs) !important;
-        line-height: 1.4 !important;
-    }
-    
-    .modal-overlay .changelog-table .data-table th,
-    .modal-overlay .changelog-table .data-table th * {
-        font-size: var(--font-size-xs) !important;
-        line-height: 1.4 !important;
-    }
-}
-
-/* Fallback for all mobile devices */
+/* Mobile font size consistency fixes */
 @media (max-width: 768px) {
-    /* Modal table consistency */
+    /* Make modal table cell font size consistent with headers */
     #transaction-details-table td {
-        font-size: var(--font-size-xs) !important;
+        font-size: var(--font-size-xs);
     }
     
-    #transaction-details-table th {
-        font-size: var(--font-size-xs) !important;
-    }
-    
-    /* Changelog consistency */
+    /* Make changelog bullet points consistent with table headers */
     .changelog-table ul,
     .changelog-table li {
-        font-size: var(--font-size-xs) !important;
+        font-size: var(--font-size-xs);
     }
     
-    .changelog-table .data-table td,
-    .changelog-table .data-table th {
-        font-size: var(--font-size-xs) !important;
+    /* Also ensure table headers stay consistent on mobile */
+    #transaction-details-table th {
+        font-size: var(--font-size-xs);
+    }
+    
+    /* Ensure changelog table data cells use same font size */
+    .changelog-table .data-table td {
+        font-size: var(--font-size-xs);
     }
 }
