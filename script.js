@@ -3152,12 +3152,50 @@ function createProjectTypeChart() {
     }
     const ctx = canvas.getContext('2d');
     
-    // Calculate net investment by project type using the specified formula:
-    // Autoinvestice + Investice - Prodej - Částečné splacení jistiny - Odstoupení - Vrácení peněz
+    // STEP 1: Calculate project exposures to filter for active projects only
+    // (Same logic as createPortfolioExposureChart)
+    const projectExposures = {};
+    
+    csvData.forEach(row => {
+        if (!row.projekt || row.projekt.trim() === '') return;
+        
+        if (!projectExposures[row.projekt]) {
+            projectExposures[row.projekt] = 0;
+        }
+        
+        const rawAmount = row.castka; // Original signed value
+        const type = row.typ;
+        
+        // Use raw signed values for proper exposure calculation
+        if (type === 'Investice do příležitosti' || type === 'Autoinvestice' || type === 'Investice') {
+            projectExposures[row.projekt] -= rawAmount; // Subtract negative = add positive
+        }
+        // Subtract returns and withdrawals (positive values)
+        else if (type === 'Odstoupení' || type === 'Splacení jistiny' || 
+                 type === 'Vrácení peněz' || type === 'Částečné splacení jistiny' || type === 'Prodej') {
+            projectExposures[row.projekt] -= rawAmount; // Subtract positive values
+        }
+    });
+    
+    // Apply rounding to avoid floating point precision issues
+    Object.entries(projectExposures).forEach(([project, exposure]) => {
+        const roundedExposure = Math.round(exposure * 100) / 100;
+        projectExposures[project] = roundedExposure;
+    });
+    
+    // Get only active projects (exposure > 0)
+    const activeProjects = Object.entries(projectExposures)
+        .filter(([projectName, exposure]) => exposure > 0)
+        .map(([projectName, exposure]) => projectName);
+    
+    console.log("DEBUG: Project Type Chart - Active Projects:", activeProjects);
+    
+    // STEP 2: Calculate net investment by project type for ACTIVE PROJECTS ONLY
     const projectTypeData = {};
     
     csvData.forEach(row => {
-        if (!row.typ_projektu) return;
+        // Only process rows for ACTIVE projects
+        if (!row.typ_projektu || !row.projekt || !activeProjects.includes(row.projekt)) return;
         
         if (!projectTypeData[row.typ_projektu]) {
             projectTypeData[row.typ_projektu] = 0;
@@ -3181,12 +3219,14 @@ function createProjectTypeChart() {
         .filter(([, value]) => value > 0)
         .sort(([, a], [, b]) => b - a);
     
+    console.log("DEBUG: Project Type Chart - Valid Project Types:", validProjectTypes);
+    
     if (validProjectTypes.length === 0) {
         // Show empty state
         ctx.canvas.parentElement.innerHTML = createChartEmptyState(
             'fas fa-chart-pie',
             'Žádná data pro zobrazení',
-            'Nebyly nalezeny žádné projekty s daty pro graf'
+            'Nebyly nalezeny žádné aktivní projekty s daty pro graf'
         );
         return;
     }
@@ -3198,7 +3238,7 @@ function createProjectTypeChart() {
         // Show Crowdfunding empty state
         ctx.canvas.parentElement.innerHTML = createChartEmptyState(
             'fas fa-users',
-            'Všechny vaše projekty jsou typu Crowdfunding',
+            'Všechny vaše aktivní projekty jsou typu Crowdfunding',
             ''
         );
         return;
